@@ -1,0 +1,77 @@
+-- Recreate the tables
+DROP TABLE IF EXISTS edges;
+DROP TABLE IF EXISTS nodes;
+
+CREATE TABLE nodes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL
+);
+
+CREATE TABLE edges (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    fromNode INTEGER NOT NULL,
+    toNode INTEGER NOT NULL,
+    relationType TEXT CHECK(relationType IN ('Who', 'What', 'When', 'Where', 'How')) NOT NULL,
+    FOREIGN KEY (fromNode) REFERENCES nodes(id),
+    FOREIGN KEY (toNode) REFERENCES nodes(id)
+);
+
+-- Insert People
+INSERT INTO nodes (name, type) VALUES ('John', 'Person');
+INSERT INTO nodes (name, type) VALUES ('Alice', 'Person');
+INSERT INTO nodes (name, type) VALUES ('Bob', 'Person');
+INSERT INTO nodes (name, type) VALUES ('Visited Museum', 'Activity');
+INSERT INTO nodes (name, type) VALUES ('Watched Movie', 'Activity');
+INSERT INTO nodes (name, type) VALUES ('Attended Concert', 'Activity');
+INSERT INTO nodes (name, type) VALUES ('2025-06-01', 'Time');
+INSERT INTO nodes (name, type) VALUES ('2025-06-02', 'Time');
+INSERT INTO nodes (name, type) VALUES ('2025-06-03', 'Time');
+INSERT INTO nodes (name, type) VALUES ('New York', 'Location');
+INSERT INTO nodes (name, type) VALUES ('Tokyo', 'Location');
+INSERT INTO nodes (name, type) VALUES ('London', 'Location');
+INSERT INTO nodes (name, type) VALUES ('Smartphone', 'Device');
+INSERT INTO nodes (name, type) VALUES ('Laptop', 'Device');
+INSERT INTO nodes (name, type) VALUES ('Smartwatch', 'Device');
+
+-- Helpers to insert edges
+-- John → Visited Museum
+INSERT INTO edges VALUES (NULL,
+  (SELECT id FROM nodes WHERE name='John'),
+  (SELECT id FROM nodes WHERE name='Visited Museum'), 'Who');
+INSERT INTO edges VALUES (NULL,
+  (SELECT id FROM nodes WHERE name='Alice'),
+  (SELECT id FROM nodes WHERE name='Visited Museum'), 'Who');
+INSERT INTO edges VALUES (NULL,
+  (SELECT id FROM nodes WHERE name='Bob'),
+  (SELECT id FROM nodes WHERE name='Watched Movie'), 'Who');
+INSERT INTO edges VALUES (NULL,
+  (SELECT id FROM nodes WHERE name='Alice'),
+  (SELECT id FROM nodes WHERE name='Watched Movie'), 'Who');
+INSERT INTO edges VALUES (NULL,
+  (SELECT id FROM nodes WHERE name='John'),
+  (SELECT id FROM nodes WHERE name='Attended Concert'), 'Who');
+
+INSERT INTO edges VALUES (NULL, (SELECT id FROM nodes WHERE name='Visited Museum'), (SELECT id FROM nodes WHERE name='2025-06-01'), 'When');
+INSERT INTO edges VALUES (NULL, (SELECT id FROM nodes WHERE name='Watched Movie'), (SELECT id FROM nodes WHERE name='2025-06-02'), 'When');
+INSERT INTO edges VALUES (NULL, (SELECT id FROM nodes WHERE name='Attended Concert'), (SELECT id FROM nodes WHERE name='2025-06-03'), 'When');
+
+INSERT INTO edges VALUES (NULL, (SELECT id FROM nodes WHERE name='Visited Museum'), (SELECT id FROM nodes WHERE name='New York'), 'Where');
+INSERT INTO edges VALUES (NULL, (SELECT id FROM nodes WHERE name='Watched Movie'), (SELECT id FROM nodes WHERE name='Tokyo'), 'Where');
+INSERT INTO edges VALUES (NULL, (SELECT id FROM nodes WHERE name='Attended Concert'), (SELECT id FROM nodes WHERE name='London'), 'Where');
+
+INSERT INTO edges VALUES (NULL, (SELECT id FROM nodes WHERE name='Visited Museum'), (SELECT id FROM nodes WHERE name='Smartphone'), 'How');
+INSERT INTO edges VALUES (NULL, (SELECT id FROM nodes WHERE name='Watched Movie'), (SELECT id FROM nodes WHERE name='Laptop'), 'How');
+INSERT INTO edges VALUES (NULL, (SELECT id FROM nodes WHERE name='Attended Concert'), (SELECT id FROM nodes WHERE name='Smartwatch'), 'How');
+
+INSERT INTO edges VALUES (NULL,
+  (SELECT id FROM nodes WHERE name='Alice'),
+  (SELECT id FROM nodes WHERE name='Attended Concert'), 'Who');
+
+-- Optional Query: View All Relations
+SELECT
+  n1.name || ' --[' || e.relation_type || ']--> ' || n2.name AS relation
+FROM edges e
+JOIN nodes n1 ON e.from_node = n1.id
+JOIN nodes n2 ON e.to_node = n2.id
+ORDER BY e.id;
