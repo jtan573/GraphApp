@@ -58,7 +58,7 @@ fun GraphRelations(viewModel: GraphViewModel) {
             Text(
                 text = "Graph here...",
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(top=64.dp, bottom=8.dp)
                     .align(Alignment.CenterHorizontally)
             )
 
@@ -70,6 +70,8 @@ fun GraphRelations(viewModel: GraphViewModel) {
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
                         this.settings.javaScriptEnabled = true
+                        this.isHorizontalScrollBarEnabled = true
+                        this.isVerticalScrollBarEnabled = true
                         this.webViewClient = object : WebViewClient() {
                             override fun onPageFinished(view: WebView?, url: String?) {
                                 evaluateJavascript("loadGraph(${JSONObject.quote(graphJson)});") { result ->
