@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.example.graphapp.ui.screens.GraphViewScreen
 import com.example.graphapp.ui.theme.GraphAppTheme
 import com.example.graphapp.ui.viewmodels.GraphViewModel
 import org.json.JSONObject
@@ -40,61 +41,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             GraphAppTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    GraphRelations(viewModel)
+                    GraphViewScreen(viewModel)
                 }
             }
         }
     }
 }
 
-@Composable
-fun GraphRelations(viewModel: GraphViewModel) {
-    val context = LocalContext.current
-    val graphJson by viewModel.graphData.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        if (graphJson != null) {
-            Log.d("GraphViewModel", "Generated JSON: $graphJson")
-            Text(
-                text = "Graph here...",
-                modifier = Modifier
-                    .padding(top=64.dp, bottom=8.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
-
-            AndroidView(
-                factory = {
-                    WebView(it).apply {
-                        this.layoutParams = ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        this.settings.javaScriptEnabled = true
-                        this.isHorizontalScrollBarEnabled = true
-                        this.isVerticalScrollBarEnabled = true
-                        this.webViewClient = object : WebViewClient() {
-                            override fun onPageFinished(view: WebView?, url: String?) {
-                                evaluateJavascript("loadGraph(${JSONObject.quote(graphJson)});") { result ->
-                                    Log.d("GraphRelations", "JavaScript executed: $result")
-                                }
-                            }
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                update = {
-                    it.loadUrl("file:///android_asset/graph.html")
-                }
-            )
-        } else {
-            Text(
-                text = "Loading graph...",
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
-        }
-    }
-}
