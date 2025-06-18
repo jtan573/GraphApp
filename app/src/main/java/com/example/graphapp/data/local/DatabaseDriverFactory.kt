@@ -6,5 +6,13 @@ import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.graphdb.GraphDatabase
 
 fun createDriver(context: Context): SqlDriver {
-    return AndroidSqliteDriver(GraphDatabase.Schema, context, "graph_database.db")
+    val dbName = "graph_database.db"
+    val dbPath = context.getDatabasePath(dbName)
+
+    // Delete the database file on every app start
+    if (dbPath.exists()) {
+        dbPath.delete()
+    }
+
+    return AndroidSqliteDriver(GraphDatabase.Schema, context, dbName)
 }
