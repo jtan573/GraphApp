@@ -1,23 +1,16 @@
 package com.example.graphapp.ui.viewmodels
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.graphapp.data.GraphRepository
-import com.example.graphdb.EdgesTable
-import com.example.graphdb.NodesTable
+import com.example.graphdb.Edge
+import com.example.graphdb.Node
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.json.JSONArray
 
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -36,7 +29,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun convertToJson(nodes: List<NodesTable>, edges: List<EdgesTable>): String {
+    private fun convertToJson(nodes: List<Node>, edges: List<Edge>): String {
         val gson = Gson()
         val nodeList = nodes.map { mapOf("id" to it.name) }
         val edgeList = edges.map { edge ->

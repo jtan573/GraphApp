@@ -2,19 +2,19 @@ package com.example.graphapp.data
 
 import android.content.Context
 import com.example.graphapp.data.local.createDriver
-import com.example.graphdb.EdgesTable
+import com.example.graphdb.Edge
 import com.example.graphdb.GraphDatabase
-import com.example.graphdb.NodesTable
+import com.example.graphdb.Node
 
 class GraphRepository (context: Context) {
     private val database = GraphDatabase(createDriver(context))
     private val queries = database.graphDatabaseQueries
 
-    fun getAllNodes(): List<NodesTable> {
+    fun getAllNodes(): List<Node> {
         return queries.selectAllNodes().executeAsList()
     }
 
-    fun getAllEdges(): List<EdgesTable> {
+    fun getAllEdges(): List<Edge> {
         return queries.selectAllEdges().executeAsList()
     }
 
