@@ -31,7 +31,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun convertToJson(nodes: List<Node>, edges: List<Edge>): String {
         val gson = Gson()
-        val nodeList = nodes.map { mapOf("id" to it.name) }
+        val nodeList = nodes.map { mapOf("id" to it.name, "type" to it.type) }
         val edgeList = edges.map { edge ->
             val source = nodes.find { it.id == edge.fromNode }?.name
             val target = nodes.find { it.id == edge.toNode }?.name
