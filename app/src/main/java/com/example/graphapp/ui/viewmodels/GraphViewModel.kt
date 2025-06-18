@@ -6,9 +6,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.graphapp.data.local.Edge
-import com.example.graphapp.data.local.GraphDatabase
-import com.example.graphapp.data.local.Node
+import com.example.graphapp.data.GraphRepository
+import com.example.graphdb.EdgesTable
+import com.example.graphdb.NodesTable
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -20,25 +20,23 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
-    private val db = GraphDatabase.getDatabase(application)
 
-    val relations: Flow<List<String>> = db.graphDao().getRelations()
-
-    private val dao = db.graphDao()
+    private val repository = GraphRepository(application)
 
     private val _graphData = MutableStateFlow<String?>(null)
     val graphData: StateFlow<String?> = _graphData
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            val nodes = dao.getAllNodes()
-            val edges = dao.getAllEdges()
+            repository.initialiseDatabase()
+            val nodes = repository.getAllNodes()
+            val edges = repository.getAllEdges()
             val json = convertToJson(nodes, edges)
             _graphData.value = json
         }
     }
 
-    private fun convertToJson(nodes: List<Node>, edges: List<Edge>): String {
+    private fun convertToJson(nodes: List<NodesTable>, edges: List<EdgesTable>): String {
         val gson = Gson()
         val nodeList = nodes.map { mapOf("id" to it.name) }
         val edgeList = edges.map { edge ->

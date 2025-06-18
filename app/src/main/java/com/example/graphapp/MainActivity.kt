@@ -30,11 +30,13 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.example.graphapp.ui.screens.GraphViewScreen
 import com.example.graphapp.ui.theme.GraphAppTheme
 import com.example.graphapp.ui.viewmodels.GraphViewModel
+import com.example.graphapp.ui.viewmodels.GraphViewModelFactory
 import org.json.JSONObject
 
-
 class MainActivity : ComponentActivity() {
-    private val viewModel: GraphViewModel by viewModels()
+    private val viewModel: GraphViewModel by viewModels() {
+        GraphViewModelFactory(application)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

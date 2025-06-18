@@ -1,0 +1,35 @@
+CREATE TABLE edgesTable (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    fromNode INTEGER NOT NULL,
+    toNode INTEGER NOT NULL,
+    relationType TEXT CHECK(relationType IN ('Who', 'What', 'When', 'Where', 'How')) NOT NULL,
+    FOREIGN KEY (fromNode) REFERENCES nodesTable(id),
+    FOREIGN KEY (toNode) REFERENCES nodesTable(id)
+);
+
+CREATE TABLE nodesTable (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL
+);
+
+selectAllNodes:
+SELECT * FROM nodesTable;
+
+insertNode:
+INSERT INTO nodesTable(name, type) VALUES (?,?);
+
+findNodeByName:
+SELECT id FROM nodesTable WHERE name = ?;
+
+selectAllEdges:
+SELECT * FROM edgesTable;
+
+insertEdge:
+INSERT INTO edgesTable(fromNode, toNode, relationType) VALUES (?,?, ?);
+
+getRelation:
+SELECT n1.name || ' --[' || e.relationType || ']--> ' || n2.name AS relation
+FROM edgesTable e
+JOIN nodesTable n1 ON e.fromNode = n1.id
+JOIN nodesTable n2 ON e.toNode = n2.id;

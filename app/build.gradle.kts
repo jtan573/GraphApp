@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.sqldelightPlugin)
     id("com.google.devtools.ksp")
     id("androidx.room")
 }
@@ -46,7 +48,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -73,4 +74,16 @@ dependencies {
     implementation(libs.androidx.room.paging)
     implementation(libs.gson)
     implementation(libs.androidx.webkit)
+    implementation(libs.ktor.client.android)
+    implementation(libs.android.driver)
+    implementation(libs.coroutines.extensions)
+}
+
+sqldelight {
+    databases {
+        create("GraphDatabase") {
+            packageName.set("com.example.graphdb")
+            schemaOutputDirectory.set(file("src/main/sqldelight"))
+        }
+    }
 }
