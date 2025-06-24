@@ -29,6 +29,20 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun insertOneNode(name: String, nodeType: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.insertNode(name, nodeType)
+            reloadGraphData()
+        }
+    }
+
+    fun insertOneEdge(fromNode: String, toNode: String, relationType: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.insertEdge(fromNode, toNode, relationType)
+            reloadGraphData()
+        }
+    }
+
     private fun convertToJson(nodes: List<Node>, edges: List<Edge>): String {
         val gson = Gson()
         val nodeList = nodes.map { mapOf("id" to it.name, "type" to it.type) }
@@ -42,4 +56,10 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return gson.toJson(json)
     }
 
+    private fun reloadGraphData() {
+        val nodes = repository.getAllNodes()
+        val edges = repository.getAllEdges()
+        val json = convertToJson(nodes, edges)
+        _graphData.value = json
+    }
 }

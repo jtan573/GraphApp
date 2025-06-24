@@ -18,8 +18,16 @@ class GraphRepository (context: Context) {
         return queries.selectAllEdges().executeAsList()
     }
 
-    fun getAllRelations(): List<String> {
-        return queries.getRelation().executeAsList()
+    fun insertNode(name: String, nodeType: String) {
+        queries.insertNode(name, nodeType)
+    }
+
+    fun insertEdge(fromNode: String, toNode: String, relationType: String) {
+        queries.insertEdge(
+            queries.findNodeByName(fromNode).executeAsOne(),
+            queries.findNodeByName(toNode).executeAsOne(),
+            relationType
+        )
     }
 
     fun initialiseDatabase() {
