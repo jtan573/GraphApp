@@ -8,14 +8,17 @@ CREATE TABLE edge (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     fromNode INTEGER NOT NULL,
     toNode INTEGER NOT NULL,
-    relationType TEXT CHECK(relationType IN ('Who', 'What', 'When', 'Where', 'How')) NOT NULL,
+    relationType TEXT CHECK(relationType IN ('Who', 'What', 'When', 'Where', 'How', 'Why')) NOT NULL,
     FOREIGN KEY (fromNode) REFERENCES node(id),
     FOREIGN KEY (toNode) REFERENCES node(id)
 );
 
-
+-- Node Functions --
 selectAllNodes:
 SELECT * FROM node;
+
+getNodeTypes:
+SELECT DISTINCT type FROM node;
 
 insertNode:
 INSERT INTO node(name, type) VALUES (?,?);
@@ -23,12 +26,17 @@ INSERT INTO node(name, type) VALUES (?,?);
 findNodeByName:
 SELECT id FROM node WHERE name = ?;
 
+-- Edge Functions --
 selectAllEdges:
 SELECT * FROM edge;
+
+getEdgeTypes:
+SELECT DISTINCT relationType FROM edge;
 
 insertEdge:
 INSERT INTO edge(fromNode, toNode, relationType) VALUES (?,?, ?);
 
+-- General Functions --
 getRelation:
 SELECT n1.name || ' --[' || e.relationType || ']--> ' || n2.name AS relation
 FROM edge e

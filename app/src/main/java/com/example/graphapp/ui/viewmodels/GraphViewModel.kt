@@ -1,9 +1,13 @@
 package com.example.graphapp.ui.viewmodels
 
 import android.app.Application
+import android.media.metrics.Event
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.graphapp.data.GraphRepository
+import com.example.graphapp.data.classes.EventInput
+import com.example.graphapp.data.classes.GraphSchema
 import com.example.graphdb.Edge
 import com.example.graphdb.Node
 import com.google.gson.Gson
@@ -11,13 +15,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.text.isNotBlank
 
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = GraphRepository(application)
-
     private val _graphData = MutableStateFlow<String?>(null)
     val graphData: StateFlow<String?> = _graphData
+
+    val relationshipRules = GraphSchema.relationshipRules
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -29,18 +35,12 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun insertOneNode(name: String, nodeType: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.insertNode(name, nodeType)
-            reloadGraphData()
-        }
+    fun getNodeTypes(): List<String> {
+        return repository.getNodeTypes()
     }
 
-    fun insertOneEdge(fromNode: String, toNode: String, relationType: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.insertEdge(fromNode, toNode, relationType)
-            reloadGraphData()
-        }
+    fun getEdgeTypes(): List<String> {
+        return repository.getEdgeTypes()
     }
 
     private fun convertToJson(nodes: List<Node>, edges: List<Edge>): String {
@@ -61,5 +61,25 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         val edges = repository.getAllEdges()
         val json = convertToJson(nodes, edges)
         _graphData.value = json
+    }
+
+    fun createEvent(map: Map<String, String>) {
+        val normalizedMap = map.filterValues { it.isNotBlank() }
+        for ((type, value) in normalizedMap) {
+            repository.insertNode(value, type)
+        }
+
+        for ((type1, value1) in normalizedMap) {
+            for ((type2, value2) in normalizedMap) {
+                if (type1 != type2) {
+                    val edgeType = relationshipRules["$type1-$type2"]
+                    if (edgeType != null) {
+                        repository.insertEdge(fromNode = value1, toNode = value2, relationType = edgeType)
+                    }
+                }
+            }
+        }
+        reloadGraphData()
+        Log.d("createEvent", "Event creation complete.")
     }
 }
