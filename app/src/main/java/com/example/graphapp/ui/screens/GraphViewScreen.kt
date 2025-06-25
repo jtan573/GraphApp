@@ -30,7 +30,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.example.graphapp.data.classes.EventInput
 import com.example.graphapp.ui.viewmodels.GraphViewModel
 import org.json.JSONObject
 

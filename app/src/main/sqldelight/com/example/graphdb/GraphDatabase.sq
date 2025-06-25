@@ -23,8 +23,11 @@ SELECT DISTINCT type FROM node;
 insertNode:
 INSERT INTO node(name, type) VALUES (?,?);
 
-findNodeByName:
-SELECT id FROM node WHERE name = ?;
+checkDuplicateNode:
+SELECT COUNT(*) FROM node WHERE name = ? AND type = ?;
+
+findNodeByNameAndType:
+SELECT id FROM node WHERE name = ? AND type = ?;
 
 -- Edge Functions --
 selectAllEdges:
@@ -35,6 +38,9 @@ SELECT DISTINCT relationType FROM edge;
 
 insertEdge:
 INSERT INTO edge(fromNode, toNode, relationType) VALUES (?,?, ?);
+
+checkDuplicateEdge:
+SELECT COUNT(*) FROM edge WHERE fromNode = ? AND toNode = ? AND relationType = ?;
 
 -- General Functions --
 getRelation:
