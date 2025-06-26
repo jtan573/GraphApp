@@ -41,8 +41,8 @@ class GraphRepository (context: Context) {
         }
     }
 
-    fun findNodeById(id: Long): Pair<String, String>? {
-        return queries.findNodeById(id).executeAsOneOrNull()?.let { it.name to it.type }
+    fun findNodeById(id: Long): Node? {
+        return queries.findNodeById(id).executeAsOneOrNull()
     }
 
     fun findNodeByNameAndType(name: String, type: String): Long {
@@ -65,8 +65,8 @@ class GraphRepository (context: Context) {
         return queries.findFromNodeByToNode(id).executeAsList()
     }
 
-    fun getEdgesAroundNode(id: Long): List<Edge> {
-        return queries.getEdgesAroundNode(id, id).executeAsList()
+    fun getEdgeBetweenNodes(id1: Long, id2: Long): List<Edge> {
+        return queries.getEdgeBetweenNodes(id1, id2, id1, id2).executeAsList()
     }
 
     fun initialiseDatabase() {

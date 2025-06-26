@@ -27,7 +27,7 @@ checkDuplicateNode:
 SELECT COUNT(*) FROM node WHERE name = ? AND type = ?;
 
 findNodeById:
-SELECT name, type FROM node WHERE id = ?;
+SELECT * FROM node WHERE id = ?;
 
 findNodeByNameAndType:
 SELECT id FROM node WHERE name = ? AND type = ?;
@@ -59,8 +59,8 @@ SELECT COUNT(*) FROM edge WHERE fromNode = ? AND toNode = ? AND relationType = ?
 findFromNodeByToNode:
 SELECT fromNode FROM edge WHERE toNode = ?;
 
-getEdgesAroundNode:
-SELECT * FROM edge WHERE fromNode = ? OR toNode = ?;
+getEdgeBetweenNodes:
+SELECT * FROM edge WHERE (fromNode = ? AND toNode = ?) OR (toNode = ? AND fromNode = ?);
 
 -- General Functions --
 getRelation:

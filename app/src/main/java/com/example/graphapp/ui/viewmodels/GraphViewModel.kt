@@ -118,7 +118,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         for (nodeId in topPredictions) {
             val nodeA = repository.findNodeById(nodeId)
             if (nodeA != null) {
-                Log.d("Prediction", "Predicted: ${nodeA.first}, ${nodeA.second}")
+                Log.d("Prediction", "Predicted: ${nodeA.name}, ${nodeA.type}")
             }
         }
 
@@ -130,14 +130,12 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         val neighborEdges = mutableListOf<Edge>()
         for (id in neighbors) {
             val nodes = repository.getNeighborsOfNodeById(id)
-            neighborNodes.addAll(nodes)
-        }
-        for (node in neighborNodes) {
-            if (node.type in propertyNodes) {
-                val edges = repository.getEdgesAroundNode(node.id)
-                Log.d("Check", "neighborEdges: $edges")
-                neighborEdges.addAll(edges)
+            for (nextId in nodes) {
+                val edges = repository.getEdgeBetweenNodes(id, nextId.id)
+                neighborEdges.addAll(edges.filter { it !in neighborEdges })
             }
+            neighborNodes.addAll(nodes.filter { it !in neighborNodes })
+            repository.findNodeById(id)?.let { neighborNodes.add(it) }
         }
         val json = convertToJson(neighborNodes, neighborEdges)
         _filteredGraphData.value = json

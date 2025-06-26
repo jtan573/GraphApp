@@ -59,10 +59,10 @@ fun EventScreen(
 
     Column(
         modifier = Modifier.fillMaxSize()
-            .padding(horizontal = 16.dp),
     ) {
         Row (
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -98,7 +98,7 @@ fun EventScreen(
         }
 
         if (events.isEmpty()) {
-            Text("No events added.", modifier = Modifier.padding(4.dp))
+            Text("No events added.", modifier = Modifier.padding(16.dp))
         } else {
             LazyColumn {
                 items(events) { event ->
