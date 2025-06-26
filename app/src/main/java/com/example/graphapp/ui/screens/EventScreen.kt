@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -34,14 +36,16 @@ import androidx.navigation.NavHostController
 import com.example.graphapp.ui.components.EventForm
 import com.example.graphapp.ui.components.GraphWebView
 import com.example.graphapp.ui.viewmodels.GraphViewModel
+import io.ktor.websocket.Frame.Text
 import org.json.JSONObject
+import kotlin.collections.set
 
 @Composable
-fun GraphViewScreen(
+fun EventScreen(
     viewModel: GraphViewModel,
     navController: NavHostController
 ) {
-    val graphJson by viewModel.graphData.collectAsState()
+    val filteredGraphData by viewModel.filteredGraphData.collectAsState()
     var showForm by remember { mutableStateOf(false) }
 
     val fieldKeys = viewModel.getNodeTypes()
@@ -51,18 +55,19 @@ fun GraphViewScreen(
         }
     }
 
+    val events by viewModel.createdEvents.collectAsState()
+
     Column(
         modifier = Modifier.fillMaxSize()
+            .padding(horizontal = 16.dp),
     ) {
         Row (
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "GraphApp",
+                text = "Events",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top=64.dp, bottom=8.dp),
@@ -92,8 +97,18 @@ fun GraphViewScreen(
             )
         }
 
-        if (graphJson != null) {
-            GraphWebView(graphJson = graphJson, modifier = Modifier
+        if (events.isEmpty()) {
+            Text("No events added.", modifier = Modifier.padding(4.dp))
+        } else {
+            LazyColumn {
+                items(events) { event ->
+                    Text("Event: ${event.fields}", modifier = Modifier.padding(4.dp))
+                }
+            }
+        }
+
+        if (filteredGraphData != null) {
+            GraphWebView(graphJson = filteredGraphData, modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
             )

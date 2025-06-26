@@ -26,8 +26,22 @@ INSERT INTO node(name, type) VALUES (?,?);
 checkDuplicateNode:
 SELECT COUNT(*) FROM node WHERE name = ? AND type = ?;
 
+findNodeById:
+SELECT name, type FROM node WHERE id = ?;
+
 findNodeByNameAndType:
 SELECT id FROM node WHERE name = ? AND type = ?;
+
+getNeighborsOfNodeById:
+SELECT n.*
+FROM edge e
+JOIN node n ON n.id =
+    CASE
+        WHEN e.fromNode = ? THEN e.toNode
+        WHEN e.toNode = ? THEN e.fromNode
+    END
+WHERE e.fromNode = ? OR e.toNode = ?;
+
 
 -- Edge Functions --
 selectAllEdges:
@@ -41,6 +55,12 @@ INSERT INTO edge(fromNode, toNode, relationType) VALUES (?,?, ?);
 
 checkDuplicateEdge:
 SELECT COUNT(*) FROM edge WHERE fromNode = ? AND toNode = ? AND relationType = ?;
+
+findFromNodeByToNode:
+SELECT fromNode FROM edge WHERE toNode = ?;
+
+getEdgesAroundNode:
+SELECT * FROM edge WHERE fromNode = ? OR toNode = ?;
 
 -- General Functions --
 getRelation:

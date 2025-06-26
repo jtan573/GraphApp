@@ -1,7 +1,6 @@
 package com.example.graphapp.data
 
 import android.content.Context
-import android.util.Log
 import com.example.graphapp.data.local.createDriver
 import com.example.graphdb.Edge
 import com.example.graphdb.GraphDatabase
@@ -21,8 +20,11 @@ class GraphRepository (context: Context) {
 
     fun insertNode(newNodeName: String, newNodeType: String) {
         val count = queries.checkDuplicateNode(newNodeName, newNodeType).executeAsOne()
-        if (count > 0) { return }
-        queries.insertNode(newNodeName, newNodeType)
+        if (count > 0) {
+            return
+        } else {
+            queries.insertNode(newNodeName, newNodeType)
+        }
     }
 
     fun insertEdge(fromNodeName: String, fromNodeType: String,
@@ -32,8 +34,19 @@ class GraphRepository (context: Context) {
         val toNodeId = queries.findNodeByNameAndType(toNodeName, toNodeType).executeAsOne()
 
         val count = queries.checkDuplicateEdge(fromNodeId, toNodeId, relationType).executeAsOne()
-        if (count > 0) { return }
-        queries.insertEdge(fromNodeId, toNodeId, relationType)
+        if (count > 0) {
+            return
+        } else {
+            queries.insertEdge(fromNodeId, toNodeId, relationType)
+        }
+    }
+
+    fun findNodeById(id: Long): Pair<String, String>? {
+        return queries.findNodeById(id).executeAsOneOrNull()?.let { it.name to it.type }
+    }
+
+    fun findNodeByNameAndType(name: String, type: String): Long {
+        return queries.findNodeByNameAndType(name, type).executeAsOne()
     }
 
     fun getNodeTypes(): List<String> {
@@ -42,6 +55,18 @@ class GraphRepository (context: Context) {
 
     fun getEdgeTypes(): List<String> {
         return queries.getEdgeTypes().executeAsList()
+    }
+
+    fun getNeighborsOfNodeById(id: Long): List<Node> {
+        return queries.getNeighborsOfNodeById(id, id, id, id).executeAsList()
+    }
+
+    fun findFromNodeByToNode(id: Long): List<Long> {
+        return queries.findFromNodeByToNode(id).executeAsList()
+    }
+
+    fun getEdgesAroundNode(id: Long): List<Edge> {
+        return queries.getEdgesAroundNode(id, id).executeAsList()
     }
 
     fun initialiseDatabase() {

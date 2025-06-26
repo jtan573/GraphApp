@@ -1,13 +1,13 @@
 package com.example.graphapp.ui.viewmodels
 
 import android.app.Application
-import android.media.metrics.Event
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.graphapp.data.GraphRepository
-import com.example.graphapp.data.classes.GraphAnalyser
-import com.example.graphapp.data.classes.GraphSchema
+import com.example.graphapp.data.local.Event
+import com.example.graphapp.data.schema.GraphSchema.edgeLabels
+import com.example.graphapp.data.schema.GraphSchema.propertyNodes
 import com.example.graphdb.Edge
 import com.example.graphdb.Node
 import com.google.gson.Gson
@@ -20,9 +20,15 @@ import kotlin.text.isNotBlank
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = GraphRepository(application)
+
     private val _graphData = MutableStateFlow<String?>(null)
     val graphData: StateFlow<String?> = _graphData
-    val relationshipRules = GraphSchema.relationshipRules
+
+    private val _createdEvents = MutableStateFlow<List<Event>>(emptyList())
+    val createdEvents: StateFlow<List<Event>> = _createdEvents
+
+    private val _filteredGraphData = MutableStateFlow<String?>(null)
+    val filteredGraphData: StateFlow<String?> = _filteredGraphData
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -66,7 +72,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         for ((type1, value1) in normalizedMap) {
             for ((type2, value2) in normalizedMap) {
                 if (type1 != type2) {
-                    val edgeType = relationshipRules["$type1-$type2"]
+                    val edgeType = edgeLabels["$type1-$type2"]
                     if (edgeType != null) {
                         repository.insertEdge(fromNodeName = value1, fromNodeType = type1,
                             toNodeName = value2, toNodeType = type2, relationType = edgeType)
@@ -74,42 +80,66 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
+
+        // Refresh Main Screen Graph
         reloadGraphData()
-        predictTopLinks()
+
+        // Add to event logs
+        val currentList = _createdEvents.value.toMutableList()
+        currentList.add(Event(normalizedMap))
+        _createdEvents.value = currentList
+
+        // Predict possible new links
+        val topLinks = predictTopLinks(normalizedMap)
+        createFilteredGraph(topLinks)
     }
 
-    fun predictTopLinks(): List<Triple<Long, Long, Int>> {
-        val nodes = repository.getAllNodes()
-        val edges = repository.getAllEdges()
-        val existingLinks: Set<Pair<Long, Long>> = edges.map { it.fromNode to it.toNode }.toSet()
+    private fun predictTopLinks(map: Map<String, String>): List<Long> {
 
-        // Build neighbor map
-        val neighborMap = mutableMapOf<Long, MutableSet<Long>>()
-        for ((from, to, _) in edges) {
-            neighborMap.getOrPut(from) { mutableSetOf() }.add(to)
-            neighborMap.getOrPut(to) { mutableSetOf() }.add(from)
-        }
-
-        val predictions = mutableListOf<Triple<Long, Long, Int>>()
-
-        for (i in nodes.indices) {
-            for (j in i + 1 until nodes.size) {
-                val a = nodes[i].id
-                val b = nodes[j].id
-                if ((a to b) !in existingLinks && (b to a) !in existingLinks) {
-                    val score = GraphAnalyser.commonNeighborsScore(a, b, neighborMap)
-                    if (score > 0.0) {
-                        predictions.add(Triple(a, b, score))
-                    }
-                }
+        val existingLinks = mutableMapOf<String, MutableSet<Long>>()
+        for ((type, value) in map) {
+            if (type in propertyNodes) {
+                val propertyNodeId = repository.findNodeByNameAndType(value, type)
+                val keyNodeIds = repository.findFromNodeByToNode(propertyNodeId)
+                existingLinks.getOrPut(type) { mutableSetOf() }.addAll(keyNodeIds)
             }
         }
 
-        val finalPredictions: List<Triple<Long, Long, Int>> =
-            predictions.sortedByDescending { it.third }.take(2)
+        val frequencyMap = mutableMapOf<Long, Int>()
+        for (nodeSet in existingLinks.values) {
+            for (nodeId in nodeSet) {
+                frequencyMap[nodeId] = frequencyMap.getOrDefault(nodeId, 0) + 1
+            }
+        }
+        val topPredictions = frequencyMap.entries
+            .sortedByDescending { it.value }.take(3).map { it.key }
 
-        Log.d("Predictions", "Final Predictions: $finalPredictions")
+        // For debugging
+        for (nodeId in topPredictions) {
+            val nodeA = repository.findNodeById(nodeId)
+            if (nodeA != null) {
+                Log.d("Prediction", "Predicted: ${nodeA.first}, ${nodeA.second}")
+            }
+        }
 
-        return predictions.sortedByDescending { it.third }.take(2) // top 10 predicted links
+        return topPredictions
+    }
+
+    private fun createFilteredGraph(neighbors: List<Long>) {
+        val neighborNodes = mutableListOf<Node>()
+        val neighborEdges = mutableListOf<Edge>()
+        for (id in neighbors) {
+            val nodes = repository.getNeighborsOfNodeById(id)
+            neighborNodes.addAll(nodes)
+        }
+        for (node in neighborNodes) {
+            if (node.type in propertyNodes) {
+                val edges = repository.getEdgesAroundNode(node.id)
+                Log.d("Check", "neighborEdges: $edges")
+                neighborEdges.addAll(edges)
+            }
+        }
+        val json = convertToJson(neighborNodes, neighborEdges)
+        _filteredGraphData.value = json
     }
 }
