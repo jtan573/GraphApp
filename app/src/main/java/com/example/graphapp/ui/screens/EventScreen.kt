@@ -100,7 +100,9 @@ fun EventScreen(
         if (events.isEmpty()) {
             Text("No events added.", modifier = Modifier.padding(16.dp))
         } else {
-            LazyColumn {
+            LazyColumn (
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
                 items(events) { event ->
                     Text("Event: ${event.fields}", modifier = Modifier.padding(4.dp))
                 }
@@ -111,13 +113,6 @@ fun EventScreen(
             GraphWebView(graphJson = filteredGraphData, modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-            )
-        } else {
-            Text(
-                text = "Loading graph...",
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.CenterHorizontally)
             )
         }
     }

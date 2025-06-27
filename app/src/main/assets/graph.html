@@ -44,7 +44,6 @@
             font-family: sans-serif;
             text-anchor: middle;
             font-style: italic;
-            fill: gray;
         }
     </style>
 </head>
@@ -88,15 +87,17 @@
         .range(["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#fcba03"]);
 
       const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links).id(d => d.id).distance(100))
-        .force("charge", d3.forceManyBody().strength(-500))
+        .force("link", d3.forceLink(links).id(d => d.id).distance(300))
+        .force("charge", d3.forceManyBody().strength(-1000))
         .force("center", d3.forceCenter(width / 2, height / 2))
         .alphaDecay(0.1);
 
       const link = gNode.selectAll("line")
         .data(links)
         .enter().append("line")
-        .attr("stroke", "#999");
+        .attr("stroke", d => d.label === "Suggest" ? "#000" : "#999")
+        .attr("stroke-width", d => d.label === "Suggest" ? 2.5 : 1.5)
+        .attr("stroke-dasharray", d => d.label === "Suggest" ? "6 3" : "0");
 
       const node = gNode.selectAll("circle")
         .data(nodes)
@@ -108,7 +109,7 @@
         .data(nodes)
         .enter().append("text")
         .text(d => d.id)
-        .attr("font-size", 10)
+        .attr("font-size", 13)
         .attr("dy", -12);
 
       const linkLabel = gNode.selectAll(".link-label")
@@ -117,7 +118,7 @@
         .append("text")
         .attr("class", "link-label")
         .attr("font-size", "10px")
-        .attr("fill", "#333")
+        .attr("fill", d => d.label === "Suggest" ? "#000" : "#999")
         .text(d => d.label);
 
       simulation.on("tick", () => {

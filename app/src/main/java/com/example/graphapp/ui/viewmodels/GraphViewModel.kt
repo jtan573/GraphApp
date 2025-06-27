@@ -6,8 +6,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.graphapp.data.GraphRepository
 import com.example.graphapp.data.local.Event
+import com.example.graphapp.data.schema.CommonNeighbourScoring
 import com.example.graphapp.data.schema.GraphSchema.edgeLabels
+import com.example.graphapp.data.schema.GraphSchema.keyNodes
 import com.example.graphapp.data.schema.GraphSchema.propertyNodes
+import com.example.graphapp.data.schema.GraphScoringStrategy
+import com.example.graphapp.data.schema.SimRankScoring
 import com.example.graphdb.Edge
 import com.example.graphdb.Node
 import com.google.gson.Gson
@@ -90,53 +94,64 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _createdEvents.value = currentList
 
         // Predict possible new links
-        val topLinks = predictTopLinks(normalizedMap)
-        createFilteredGraph(topLinks)
+        val predictions = predictTopLinks(normalizedMap, SimRankScoring)
+
+        val eventKeyIds = normalizedMap.entries.mapNotNull { (type, value) ->
+            if (type in keyNodes) {
+                repository.findNodeByNameAndType(value, type)
+            } else {
+                null
+            }
+        }
+        createFilteredGraph(predictions, eventKeyIds)
     }
 
-    private fun predictTopLinks(map: Map<String, String>): List<Long> {
+    private fun predictTopLinks(
+        map: Map<String, String>,
+        scoringAlgo: GraphScoringStrategy
+    ): List<Long> {
 
-        val existingLinks = mutableMapOf<String, MutableSet<Long>>()
-        for ((type, value) in map) {
-            if (type in propertyNodes) {
-                val propertyNodeId = repository.findNodeByNameAndType(value, type)
-                val keyNodeIds = repository.findFromNodeByToNode(propertyNodeId)
-                existingLinks.getOrPut(type) { mutableSetOf() }.addAll(keyNodeIds)
-            }
-        }
-
-        val frequencyMap = mutableMapOf<Long, Int>()
-        for (nodeSet in existingLinks.values) {
-            for (nodeId in nodeSet) {
-                frequencyMap[nodeId] = frequencyMap.getOrDefault(nodeId, 0) + 1
-            }
-        }
-        val topPredictions = frequencyMap.entries
-            .sortedByDescending { it.value }.take(3).map { it.key }
+        val predictions = scoringAlgo.score(map, repository)
 
         // For debugging
-        for (nodeId in topPredictions) {
+        for (nodeId in predictions) {
             val nodeA = repository.findNodeById(nodeId)
             if (nodeA != null) {
                 Log.d("Prediction", "Predicted: ${nodeA.name}, ${nodeA.type}")
             }
         }
 
-        return topPredictions
+        return predictions
     }
 
-    private fun createFilteredGraph(neighbors: List<Long>) {
+    private fun createFilteredGraph(
+        predictions: List<Long>,
+        eventKeyIds: List<Long>
+    ) {
         val neighborNodes = mutableListOf<Node>()
         val neighborEdges = mutableListOf<Edge>()
-        for (id in neighbors) {
+
+        for (id in (predictions + eventKeyIds)) {
             val nodes = repository.getNeighborsOfNodeById(id)
-            for (nextId in nodes) {
-                val edges = repository.getEdgeBetweenNodes(id, nextId.id)
+            for (n in nodes) {
+                val edges = repository.getEdgeBetweenNodes(id, n.id)
                 neighborEdges.addAll(edges.filter { it !in neighborEdges })
             }
             neighborNodes.addAll(nodes.filter { it !in neighborNodes })
-            repository.findNodeById(id)?.let { neighborNodes.add(it) }
+            repository.findNodeById(id)?.let { node ->
+                if (node !in neighborNodes) {
+                    neighborNodes.add(node)
+                }
+            }
         }
+
+        for (id in eventKeyIds) {
+            for (pid in predictions) {
+                val newEdge = Edge(-1L, id, pid, "Suggest")
+                neighborEdges.add(newEdge)
+            }
+        }
+
         val json = convertToJson(neighborNodes, neighborEdges)
         _filteredGraphData.value = json
     }

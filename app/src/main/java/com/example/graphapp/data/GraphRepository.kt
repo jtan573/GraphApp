@@ -1,6 +1,7 @@
 package com.example.graphapp.data
 
 import android.content.Context
+import android.util.Log
 import com.example.graphapp.data.local.createDriver
 import com.example.graphdb.Edge
 import com.example.graphdb.GraphDatabase

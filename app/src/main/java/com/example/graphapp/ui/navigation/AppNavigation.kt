@@ -15,7 +15,7 @@ fun AppNavigation (
 ) {
     NavHost(
         navController = navController,
-        startDestination = NavItem.Graph.route
+        startDestination = NavItem.Events.route
     ) {
         composable(NavItem.Graph.route) {
             GraphViewScreen(viewModel = viewModel, navController = navController)
