@@ -1,8 +1,6 @@
 package com.example.graphapp.data.schema
 
-import android.util.Log
 import com.example.graphapp.data.GraphRepository
-import com.example.graphapp.data.schema.GraphSchema.propertyNodes
 import com.example.graphapp.data.schema.GraphSchema.keyNodes
 import kotlin.collections.component1
 import kotlin.collections.component2

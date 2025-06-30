@@ -6,11 +6,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.graphapp.data.GraphRepository
 import com.example.graphapp.data.local.Event
+import com.example.graphapp.data.schema.graphCompletion
 import com.example.graphapp.data.schema.GraphSchema.edgeLabels
 import com.example.graphapp.data.schema.GraphSchema.keyNodes
-import com.example.graphapp.data.schema.GraphSchema.propertyNodes
 import com.example.graphapp.data.schema.GraphScoringStrategy
 import com.example.graphapp.data.schema.SimRankScoring
+import com.example.graphapp.data.schema.createCompleteGraph
 import com.example.graphdb.Edge
 import com.example.graphdb.Node
 import com.google.gson.Gson
@@ -18,6 +19,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.map
 import kotlin.text.isNotBlank
 
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
@@ -68,6 +72,9 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     fun createEvent(map: Map<String, String>) {
         val normalizedMap = map.filterValues { it.isNotBlank() }
+
+        if (normalizedMap.isEmpty()) { return }
+
         for ((type, value) in normalizedMap) {
             repository.insertNode(value, type)
         }
@@ -105,10 +112,20 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         createFilteredGraph(predictions, eventKeyIds)
     }
 
+    fun fillMissingLinks() {
+        val completions = graphCompletion(repository)
+        val newEdges = createCompleteGraph(completions)
+        val nodes = repository.getAllNodes()
+        val edges = repository.getAllEdges() + newEdges
+        val json = convertToJson(nodes, edges)
+        _graphData.value = json
+        return
+    }
+
     private fun predictTopLinks(
         map: Map<String, String>,
         scoringAlgo: GraphScoringStrategy
-    ): List<Long> {
+    ): Map<String, List<Pair<Long, Float>>> {
 
         val predictions = scoringAlgo.score(map, repository)
 
@@ -125,22 +142,19 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        val allPredictedNodeIds: List<Long> = predictions
-            .values
-            .flatten()
-            .map { it.first }
-
-        return allPredictedNodeIds
+        return predictions
     }
 
     private fun createFilteredGraph(
-        predictions: List<Long>,
+        predictions: Map<String, List<Pair<Long, Float>>>,
         eventKeyIds: List<Long>
     ) {
         val neighborNodes = mutableListOf<Node>()
         val neighborEdges = mutableListOf<Edge>()
 
-        for (id in (predictions + eventKeyIds)) {
+        val allPredictedNodes: List<Long> = predictions.values.flatten().map { it.first }
+
+        for (id in (allPredictedNodes + eventKeyIds)) {
             val nodes = repository.getNeighborsOfNodeById(id)
             for (n in nodes) {
                 val edges = repository.getEdgeBetweenNodes(id, n.id)
@@ -155,9 +169,21 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         for (id in eventKeyIds) {
-            for (pid in predictions) {
-                val newEdge = Edge(-1L, id, pid, "Suggest")
-                neighborEdges.add(newEdge)
+            for ((type, nodeList) in predictions) {
+                for ((predictedId, _) in nodeList) {
+                    val relationType = "Suggest-$type"
+                    val newEdge = Edge(
+                        id = -1L,
+                        fromNode = id,
+                        toNode = predictedId,
+                        relationType = relationType
+                    )
+                    neighborEdges.add(newEdge)
+                    Log.d(
+                        "New Edges",
+                        "Type=$type Predicted: $newEdge"
+                    )
+                }
             }
         }
 

@@ -57,10 +57,12 @@
 
 <script>
     const filterToEdgeLabels = {
-      "Users": ["Suggest"],
-      "Apps": ["Suggest"],
-      "All": ["Suggest"]
+      "User": ["Suggest-User"],
+      "App": ["Suggest-App"],
+      "All": ["Suggest-User", "Suggest-App", "Suggest"]
     };
+
+    const nodeTypes = ["Article", "Entity", "Method", "Date", "Location", "Motive"]
 
     function loadGraph(data, filter) {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
@@ -90,7 +92,7 @@
       svg.call(zoom);
 
       const colorScale = d3.scaleOrdinal()
-        .domain(["User", "App", "Category", "Country", "Duration", "DeviceType"])
+        .domain(nodeTypes)
         .range(["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#fcba03"]);
 
       const simulation = d3.forceSimulation(nodes)

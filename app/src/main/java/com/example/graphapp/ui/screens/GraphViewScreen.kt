@@ -45,6 +45,8 @@ fun GraphViewScreen(
     navController: NavHostController
 ) {
     val graphJson by viewModel.graphData.collectAsState()
+    val selectedFilter = "All"
+
     var showForm by remember { mutableStateOf(false) }
 
     val fieldKeys = viewModel.getNodeTypes()
@@ -53,8 +55,6 @@ fun GraphViewScreen(
             fieldKeys.forEach { putIfAbsent(it, "") }
         }
     }
-
-    val selectedFilter = "All"
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -73,12 +73,24 @@ fun GraphViewScreen(
                 modifier = Modifier.padding(top=64.dp, bottom=8.dp),
             )
             Box {
-                Button(
-                    onClick = { showForm = !showForm },
-                    modifier = Modifier.padding(end = 3.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
+                Row (
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(if (showForm) "Hide" else "+ Event", fontSize = 12.sp)
+                    Button(
+                        onClick = { showForm = !showForm },
+                        modifier = Modifier.padding(end = 3.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
+                    ) {
+                        Text(if (showForm) "Hide" else "+ Event", fontSize = 12.sp)
+                    }
+                    Button(
+                        onClick = { viewModel.fillMissingLinks() },
+                        modifier = Modifier.padding(end = 3.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
+                    ) {
+                        Text("Predict")
+                    }
                 }
             }
         }

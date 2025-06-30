@@ -62,7 +62,7 @@ fun EventScreen(
     // Dropdown state
     var showFilterMenu by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("All") }
-    val filterOptions = GraphSchema.keyNodes
+    val filterOptions = GraphSchema.keyNodes + "All"
 
     val events by viewModel.createdEvents.collectAsState()
 
