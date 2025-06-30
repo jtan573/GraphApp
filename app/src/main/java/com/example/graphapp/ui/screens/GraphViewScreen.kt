@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
+import com.example.graphapp.data.schema.GraphSchema
 import com.example.graphapp.ui.components.EventForm
 import com.example.graphapp.ui.components.GraphWebView
 import com.example.graphapp.ui.viewmodels.GraphViewModel
@@ -50,6 +53,8 @@ fun GraphViewScreen(
             fieldKeys.forEach { putIfAbsent(it, "") }
         }
     }
+
+    val selectedFilter = "All"
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -93,9 +98,9 @@ fun GraphViewScreen(
         }
 
         if (graphJson != null) {
-            GraphWebView(graphJson = graphJson, modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
+            GraphWebView(graphJson = graphJson,
+                selectedFilter = selectedFilter,
+                modifier = Modifier.fillMaxWidth().wrapContentHeight()
             )
         } else {
             Text(

@@ -12,47 +12,48 @@ interface GraphScoringStrategy {
     fun score(
         newEventMap: Map<String, String>,
         repository: GraphRepository
-    ): List<Long>
+    ): Map<String, List<Pair<Long, Float>>>
 }
 
-object CommonNeighbourScoring : GraphScoringStrategy {
-    override fun score(
-        newEventMap: Map<String, String>,
-        repository: GraphRepository
-    ): List<Long> {
-
-        // Finding key nodes around specified property nodes
-        val existingLinks = mutableMapOf<String, MutableSet<Long>>()
-        for ((type, value) in newEventMap) {
-            if (type in propertyNodes) {
-                val propertyNodeId = repository.findNodeByNameAndType(value, type)
-                // Getting key nodes based on property nodes
-                val keyNodeIds = repository.findFromNodeByToNode(propertyNodeId)
-                // property node / type -> key nodes
-                existingLinks.getOrPut(type) { mutableSetOf() }.addAll(keyNodeIds)
-            }
-        }
-
-        // Getting most common key node
-        val frequencyMap = mutableMapOf<Long, Int>()
-        for (nodeSet in existingLinks.values) {
-            for (nodeId in nodeSet) {
-                frequencyMap[nodeId] = frequencyMap.getOrDefault(nodeId, 0) + 1
-            }
-        }
-        val topPredictions = frequencyMap.entries
-            .sortedByDescending { it.value }.take(3).map { it.key }
-
-        return topPredictions
-    }
-}
+//object CommonNeighbourScoring : GraphScoringStrategy {
+//    override fun score(
+//        newEventMap: Map<String, String>,
+//        repository: GraphRepository
+//    ): List<Long> {
+//
+//        // Finding key nodes around specified property nodes
+//        val existingLinks = mutableMapOf<String, MutableSet<Long>>()
+//        for ((type, value) in newEventMap) {
+//            if (type in propertyNodes) {
+//                val propertyNodeId = repository.findNodeByNameAndType(value, type)
+//                // Getting key nodes based on property nodes
+//                val keyNodeIds = repository.findFromNodeByToNode(propertyNodeId)
+//                // property node / type -> key nodes
+//                existingLinks.getOrPut(type) { mutableSetOf() }.addAll(keyNodeIds)
+//            }
+//        }
+//
+//        // Getting most common key node
+//        val frequencyMap = mutableMapOf<Long, Int>()
+//        for (nodeSet in existingLinks.values) {
+//            for (nodeId in nodeSet) {
+//                frequencyMap[nodeId] = frequencyMap.getOrDefault(nodeId, 0) + 1
+//            }
+//        }
+//        val topPredictions = frequencyMap.entries
+//            .sortedByDescending { it.value }.take(3).map { it.key }
+//
+//        return topPredictions
+//    }
+//}
 
 object SimRankScoring : GraphScoringStrategy {
 
     private const val DECAY_FACTOR = 0.8f
     private const val ITERATIONS = 5
 
-    override fun score(newEventMap: Map<String, String>, repository: GraphRepository): List<Long> {
+    override fun score(newEventMap: Map<String, String>, repository: GraphRepository):
+            Map<String, List<Pair<Long, Float>>> {
 
         val allNodes = repository.getAllNodes()
         val nodeIds = allNodes.map { it.id }
@@ -97,37 +98,39 @@ object SimRankScoring : GraphScoringStrategy {
             sim.putAll(newSim)
         }
 
-        // 5. Collect event **key nodes** only
-        val eventKeyNodeIds = newEventMap.entries.mapNotNull { (type, value) ->
-            if (type in keyNodes) {
-                repository.findNodeByNameAndType(value, type)
-            } else {
-                null
-            }
+        // Collect all candidate key nodes, grouped by type
+        val allKeyNodesByType = allNodes
+            .filter { it.type in keyNodes }
+            .groupBy { it.type }
+
+        // Compute similarity of each candidate to all event nodes (key + property)
+        val eventNodeIds = newEventMap.entries.map { (type, value) ->
+            repository.findNodeByNameAndType(value, type)
         }.toSet()
 
-        // 6. Collect **all key nodes** in graph
-        val allKeyNodeIds = allNodes.filter { it.type in keyNodes }
-            .map { it.id }
-            .toSet()
+        // For each key node type, compute top 3
+        val topRecommendationsByType = mutableMapOf<String, List<Pair<Long, Float>>>()
 
-        // 7. Compute average similarity of each candidate key node to event key nodes
-        val scores = mutableMapOf<Long, Float>()
-        for (candidate in allKeyNodeIds) {
-            if (candidate in eventKeyNodeIds) continue // skip the event key nodes themselves
-            val avg = eventKeyNodeIds.map { eventId ->
-                val s = sim.getOrDefault(candidate to eventId, 0f)
-                Log.d("SCORES_DETAIL", "candidate=$candidate eventId=$eventId sim=$s")
-                s
-            }.average().toFloat()
-            scores[candidate] = avg
+        for ((type, candidates) in allKeyNodesByType) {
+            val scoresForType = mutableListOf<Pair<Long, Float>>()
+
+            for (candidate in candidates) {
+                if (candidate.id in eventNodeIds) continue // skip the event key nodes themselves
+                val avg = eventNodeIds.map { eventId ->
+                    val s = sim.getOrDefault(candidate.id to eventId, 0f)
+                    s
+                }.average().toFloat()
+                scoresForType.add(candidate.id to avg)
+            }
+
+            val topForType = scoresForType
+                .sortedByDescending { it.second }
+                .take(3)
+
+            topRecommendationsByType[type] = topForType
         }
 
-        // For debugging
-        val topScores = scores.entries.sortedByDescending { it.value }.take(3)
-        Log.d("SCORES","Scores: $topScores")
-
-        // 8. Return top 3 most similar key nodes
-        return scores.entries.sortedByDescending { it.value }.take(3).map { it.key }
+        // Return top 3 most similar key nodes
+        return topRecommendationsByType
     }
 }

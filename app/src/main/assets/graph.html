@@ -56,12 +56,19 @@
 </svg>
 
 <script>
-    function loadGraph(data) {
+    const filterToEdgeLabels = {
+      "Users": ["Suggest"],
+      "Apps": ["Suggest"],
+      "All": ["Suggest"]
+    };
+
+    function loadGraph(data, filter) {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
       const nodes = parsed.nodes;
       const links = parsed.links;
 
-      console.log("Edges:", links);
+      const highlightedLabels = filterToEdgeLabels[filter] || [];
+      console.log("Filter:", filter, "Highlighted labels:", highlightedLabels);
 
       const svg = d3.select("svg");
       const g = svg.select("#graph");
@@ -95,9 +102,9 @@
       const link = gNode.selectAll("line")
         .data(links)
         .enter().append("line")
-        .attr("stroke", d => d.label === "Suggest" ? "#000" : "#999")
-        .attr("stroke-width", d => d.label === "Suggest" ? 2.5 : 1.5)
-        .attr("stroke-dasharray", d => d.label === "Suggest" ? "6 3" : "0");
+        .attr("stroke", d => highlightedLabels.includes(d.label) ? "#000" : "#999")
+          .attr("stroke-width", d => highlightedLabels.includes(d.label) ? 2.5 : 1.5)
+          .attr("stroke-dasharray", d => highlightedLabels.includes(d.label) ? "6 3" : "0");
 
       const node = gNode.selectAll("circle")
         .data(nodes)
@@ -118,7 +125,7 @@
         .append("text")
         .attr("class", "link-label")
         .attr("font-size", "10px")
-        .attr("fill", d => d.label === "Suggest" ? "#000" : "#999")
+        .attr("fill", d => highlightedLabels.includes(d.label) ? "#000" : "#999")
         .text(d => d.label);
 
       simulation.on("tick", () => {

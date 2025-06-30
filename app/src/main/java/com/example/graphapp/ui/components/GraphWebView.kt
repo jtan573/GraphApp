@@ -10,7 +10,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import org.json.JSONObject
 
 @Composable
-fun GraphWebView(graphJson: String?, modifier: Modifier = Modifier) {
+fun GraphWebView(
+    graphJson: String?,
+    selectedFilter: String,
+    modifier: Modifier = Modifier
+) {
     AndroidView(
         factory = {
             WebView(it).apply {
@@ -23,7 +27,9 @@ fun GraphWebView(graphJson: String?, modifier: Modifier = Modifier) {
                 isVerticalScrollBarEnabled = true
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
-                        evaluateJavascript("loadGraph(${JSONObject.quote(graphJson)});") { result ->
+                        evaluateJavascript(
+                            "loadGraph(${JSONObject.quote(graphJson)}, '${selectedFilter}')"
+                        ) { result ->
                             Log.d("GraphRelations", "JavaScript executed: $result")
                         }
                     }
@@ -35,7 +41,7 @@ fun GraphWebView(graphJson: String?, modifier: Modifier = Modifier) {
         update = { webView ->
             graphJson?.let {
                 Log.d("WebView", "Injecting graph: $it")
-                webView.evaluateJavascript("loadGraph(${JSONObject.quote(it)});") { result ->
+                webView.evaluateJavascript("loadGraph(${JSONObject.quote(it)}, '${selectedFilter}');") { result ->
                     Log.d("GraphWebView", "JS Result: $result")
                 }
             }

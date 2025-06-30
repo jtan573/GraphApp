@@ -6,7 +6,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.graphapp.data.GraphRepository
 import com.example.graphapp.data.local.Event
-import com.example.graphapp.data.schema.CommonNeighbourScoring
 import com.example.graphapp.data.schema.GraphSchema.edgeLabels
 import com.example.graphapp.data.schema.GraphSchema.keyNodes
 import com.example.graphapp.data.schema.GraphSchema.propertyNodes
@@ -114,14 +113,24 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         val predictions = scoringAlgo.score(map, repository)
 
         // For debugging
-        for (nodeId in predictions) {
-            val nodeA = repository.findNodeById(nodeId)
-            if (nodeA != null) {
-                Log.d("Prediction", "Predicted: ${nodeA.name}, ${nodeA.type}")
+        for ((type, predictionsForType) in predictions) {
+            for ((nodeId, similarity) in predictionsForType) {
+                val node = repository.findNodeById(nodeId)
+                if (node != null) {
+                    Log.d(
+                        "Prediction",
+                        "Type=$type Predicted: ${node.name}, Similarity=$similarity"
+                    )
+                }
             }
         }
 
-        return predictions
+        val allPredictedNodeIds: List<Long> = predictions
+            .values
+            .flatten()
+            .map { it.first }
+
+        return allPredictedNodeIds
     }
 
     private fun createFilteredGraph(
