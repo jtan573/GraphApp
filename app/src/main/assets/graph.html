@@ -56,13 +56,20 @@
 </svg>
 
 <script>
+    // Define Graph Labels
     const filterToEdgeLabels = {
-      "User": ["Suggest-User"],
-      "App": ["Suggest-App"],
-      "All": ["Suggest-User", "Suggest-App", "Suggest"]
+      "Article": ["Suggest-Article"],
+      "Entity": ["Suggest-Entity"],
+      "Method": ["Suggest-Method"],
+      "Date": ["Suggest-Date"],
+      "Location": ["Suggest-Location"],
+      "Motive": ["Suggest-Motive"],
+      "All": ["Suggest-Entity", "Suggest-Motive", "Suggest-Article",
+                "Suggest-Method", "Suggest-Location", "Suggest-Date", "Related"]
     };
 
-    const nodeTypes = ["Article", "Entity", "Method", "Date", "Location", "Motive"]
+    const nodeTypes = ["Article", "Entity", "Method", "Date", "Location", "Motive", "Description"]
+    const colorNodes = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#fcba03", "#50c7c7"]
 
     function loadGraph(data, filter) {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
@@ -93,7 +100,7 @@
 
       const colorScale = d3.scaleOrdinal()
         .domain(nodeTypes)
-        .range(["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#fcba03"]);
+        .range(colorNodes);
 
       const simulation = d3.forceSimulation(nodes)
         .force("link", d3.forceLink(links).id(d => d.id).distance(300))

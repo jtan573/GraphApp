@@ -8,10 +8,8 @@ import com.example.graphapp.data.GraphRepository
 import com.example.graphapp.data.local.Event
 import com.example.graphapp.data.schema.graphCompletion
 import com.example.graphapp.data.schema.GraphSchema.edgeLabels
-import com.example.graphapp.data.schema.GraphSchema.keyNodes
-import com.example.graphapp.data.schema.GraphScoringStrategy
-import com.example.graphapp.data.schema.SimRankScoring
-import com.example.graphapp.data.schema.createCompleteGraph
+import com.example.graphapp.data.schema.findExistingRelations
+import com.example.graphapp.data.schema.respondIncomingEvent
 import com.example.graphdb.Edge
 import com.example.graphdb.Node
 import com.google.gson.Gson
@@ -100,21 +98,12 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _createdEvents.value = currentList
 
         // Predict possible new links
-        val predictions = predictTopLinks(normalizedMap, SimRankScoring)
-
-        val eventKeyIds = normalizedMap.entries.mapNotNull { (type, value) ->
-            if (type in keyNodes) {
-                repository.findNodeByNameAndType(value, type)
-            } else {
-                null
-            }
-        }
-        createFilteredGraph(predictions, eventKeyIds)
+        predictTopLinks(normalizedMap)
     }
 
+    // Function 1: Predict missing properties
     fun fillMissingLinks() {
-        val completions = graphCompletion(repository)
-        val newEdges = createCompleteGraph(completions)
+        val newEdges = graphCompletion(repository)
         val nodes = repository.getAllNodes()
         val edges = repository.getAllEdges() + newEdges
         val json = convertToJson(nodes, edges)
@@ -122,72 +111,21 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return
     }
 
-    private fun predictTopLinks(
-        map: Map<String, String>,
-        scoringAlgo: GraphScoringStrategy
-    ): Map<String, List<Pair<Long, Float>>> {
-
-        val predictions = scoringAlgo.score(map, repository)
-
-        // For debugging
-        for ((type, predictionsForType) in predictions) {
-            for ((nodeId, similarity) in predictionsForType) {
-                val node = repository.findNodeById(nodeId)
-                if (node != null) {
-                    Log.d(
-                        "Prediction",
-                        "Type=$type Predicted: ${node.name}, Similarity=$similarity"
-                    )
-                }
-            }
-        }
-
-        return predictions
+    // Function 2: Relate existing events (Past data)
+    fun findGraphRelations() {
+        val newEdges = findExistingRelations(repository)
+        val nodes = repository.getAllNodes()
+        val edges = repository.getAllEdges() + newEdges
+        val json = convertToJson(nodes, edges)
+        _graphData.value = json
+        return
     }
 
-    private fun createFilteredGraph(
-        predictions: Map<String, List<Pair<Long, Float>>>,
-        eventKeyIds: List<Long>
-    ) {
-        val neighborNodes = mutableListOf<Node>()
-        val neighborEdges = mutableListOf<Edge>()
-
-        val allPredictedNodes: List<Long> = predictions.values.flatten().map { it.first }
-
-        for (id in (allPredictedNodes + eventKeyIds)) {
-            val nodes = repository.getNeighborsOfNodeById(id)
-            for (n in nodes) {
-                val edges = repository.getEdgeBetweenNodes(id, n.id)
-                neighborEdges.addAll(edges.filter { it !in neighborEdges })
-            }
-            neighborNodes.addAll(nodes.filter { it !in neighborNodes })
-            repository.findNodeById(id)?.let { node ->
-                if (node !in neighborNodes) {
-                    neighborNodes.add(node)
-                }
-            }
-        }
-
-        for (id in eventKeyIds) {
-            for ((type, nodeList) in predictions) {
-                for ((predictedId, _) in nodeList) {
-                    val relationType = "Suggest-$type"
-                    val newEdge = Edge(
-                        id = -1L,
-                        fromNode = id,
-                        toNode = predictedId,
-                        relationType = relationType
-                    )
-                    neighborEdges.add(newEdge)
-                    Log.d(
-                        "New Edges",
-                        "Type=$type Predicted: $newEdge"
-                    )
-                }
-            }
-        }
-
-        val json = convertToJson(neighborNodes, neighborEdges)
+    // Function 3: Predict Top Relationships based on Incoming Event
+    private fun predictTopLinks( map: Map<String, String> ) {
+        val (nodes, edges) = respondIncomingEvent(map, repository)
+        val json = convertToJson(nodes, edges)
         _filteredGraphData.value = json
+        return
     }
 }

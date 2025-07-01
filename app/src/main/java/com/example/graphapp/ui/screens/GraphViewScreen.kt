@@ -89,7 +89,14 @@ fun GraphViewScreen(
                         modifier = Modifier.padding(end = 3.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
                     ) {
-                        Text("Predict")
+                        Text("Fill", fontSize = 12.sp)
+                    }
+                    Button(
+                        onClick = { viewModel.findGraphRelations() },
+                        modifier = Modifier.padding(end = 3.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
+                    ) {
+                        Text("Find", fontSize = 12.sp)
                     }
                 }
             }
