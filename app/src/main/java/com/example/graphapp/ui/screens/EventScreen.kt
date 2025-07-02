@@ -123,7 +123,7 @@ fun EventScreen(
                 fieldKeys = fieldKeys,
                 eventInputMap = eventInputMap,
                 onSubmit = {
-                    viewModel.createEvent(eventInputMap)
+                    viewModel.provideEventRec(eventInputMap)
                     eventInputMap.clear()
                     fieldKeys.forEach { eventInputMap[it] = "" }
                     showForm = false
@@ -139,7 +139,7 @@ fun EventScreen(
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 items(events) { event ->
-                    Text("Event: ${event.fields}", modifier = Modifier.padding(4.dp))
+                    Text(event, modifier = Modifier.padding(4.dp))
                 }
             }
         }

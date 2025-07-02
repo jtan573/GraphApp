@@ -3,6 +3,7 @@ package com.example.graphapp.data
 import android.content.Context
 import android.util.Log
 import com.example.graphapp.data.local.createDriver
+import com.example.graphapp.data.schema.GraphSchema.keyNodes
 import com.example.graphdb.Edge
 import com.example.graphdb.GraphDatabase
 import com.example.graphdb.Node
@@ -13,6 +14,12 @@ class GraphRepository (context: Context) {
 
     fun getAllNodes(): List<Node> {
         return queries.selectAllNodes().executeAsList()
+    }
+
+    fun getAllKeyNodeIds(): List<Long> {
+        return getAllNodes()
+            .filter { it.type in keyNodes }
+            .map { it.id }
     }
 
     fun getAllEdges(): List<Edge> {

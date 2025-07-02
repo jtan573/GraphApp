@@ -91,13 +91,13 @@ fun GraphViewScreen(
                     ) {
                         Text("Fill", fontSize = 12.sp)
                     }
-                    Button(
-                        onClick = { viewModel.findGraphRelations() },
-                        modifier = Modifier.padding(end = 3.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
-                    ) {
-                        Text("Find", fontSize = 12.sp)
-                    }
+//                    Button(
+//                        onClick = { viewModel.findGraphRelations() },
+//                        modifier = Modifier.padding(end = 3.dp),
+//                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
+//                    ) {
+//                        Text("Find", fontSize = 12.sp)
+//                    }
                 }
             }
         }
@@ -107,7 +107,7 @@ fun GraphViewScreen(
                 fieldKeys = fieldKeys,
                 eventInputMap = eventInputMap,
                 onSubmit = {
-                    viewModel.createEvent(eventInputMap)
+                    viewModel.provideEventRec(eventInputMap)
                     eventInputMap.clear()
                     fieldKeys.forEach { eventInputMap[it] = "" }
                     showForm = false

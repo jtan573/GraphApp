@@ -1,0 +1,133 @@
+Group Alpha -> Bombing           (Who)
+Explosives -> Bombing            (How)
+2022-06-12 -> Bombing            (When)
+Market District -> Bombing       (Where)
+Intimidation -> Bombing          (Why)
+
+Sect Zeta -> Suicide Bombing     (Who)
+Suicide Vest -> Suicide Bombing  (How)
+2021-11-03 -> Suicide Bombing    (When)
+Train Station -> Suicide Bombing (Where)
+Religious Motivation -> Suicide Bombing (Why)
+
+Individual Y -> Knife Attack     (Who)
+Knife -> Knife Attack            (How)
+2020-09-15 -> Knife Attack       (When)
+Shopping Center -> Knife Attack  (Where)
+Personal Grievance -> Knife Attack (Why)
+
+Group Gamma -> Vehicle Attack    (Who)
+Truck -> Vehicle Attack          (How)
+2019-07-22 -> Vehicle Attack     (When)
+City Square -> Vehicle Attack    (Where)
+Maximize Casualties -> Vehicle Attack (Why)
+
+Individual Z -> Arson            (Who)
+Incendiary Device -> Arson       (How)
+2020-02-11 -> Arson              (When)
+Warehouse District -> Arson      (Where)
+Economic Disruption -> Arson     (Why)
+
+Group Delta -> Cyber Attack      (Who)
+Malware -> Cyber Attack          (How)
+2021-05-30 -> Cyber Attack       (When)
+Data Theft -> Cyber Attack       (Why)
+
+Group Epsilon -> Grenade Attack  (Who)
+Grenades -> Grenade Attack       (How)
+2019-10-05 -> Grenade Attack     (When)
+Police Station -> Grenade Attack (Where)
+Weaken Law Enforcement -> Grenade Attack (Why)
+
+Individual Q -> Bomb Threat      (Who)
+Phone Call -> Bomb Threat        (How)
+2020-12-01 -> Bomb Threat        (When)
+School Building -> Bomb Threat   (Where)
+Evacuation -> Bomb Threat        (Why)
+
+Explosives -> Explosion          (How)
+2021-08-08 -> Explosion          (When)
+Market District -> Explosion     (Where)
+Intimidation -> Explosion        (Why)
+
+Group Delta -> Cyber Breach      (Who)
+Malware -> Cyber Breach          (How)
+2022-03-15 -> Cyber Breach       (When)
+Government Servers -> Cyber Breach (Where)
+Data Theft -> Cyber Breach       (Why)
+
+Group Gamma -> Truck Ramming     (Who)
+Truck -> Truck Ramming           (How)
+2019-12-25 -> Truck Ramming      (When)
+City Square -> Truck Ramming     (Where)
+
+Individual V -> Stabbing         (Who)
+Knife -> Stabbing                (How)
+2022-02-20 -> Stabbing           (When)
+Train Station -> Stabbing        (Where)
+Random Violence -> Stabbing      (Why)
+
+Incendiary Device -> Arson Attack (How)
+2021-09-09 -> Arson Attack        (When)
+Warehouse District -> Arson Attack (Where)
+Economic Disruption -> Arson Attack (Why)
+
+Group Theta -> Cybersecurity Breach (Who)
+Ransomware -> Cybersecurity Breach  (How)
+2022-05-05 -> Cybersecurity Breach  (When)
+Hospital Network -> Cybersecurity Breach (Where)
+Financial Gain -> Cybersecurity Breach (Why)
+
+Group Epsilon -> Grenade Explosion (Who)
+Grenades -> Grenade Explosion      (How)
+2020-03-03 -> Grenade Explosion    (When)
+
+Difficult to trace origin -> Malware          (Description)
+Difficult to trace origin -> Ransomware       (Description)
+
+Instil Fear -> Intimidation                   (Description)
+Instil Fear -> Evacuation                     (Description)
+
+// GPT ANALYSIS
+Bomb Threat (Article) **
+   -> Evacuation (Motive)
+      -> Instil Fear (Description)
+         -> Intimidation (Motive)
+            -> Bombing (Article)
+
+Cyber Attack (Article) **
+   -> Malware (Method)
+      -> Difficult to trace origin (Description)
+         -> Ransomware (Method)
+            -> Cybersecurity Breach (Article)
+
+Explosion (Article) **
+   -> Market District (Location)
+<- Bombing (Article)
+
+Vehicle Attack (Article)
+   -> Truck (Method)
+<- Truck Ramming (Article)
+
+Knife Attack (Article) **
+   -> Knife (Method)
+<- Stabbing (Article)
+
+Cyber Attack
+   -> Group Delta (Entity)
+<- Cyber Breach
+
+25th percentile: 0.19435816
+50th percentile: 0.2456047
+75th percentile: 0.2456047
+
+
+Key Functions -- Built on the basis of similarity between nodes (no. of similar neighbours)
+1. Predict missing properties/entries
+2. Provide recommendations to an input task
+3. Discover events using property
+4. Uncover patterns among events
+5. Path finding?
+
+
+Optimise the similarity matrix calculation

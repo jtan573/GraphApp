@@ -6,10 +6,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.graphapp.data.GraphRepository
 import com.example.graphapp.data.local.Event
-import com.example.graphapp.data.schema.graphCompletion
 import com.example.graphapp.data.schema.GraphSchema.edgeLabels
-import com.example.graphapp.data.schema.findExistingRelations
-import com.example.graphapp.data.schema.respondIncomingEvent
+import com.example.graphapp.data.schema.PredictMissingPropertiesResponse
+import com.example.graphapp.data.schema.ProvideRecommendationsResponse
+import com.example.graphapp.data.schema.eventToEventRecommendation
+import com.example.graphapp.data.schema.findPatterns
+import com.example.graphapp.data.schema.predictMissingProperties
 import com.example.graphdb.Edge
 import com.example.graphdb.Node
 import com.google.gson.Gson
@@ -29,8 +31,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     private val _graphData = MutableStateFlow<String?>(null)
     val graphData: StateFlow<String?> = _graphData
 
-    private val _createdEvents = MutableStateFlow<List<Event>>(emptyList())
-    val createdEvents: StateFlow<List<Event>> = _createdEvents
+    private val _createdEvents = MutableStateFlow<List<String>>(emptyList())
+    val createdEvents: StateFlow<List<String>> = _createdEvents
 
     private val _filteredGraphData = MutableStateFlow<String?>(null)
     val filteredGraphData: StateFlow<String?> = _filteredGraphData
@@ -68,15 +70,45 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _graphData.value = json
     }
 
-    fun createEvent(map: Map<String, String>) {
-        val normalizedMap = map.filterValues { it.isNotBlank() }
+    // Function 1: Predict missing properties
+    fun fillMissingLinks() {
 
+        // Creating updated graph
+        val (newEdges, predictions) = predictMissingProperties(repository)
+        val nodes = repository.getAllNodes()
+        val edges = repository.getAllEdges() + newEdges
+        val json = convertToJson(nodes, edges)
+        _graphData.value = json
+
+        // Creating API response
+        val response = PredictMissingPropertiesResponse(predictions)
+        Log.d("PredictMissingLinks", "Predict Response: $response")
+
+        // Test
+        findPatterns(repository)
+
+        return
+    }
+
+    // Function 2: Relate existing events (Past data)
+//    fun findGraphRelations() {
+//        val newEdges = findExistingRelations(repository)
+//        val nodes = repository.getAllNodes()
+//        val edges = repository.getAllEdges() + newEdges
+//        val json = convertToJson(nodes, edges)
+//        _graphData.value = json
+//        return
+//    }
+
+    // Function 2/3: Predict Top Relationships based on Incoming Event
+    fun provideEventRec( map: Map<String, String> ) {
+
+        val normalizedMap = map.filterValues { it.isNotBlank() }
         if (normalizedMap.isEmpty()) { return }
 
         for ((type, value) in normalizedMap) {
             repository.insertNode(value, type)
         }
-
         for ((type1, value1) in normalizedMap) {
             for ((type2, value2) in normalizedMap) {
                 if (type1 != type2) {
@@ -89,43 +121,25 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        // Refresh Main Screen Graph
+        // Retrieve graph from db
         reloadGraphData()
 
         // Add to event logs
         val currentList = _createdEvents.value.toMutableList()
-        currentList.add(Event(normalizedMap))
+        currentList.add(Event(normalizedMap).toString())
         _createdEvents.value = currentList
 
-        // Predict possible new links
-        predictTopLinks(normalizedMap)
-    }
-
-    // Function 1: Predict missing properties
-    fun fillMissingLinks() {
-        val newEdges = graphCompletion(repository)
-        val nodes = repository.getAllNodes()
-        val edges = repository.getAllEdges() + newEdges
-        val json = convertToJson(nodes, edges)
-        _graphData.value = json
-        return
-    }
-
-    // Function 2: Relate existing events (Past data)
-    fun findGraphRelations() {
-        val newEdges = findExistingRelations(repository)
-        val nodes = repository.getAllNodes()
-        val edges = repository.getAllEdges() + newEdges
-        val json = convertToJson(nodes, edges)
-        _graphData.value = json
-        return
-    }
-
-    // Function 3: Predict Top Relationships based on Incoming Event
-    private fun predictTopLinks( map: Map<String, String> ) {
-        val (nodes, edges) = respondIncomingEvent(map, repository)
+        // Create updated graph
+        val (nodes, edges, recs) = eventToEventRecommendation(normalizedMap, repository)
         val json = convertToJson(nodes, edges)
         _filteredGraphData.value = json
+
+        // Create API response
+        val response = ProvideRecommendationsResponse(normalizedMap, recs)
+        Log.d("Recommend Related Events", "Recommendations: $response")
+
         return
     }
+
+
 }
