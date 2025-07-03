@@ -1,7 +1,6 @@
 package com.example.graphapp.data
 
 import android.content.Context
-import android.util.Log
 import com.example.graphapp.data.local.createDriver
 import com.example.graphapp.data.schema.GraphSchema.keyNodes
 import com.example.graphdb.Edge
@@ -26,12 +25,12 @@ class GraphRepository (context: Context) {
         return queries.selectAllEdges().executeAsList()
     }
 
-    fun insertNode(newNodeName: String, newNodeType: String) {
+    fun insertNode(newNodeName: String, newNodeType: String, newNodeDesc: String?) {
         val count = queries.checkDuplicateNode(newNodeName, newNodeType).executeAsOne()
         if (count > 0) {
             return
         } else {
-            queries.insertNode(newNodeName, newNodeType)
+            queries.insertNode(newNodeName, newNodeType, newNodeDesc)
         }
     }
 
@@ -69,17 +68,21 @@ class GraphRepository (context: Context) {
         return queries.getNeighborsOfNodeById(id, id, id, id).executeAsList()
     }
 
+    fun getDescOfNodeById(id: Long): Node {
+        return queries.getDescOfNodeById(id).executeAsOne()
+    }
+
     fun getEdgeBetweenNodes(id1: Long, id2: Long): List<Edge> {
         return queries.getEdgeBetweenNodes(id1, id2, id1, id2).executeAsList()
     }
 
     fun initialiseDatabase() {
-        queries.insertNode("Bombing", "Article")
-        queries.insertNode("Group Alpha", "Entity")
-        queries.insertNode("Explosives", "Method")
-        queries.insertNode("2022-06-12", "Date")
-        queries.insertNode("Market District", "Location")
-        queries.insertNode("Intimidation", "Motive")
+        queries.insertNode("Bombing", "Article", null)
+        queries.insertNode("Group Alpha", "Entity", "A leading organization characterized by strong internal cohesion.")
+        queries.insertNode("Explosives", "Method", null)
+        queries.insertNode("2022-06-12", "Date", null)
+        queries.insertNode("Market District", "Location", null)
+        queries.insertNode("Intimidation", "Motive", null)
 
         queries.insertEdge(
             queries.findNodeByNameAndType("Group Alpha", "Entity").executeAsOne(),
@@ -107,12 +110,12 @@ class GraphRepository (context: Context) {
             "Why"
         )
 
-        queries.insertNode("Suicide Bombing", "Article")
-        queries.insertNode("Sect Zeta", "Entity")
-        queries.insertNode("Suicide Vest", "Method")
-        queries.insertNode("2021-11-03", "Date")
-        queries.insertNode("Train Station", "Location")
-        queries.insertNode("Religious Motivation", "Motive")
+        queries.insertNode("Suicide Bombing", "Article", null)
+        queries.insertNode("Sect Zeta", "Entity", "A specialized faction known for its unique ideology and practices.")
+        queries.insertNode("Suicide Vest", "Method", null)
+        queries.insertNode("2021-11-03", "Date", null)
+        queries.insertNode("Train Station", "Location", null)
+        queries.insertNode("Religious Motivation", "Motive", "Based on ideological or faith-driven objectives.")
 
         queries.insertEdge(
             queries.findNodeByNameAndType("Sect Zeta", "Entity").executeAsOne(),
@@ -140,12 +143,12 @@ class GraphRepository (context: Context) {
             "Why"
         )
 
-        queries.insertNode("Knife Attack", "Article")
-        queries.insertNode("Individual Y", "Entity")
-        queries.insertNode("Knife", "Method")
-        queries.insertNode("2020-09-15", "Date")
-        queries.insertNode("Shopping Center", "Location")
-        queries.insertNode("Personal Grievance", "Motive")
+        queries.insertNode("Knife Attack", "Article", null)
+        queries.insertNode("Individual Y", "Entity", "A key figure known for their independent actions.")
+        queries.insertNode("Knife", "Method", null)
+        queries.insertNode("2020-09-15", "Date", null)
+        queries.insertNode("Shopping Center", "Location", null)
+        queries.insertNode("Personal Grievance", "Motive", "Driven by individual resentment or perceived injustice.")
 
         queries.insertEdge(
             queries.findNodeByNameAndType("Individual Y", "Entity").executeAsOne(),
@@ -173,12 +176,12 @@ class GraphRepository (context: Context) {
             "Why"
         )
 
-        queries.insertNode("Vehicle Attack", "Article")
-        queries.insertNode("Group Gamma", "Entity")
-        queries.insertNode("Truck", "Method")
-        queries.insertNode("2019-07-22", "Date")
-        queries.insertNode("City Square", "Location")
-        queries.insertNode("Maximize Casualties", "Motive")
+        queries.insertNode("Vehicle Attack", "Article", null)
+        queries.insertNode("Group Gamma", "Entity", "An organized collective recognized for coordinated initiatives.")
+        queries.insertNode("Truck", "Method", null)
+        queries.insertNode("2019-07-22", "Date", null)
+        queries.insertNode("City Square", "Location", null)
+        queries.insertNode("Maximize Casualties", "Motive", "Intending to cause the highest possible loss of life.")
 
         queries.insertEdge(
             queries.findNodeByNameAndType("Group Gamma", "Entity").executeAsOne(),
@@ -206,12 +209,12 @@ class GraphRepository (context: Context) {
             "Why"
         )
 
-        queries.insertNode("Arson", "Article")
-        queries.insertNode("Individual Z", "Entity")
-        queries.insertNode("Incendiary Device", "Method")
-        queries.insertNode("2020-02-11", "Date")
-        queries.insertNode("Warehouse District", "Location")
-        queries.insertNode("Economic Disruption", "Motive")
+        queries.insertNode("Arson", "Article", null)
+        queries.insertNode("Individual Z", "Entity", "Notable for their influential role within the community.")
+        queries.insertNode("Incendiary Device", "Method", null)
+        queries.insertNode("2020-02-11", "Date", null)
+        queries.insertNode("Warehouse District", "Location", null)
+        queries.insertNode("Economic Disruption", "Motive", "Aiming to acquire money or valuable assets.")
 
         queries.insertEdge(
             queries.findNodeByNameAndType("Individual Z", "Entity").executeAsOne(),
@@ -239,12 +242,12 @@ class GraphRepository (context: Context) {
             "Why"
         )
 
-        queries.insertNode("Cyber Attack", "Article")
-        queries.insertNode("Group Delta", "Entity")
-        queries.insertNode("Malware", "Method")
-        queries.insertNode("2021-05-30", "Date")
-        queries.insertNode("Government Servers", "Location")
-        queries.insertNode("Data Theft", "Motive")
+        queries.insertNode("Cyber Attack", "Article", null)
+        queries.insertNode("Group Delta", "Entity", "A prominent group engaged in various collaborative projects.")
+        queries.insertNode("Malware", "Method", null)
+        queries.insertNode("2021-05-30", "Date", null)
+        queries.insertNode("Government Servers", "Location", null)
+        queries.insertNode("Data Theft", "Motive", "Focusing on the unauthorized acquisition of sensitive information.")
 
         queries.insertEdge(
             queries.findNodeByNameAndType("Group Delta", "Entity").executeAsOne(),
@@ -268,12 +271,12 @@ class GraphRepository (context: Context) {
             "Why"
         )
 
-        queries.insertNode("Grenade Attack", "Article")
-        queries.insertNode("Group Epsilon", "Entity")
-        queries.insertNode("Grenades", "Method")
-        queries.insertNode("2019-10-05", "Date")
-        queries.insertNode("Police Station", "Location")
-        queries.insertNode("Weaken Law Enforcement", "Motive")
+        queries.insertNode("Grenade Attack", "Article", null)
+        queries.insertNode("Group Epsilon", "Entity", "Recognized for its strategic influence and structured organization.")
+        queries.insertNode("Grenades", "Method", null)
+        queries.insertNode("2019-10-05", "Date", null)
+        queries.insertNode("Police Station", "Location", null)
+        queries.insertNode("Weaken Law Enforcement", "Motive", "Focusing on the unauthorized acquisition of sensitive information.")
 
         queries.insertEdge(
             queries.findNodeByNameAndType("Group Epsilon", "Entity").executeAsOne(),
@@ -301,12 +304,12 @@ class GraphRepository (context: Context) {
             "Why"
         )
 
-        queries.insertNode("Bomb Threat", "Article")
-        queries.insertNode("Individual Q", "Entity")
-        queries.insertNode("Phone Call", "Method")
-        queries.insertNode("2020-12-01", "Date")
-        queries.insertNode("School Building", "Location")
-        queries.insertNode("Evacuation", "Motive")
+        queries.insertNode("Bomb Threat", "Article", null)
+        queries.insertNode("Individual Q", "Entity", "Has a reputation for decisive leadership and personal achievements.")
+        queries.insertNode("Phone Call", "Method", null)
+        queries.insertNode("2020-12-01", "Date", null)
+        queries.insertNode("School Building", "Location", null)
+        queries.insertNode("Evacuation", "Motive", "Focusing on the unauthorized acquisition of sensitive information.")
 
         queries.insertEdge(
             queries.findNodeByNameAndType("Individual Q", "Entity").executeAsOne(),
@@ -335,14 +338,14 @@ class GraphRepository (context: Context) {
         )
 
         // Article 11
-        queries.insertNode("Explosion", "Article")
+        queries.insertNode("Explosion", "Article", null)
 //        queries.insertEdge(queries.findNodeByNameAndType("Group Alpha", "Entity").executeAsOne(), queries.findNodeByNameAndType("Explosion", "Article").executeAsOne(), "Who")
         queries.insertEdge(
             queries.findNodeByNameAndType("Explosives", "Method").executeAsOne(),
             queries.findNodeByNameAndType("Explosion", "Article").executeAsOne(),
             "How"
         )
-        queries.insertNode("2021-08-08", "Date")
+        queries.insertNode("2021-08-08", "Date", null)
         queries.insertEdge(
             queries.findNodeByNameAndType("2021-08-08", "Date").executeAsOne(),
             queries.findNodeByNameAndType("Explosion", "Article").executeAsOne(),
@@ -360,7 +363,7 @@ class GraphRepository (context: Context) {
         )
 
 // Article 13
-        queries.insertNode("Cyber Breach", "Article")
+        queries.insertNode("Cyber Breach", "Article", null)
         queries.insertEdge(
             queries.findNodeByNameAndType("Group Delta", "Entity").executeAsOne(),
             queries.findNodeByNameAndType("Cyber Breach", "Article").executeAsOne(),
@@ -371,7 +374,7 @@ class GraphRepository (context: Context) {
             queries.findNodeByNameAndType("Cyber Breach", "Article").executeAsOne(),
             "How"
         )
-        queries.insertNode("2022-03-15", "Date")
+        queries.insertNode("2022-03-15", "Date", null)
         queries.insertEdge(
             queries.findNodeByNameAndType("2022-03-15", "Date").executeAsOne(),
             queries.findNodeByNameAndType("Cyber Breach", "Article").executeAsOne(),
@@ -389,7 +392,7 @@ class GraphRepository (context: Context) {
         )
 
 // Article 14
-        queries.insertNode("Truck Ramming", "Article")
+        queries.insertNode("Truck Ramming", "Article", null)
         queries.insertEdge(
             queries.findNodeByNameAndType("Group Gamma", "Entity").executeAsOne(),
             queries.findNodeByNameAndType("Truck Ramming", "Article").executeAsOne(),
@@ -400,7 +403,7 @@ class GraphRepository (context: Context) {
             queries.findNodeByNameAndType("Truck Ramming", "Article").executeAsOne(),
             "How"
         )
-        queries.insertNode("2019-12-25", "Date")
+        queries.insertNode("2019-12-25", "Date", null)
         queries.insertEdge(
             queries.findNodeByNameAndType("2019-12-25", "Date").executeAsOne(),
             queries.findNodeByNameAndType("Truck Ramming", "Article").executeAsOne(),
@@ -414,10 +417,10 @@ class GraphRepository (context: Context) {
 //        queries.insertEdge(queries.findNodeByNameAndType("Maximize Casualties", "Motive").executeAsOne(), queries.findNodeByNameAndType("Truck Ramming", "Article").executeAsOne(), "Why")
 
 // Article 16
-        queries.insertNode("Stabbing", "Article")
-        queries.insertNode("Individual V", "Entity")
-        queries.insertNode("2022-02-20", "Date")
-        queries.insertNode("Random Violence", "Motive")
+        queries.insertNode("Stabbing", "Article", null)
+        queries.insertNode("Individual V", "Entity", "Distinguished by their contributions and distinctive perspective.")
+        queries.insertNode("2022-02-20", "Date", null)
+        queries.insertNode("Random Violence", "Motive", "Involving unpredictable attacks without specific targets.")
 
         queries.insertEdge(
             queries.findNodeByNameAndType("Individual V", "Entity").executeAsOne(),
@@ -446,14 +449,14 @@ class GraphRepository (context: Context) {
         )
 
 // Article 18
-        queries.insertNode("Arson Attack", "Article")
+        queries.insertNode("Arson Attack", "Article", null)
 //        queries.insertEdge(queries.findNodeByNameAndType("Individual Z", "Entity").executeAsOne(), queries.findNodeByNameAndType("Arson Attack", "Article").executeAsOne(), "Who")
         queries.insertEdge(
             queries.findNodeByNameAndType("Incendiary Device", "Method").executeAsOne(),
             queries.findNodeByNameAndType("Arson Attack", "Article").executeAsOne(),
             "How"
         )
-        queries.insertNode("2021-09-09", "Date")
+        queries.insertNode("2021-09-09", "Date", null)
         queries.insertEdge(
             queries.findNodeByNameAndType("2021-09-09", "Date").executeAsOne(),
             queries.findNodeByNameAndType("Arson Attack", "Article").executeAsOne(),
@@ -471,12 +474,12 @@ class GraphRepository (context: Context) {
         )
 
 // Article 19
-        queries.insertNode("Cybersecurity Breach", "Article")
-        queries.insertNode("Group Theta", "Entity")
-        queries.insertNode("Ransomware", "Method")
-        queries.insertNode("2022-05-05", "Date")
-        queries.insertNode("Hospital Network", "Location")
-        queries.insertNode("Financial Gain", "Motive")
+        queries.insertNode("Cybersecurity Breach", "Article", null)
+        queries.insertNode("Group Theta", "Entity", "Operates as a cohesive unit with significant collective impact.")
+        queries.insertNode("Ransomware", "Method", null)
+        queries.insertNode("2022-05-05", "Date", null)
+        queries.insertNode("Hospital Network", "Location", null)
+        queries.insertNode("Financial Gain", "Motive", "Intending to destabilize financial systems or markets.")
 
         queries.insertEdge(
             queries.findNodeByNameAndType("Group Theta", "Entity").executeAsOne(),
@@ -505,7 +508,7 @@ class GraphRepository (context: Context) {
         )
 
 // Article 20
-        queries.insertNode("Grenade Explosion", "Article")
+        queries.insertNode("Grenade Explosion", "Article", null)
         queries.insertEdge(
             queries.findNodeByNameAndType("Group Epsilon", "Entity").executeAsOne(),
             queries.findNodeByNameAndType("Grenade Explosion", "Article").executeAsOne(),
@@ -516,7 +519,7 @@ class GraphRepository (context: Context) {
             queries.findNodeByNameAndType("Grenade Explosion", "Article").executeAsOne(),
             "How"
         )
-        queries.insertNode("2020-03-03", "Date")
+        queries.insertNode("2020-03-03", "Date", null)
         queries.insertEdge(
             queries.findNodeByNameAndType("2020-03-03", "Date").executeAsOne(),
             queries.findNodeByNameAndType("Grenade Explosion", "Article").executeAsOne(),
@@ -525,28 +528,14 @@ class GraphRepository (context: Context) {
 //        queries.insertEdge(queries.findNodeByNameAndType("Police Station", "Location").executeAsOne(), queries.findNodeByNameAndType("Grenade Explosion", "Article").executeAsOne(), "Where")
 //        queries.insertEdge(queries.findNodeByNameAndType("Weaken Law Enforcement", "Motive").executeAsOne(), queries.findNodeByNameAndType("Grenade Explosion", "Article").executeAsOne(), "Why")
 
-        queries.insertNode("Difficult to trace origin", "Description")
-        queries.insertEdge(
-            queries.findNodeByNameAndType("Difficult to trace origin", "Description").executeAsOne(),
-            queries.findNodeByNameAndType("Malware", "Method").executeAsOne(),
-            "Description"
-        )
-        queries.insertEdge(
-            queries.findNodeByNameAndType("Difficult to trace origin", "Description").executeAsOne(),
-            queries.findNodeByNameAndType("Ransomware", "Method").executeAsOne(),
-            "Description"
-        )
+// Inserting Description Nodes for Method
+        queries.insertNode("Difficult to trace origin", "Description", null)
+        queries.insertEdge(queries.findNodeByNameAndType("Difficult to trace origin", "Description").executeAsOne(), queries.findNodeByNameAndType("Malware", "Method").executeAsOne(), "Description")
+        queries.insertEdge(queries.findNodeByNameAndType("Difficult to trace origin", "Description").executeAsOne(), queries.findNodeByNameAndType("Ransomware", "Method").executeAsOne(), "Description")
 
-        queries.insertNode("Instil Fear", "Description")
-        queries.insertEdge(
-            queries.findNodeByNameAndType("Instil Fear", "Description").executeAsOne(),
-            queries.findNodeByNameAndType("Intimidation", "Motive").executeAsOne(),
-            "Description"
-        )
-        queries.insertEdge(
-            queries.findNodeByNameAndType("Instil Fear", "Description").executeAsOne(),
-            queries.findNodeByNameAndType("Evacuation", "Motive").executeAsOne(),
-            "Description"
-        )
+// Inserting Description Nodes for Motive
+        queries.insertNode("Instil Fear", "Description", null)
+        queries.insertEdge(queries.findNodeByNameAndType("Instil Fear", "Description").executeAsOne(), queries.findNodeByNameAndType("Intimidation", "Motive").executeAsOne(), "Description")
+        queries.insertEdge(queries.findNodeByNameAndType("Instil Fear", "Description").executeAsOne(), queries.findNodeByNameAndType("Evacuation", "Motive").executeAsOne(), "Description")
     }
 }

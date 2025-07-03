@@ -118,15 +118,19 @@
       const node = gNode.selectAll("circle")
         .data(nodes)
         .enter().append("circle")
-        .attr("r", 10)
-        .attr("fill", d => colorScale(d.type || "unknown"));
+        .attr("r", d => d.type === "Description" ? 8 : 10)
+        .attr("fill", d => d.type === "Description" ? "#898989" : colorScale(d.type || "unknown"));
+
+      node.append("title")
+        .text(d => d.type === "Description" ? d.id : "");
 
       const label = gNode.selectAll("text")
         .data(nodes)
         .enter().append("text")
-        .text(d => d.id)
+        .text(d => d.type === "Description" ? "Description" : d.id)
         .attr("font-size", 13)
-        .attr("dy", -12);
+        .attr("dy", -12)
+        .attr("fill", d => d.type === "Description" ? "#999" : "#000");
 
       const linkLabel = gNode.selectAll(".link-label")
         .data(links)

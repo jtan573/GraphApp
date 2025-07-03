@@ -1,3 +1,14 @@
+
+// Key Functions -- Built on the basis of similarity between nodes (no. of similar neighbours)
+1. Predict missing properties/entries
+2. Provide recommendations to an input task
+3. Discover events using property
+4. Uncover patterns among events
+5. Path finding?
+6. Optimise the similarity matrix calculation
+
+
+// Graph Relationships
 Group Alpha -> Bombing           (Who)
 Explosives -> Bombing            (How)
 2022-06-12 -> Bombing            (When)
@@ -122,12 +133,3 @@ Cyber Attack
 75th percentile: 0.2456047
 
 
-Key Functions -- Built on the basis of similarity between nodes (no. of similar neighbours)
-1. Predict missing properties/entries
-2. Provide recommendations to an input task
-3. Discover events using property
-4. Uncover patterns among events
-5. Path finding?
-
-
-Optimise the similarity matrix calculation

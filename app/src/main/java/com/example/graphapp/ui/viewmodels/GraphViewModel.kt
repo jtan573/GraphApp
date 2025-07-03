@@ -6,11 +6,17 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.graphapp.data.GraphRepository
 import com.example.graphapp.data.local.Event
+import com.example.graphapp.data.api.ApiResponse
+import com.example.graphapp.data.api.DiscoverEventsResponse
+import com.example.graphapp.data.api.EventRecommendationResult
+import com.example.graphapp.data.api.PatternFindingResponse
 import com.example.graphapp.data.schema.GraphSchema.edgeLabels
-import com.example.graphapp.data.schema.PredictMissingPropertiesResponse
-import com.example.graphapp.data.schema.ProvideRecommendationsResponse
-import com.example.graphapp.data.schema.eventToEventRecommendation
+import com.example.graphapp.data.schema.GraphSchema.keyNodes
+import com.example.graphapp.data.api.PredictMissingPropertiesResponse
+import com.example.graphapp.data.api.ProvideRecommendationsResponse
+import com.example.graphapp.data.api.ResponseData
 import com.example.graphapp.data.schema.findPatterns
+import com.example.graphapp.data.schema.recommendOnInput
 import com.example.graphapp.data.schema.predictMissingProperties
 import com.example.graphdb.Edge
 import com.example.graphdb.Node
@@ -74,31 +80,23 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     fun fillMissingLinks() {
 
         // Creating updated graph
-        val (newEdges, predictions) = predictMissingProperties(repository)
+        val (newEdges, response) = predictMissingProperties(repository)
         val nodes = repository.getAllNodes()
         val edges = repository.getAllEdges() + newEdges
         val json = convertToJson(nodes, edges)
         _graphData.value = json
 
         // Creating API response
-        val response = PredictMissingPropertiesResponse(predictions)
-        Log.d("PredictMissingLinks", "Predict Response: $response")
+        val apiRes = ApiResponse(
+            status = "success",
+            timestamp = "",
+            data = ResponseData.PredictMissingPropertiesData(response)
+        )
 
-        // Test
-        findPatterns(repository)
+        Log.d("PredictMissingLinks", "Predict Response: $apiRes")
 
         return
     }
-
-    // Function 2: Relate existing events (Past data)
-//    fun findGraphRelations() {
-//        val newEdges = findExistingRelations(repository)
-//        val nodes = repository.getAllNodes()
-//        val edges = repository.getAllEdges() + newEdges
-//        val json = convertToJson(nodes, edges)
-//        _graphData.value = json
-//        return
-//    }
 
     // Function 2/3: Predict Top Relationships based on Incoming Event
     fun provideEventRec( map: Map<String, String> ) {
@@ -107,7 +105,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         if (normalizedMap.isEmpty()) { return }
 
         for ((type, value) in normalizedMap) {
-            repository.insertNode(value, type)
+            repository.insertNode(value, type, null)
         }
         for ((type1, value1) in normalizedMap) {
             for ((type2, value2) in normalizedMap) {
@@ -130,16 +128,49 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _createdEvents.value = currentList
 
         // Create updated graph
-        val (nodes, edges, recs) = eventToEventRecommendation(normalizedMap, repository)
+        val noKeyTypes = normalizedMap.keys.none { it in keyNodes }
+        val (nodes, edges, result) = recommendOnInput(normalizedMap, repository, noKeyTypes)
         val json = convertToJson(nodes, edges)
         _filteredGraphData.value = json
 
         // Create API response
-        val response = ProvideRecommendationsResponse(normalizedMap, recs)
-        Log.d("Recommend Related Events", "Recommendations: $response")
+        when (result) {
+            is EventRecommendationResult.EventToEventRec -> {
+                val response = ProvideRecommendationsResponse(normalizedMap, result.items)
+                val apiRes = ApiResponse(
+                    status = "success",
+                    timestamp = "",
+                    data = ResponseData.ProvideRecommendationsData(response)
+                )
+                Log.d("RecommendRelatedEvents", "Response: $apiRes")
 
+            }
+            is EventRecommendationResult.PropertyToEventRec -> {
+                val response = DiscoverEventsResponse(normalizedMap, result.items)
+                val apiRes = ApiResponse(
+                    status = "success",
+                    timestamp = "",
+                    data = ResponseData.DiscoverEventsData(response)
+                )
+                Log.d("RecommendRelatedEvents", "Response: $apiRes")
+            }
+        }
         return
     }
 
+
+//     Function 4: Find Patterns/Clusters
+    fun findGraphRelations() {
+        val response = findPatterns(repository)
+
+        val apiRes = ApiResponse(
+            status = "success",
+            timestamp = "",
+            data = ResponseData.PatternFindingData(response)
+        )
+        Log.d("GraphPatterns", "Response: $apiRes")
+
+        return
+    }
 
 }
