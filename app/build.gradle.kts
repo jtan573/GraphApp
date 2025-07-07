@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.sqldelightPlugin)
     id("com.google.devtools.ksp")
     id("androidx.room")
+    id("kotlin-kapt") // Only for Kotlin projects
+    id("io.objectbox") // Apply last
 }
 
 android {
@@ -79,6 +81,11 @@ dependencies {
     implementation(libs.android.driver)
     implementation(libs.coroutines.extensions)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.onnxruntime.android)
+    implementation(libs.onnxruntime.extensions.android)
+    implementation(libs.sentence.embeddings)
+    implementation(libs.objectbox.android)
+
 }
 
 sqldelight {

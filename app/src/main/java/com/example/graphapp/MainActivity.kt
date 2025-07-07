@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.example.graphapp.data.local.ObjectBox
 import com.example.graphapp.ui.screens.GraphViewScreen
 import com.example.graphapp.ui.screens.MainScreen
 import com.example.graphapp.ui.theme.GraphAppTheme
@@ -21,6 +22,7 @@ class MainActivity : ComponentActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ObjectBox.init(this)
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()

@@ -2,11 +2,11 @@ package com.example.graphapp.data.schema
 
 object GraphSchema {
     val edgeLabels = mapOf(
-        "Article-Entity" to "Who",
-        "Article-Method" to "How",
-        "Article-Date" to "When",
-        "Article-Location" to "Where",
-        "Article-Motive" to "Why"
+        "Entity-Article" to "Who",
+        "Method-Article" to "How",
+        "Date-Article" to "When",
+        "Location-Article" to "Where",
+        "Motive-Article" to "Why"
     )
 
     val keyNodes = listOf(

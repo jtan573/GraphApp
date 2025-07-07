@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.graphapp.data.GraphRepository
+import com.example.graphapp.data.ObjectBoxRepository
 import com.example.graphapp.data.local.Event
 import com.example.graphapp.data.api.ApiResponse
 import com.example.graphapp.data.api.DiscoverEventsResponse
@@ -15,12 +16,17 @@ import com.example.graphapp.data.schema.GraphSchema.keyNodes
 import com.example.graphapp.data.api.PredictMissingPropertiesResponse
 import com.example.graphapp.data.api.ProvideRecommendationsResponse
 import com.example.graphapp.data.api.ResponseData
+import com.example.graphapp.data.local.EdgeEntity
+import com.example.graphapp.data.local.NodeEntity
+import com.example.graphapp.data.local.ObjectBox
+import com.example.graphapp.data.schema.detectInputAnomaly
 import com.example.graphapp.data.schema.findPatterns
 import com.example.graphapp.data.schema.recommendOnInput
 import com.example.graphapp.data.schema.predictMissingProperties
 import com.example.graphdb.Edge
 import com.example.graphdb.Node
 import com.google.gson.Gson
+import io.objectbox.kotlin.boxFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +49,9 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     private val _filteredGraphData = MutableStateFlow<String?>(null)
     val filteredGraphData: StateFlow<String?> = _filteredGraphData
 
+    // For ObjectBox Testing
+    private val obRepository = ObjectBoxRepository(application)
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             repository.initialiseDatabase()
@@ -50,6 +59,9 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             val edges = repository.getAllEdges()
             val json = convertToJson(nodes, edges)
             _graphData.value = json
+
+            obRepository.initializeEmbedding()
+            testGraphEmbeddings()
         }
     }
 
@@ -98,7 +110,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return
     }
 
-    // Function 2/3: Predict Top Relationships based on Incoming Event
+    // Function 2/3/5: Predict Top Relationships based on Incoming Event/Detect input anomaly
     fun provideEventRec( map: Map<String, String> ) {
 
         val normalizedMap = map.filterValues { it.isNotBlank() }
@@ -127,6 +139,15 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         currentList.add(Event(normalizedMap).toString())
         _createdEvents.value = currentList
 
+        // Detect anomaly
+        val response = detectInputAnomaly(normalizedMap, repository)
+        val apiRes = ApiResponse(
+            status = "success",
+            timestamp = "",
+            data = ResponseData.DetectAnomalyData(response)
+        )
+        Log.d("DetectInputAnomaly", "Anomaly: $apiRes")
+
         // Create updated graph
         val noKeyTypes = normalizedMap.keys.none { it in keyNodes }
         val (nodes, edges, result) = recommendOnInput(normalizedMap, repository, noKeyTypes)
@@ -136,21 +157,19 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         // Create API response
         when (result) {
             is EventRecommendationResult.EventToEventRec -> {
-                val response = ProvideRecommendationsResponse(normalizedMap, result.items)
                 val apiRes = ApiResponse(
                     status = "success",
                     timestamp = "",
-                    data = ResponseData.ProvideRecommendationsData(response)
+                    data = ResponseData.ProvideRecommendationsData(result.items)
                 )
                 Log.d("RecommendRelatedEvents", "Response: $apiRes")
 
             }
             is EventRecommendationResult.PropertyToEventRec -> {
-                val response = DiscoverEventsResponse(normalizedMap, result.items)
                 val apiRes = ApiResponse(
                     status = "success",
                     timestamp = "",
-                    data = ResponseData.DiscoverEventsData(response)
+                    data = ResponseData.DiscoverEventsData(result.items)
                 )
                 Log.d("RecommendRelatedEvents", "Response: $apiRes")
             }
@@ -173,4 +192,15 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return
     }
 
+    suspend fun testGraphEmbeddings() {
+        val e1: FloatArray = obRepository.embedText("Delhi has a population 32 million")
+        val e2: FloatArray = obRepository.embedText("What is the population of Delhi?")
+        val e3: FloatArray =
+            obRepository.embedText("Cities with a population greater than 4 million are termed as metro cities")
+
+        val d12 = obRepository.cosineDistance(e1, e2)
+        val d13 = obRepository.cosineDistance(e1, e3)
+        println("Similarity between e1 and e2: $d12")
+        println("Similarity between e1 and e3: $d13")
+    }
 }

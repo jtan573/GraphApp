@@ -6,3 +6,17 @@ plugins {
     id("com.google.devtools.ksp") version "2.0.21-1.0.27" apply false
     id("androidx.room") version "2.7.1" apply false
 }
+
+buildscript {
+     val objectboxVersion by extra("4.3.0") // For KTS build scripts
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        // Android Gradle Plugin 8.0 or later supported
+        classpath("com.android.tools.build:gradle:8.0.2")
+        classpath("io.objectbox:objectbox-gradle-plugin:$objectboxVersion")
+    }
+}

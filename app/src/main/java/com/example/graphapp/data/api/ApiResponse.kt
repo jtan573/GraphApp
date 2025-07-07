@@ -11,12 +11,12 @@ sealed class ResponseData {
     data class ProvideRecommendationsData(val payload: ProvideRecommendationsResponse) : ResponseData()
     data class PatternFindingData(val payload: PatternFindingResponse) : ResponseData()
     data class DiscoverEventsData(val payload: DiscoverEventsResponse) : ResponseData()
+    data class DetectAnomalyData(val payload: AnomalyDetectionResponse) : ResponseData()
 }
 
-/*
-Function 1: Predict Missing Properties
-Predicted Properties:  mutableMapOf<Long, List<Pair<String, Long>>>()
-*/
+/* -------------------------------------------------
+    Function 1: Predict missing properties
+------------------------------------------------- */
 data class PredictMissingPropertiesResponse(
     val predictions: List<PredictMissingProperties>
 )
@@ -37,13 +37,17 @@ data class NodeDetails(
 data class PredictedProperty(
     val propertyType: String,
     val propertyValue: String,
+    val simScore: Float,
     val mostSimilarKeyNode: String
 )
 
-// Function 2: Provide recommendations to an input task
+/* -------------------------------------------------
+    Function 2: Provide event recommendations on input event
+    Function 3: Provide event recommendations on input property
+------------------------------------------------- */
 sealed class EventRecommendationResult {
-    data class EventToEventRec(val items: List<Recommendation>) : EventRecommendationResult()
-    data class PropertyToEventRec(val items: List<PredictedEventByType>) : EventRecommendationResult()
+    data class EventToEventRec(val items: ProvideRecommendationsResponse) : EventRecommendationResult()
+    data class PropertyToEventRec(val items: DiscoverEventsResponse) : EventRecommendationResult()
 }
 
 data class ProvideRecommendationsResponse(
@@ -53,10 +57,10 @@ data class ProvideRecommendationsResponse(
 
 data class Recommendation(
     val recType: String,
-    val recItems: List<String>
+    val recItems: List<Pair<String, Float>>
 )
 
-// Function 3: Discover events
+// Function 3
 data class DiscoverEventsResponse(
     val inputInformation: Map<String, String>,
     val predictedEvents: List<PredictedEventByType>
@@ -69,13 +73,17 @@ data class PredictedEventByType(
 
 data class EventDetails(
     val eventName: String,
-    val eventProperties: Map<String, String>
+    val eventProperties: Map<String, String>,
+    val simScore: Float
 )
 
-// Function 4:  Pattern Finding
+/* -------------------------------------------------
+    Function 4: Pattern Recognition
+------------------------------------------------- */
 data class PatternFindingResponse(
     val similarNodes: List<List<KeyNode>>
 )
+
 data class KeyNode(
     val nodeName: String,
     val nodeDescription: String?,
@@ -124,6 +132,7 @@ ApiResponse(
                             PredictedProperty(
                                 propertyType=Location,
                                 propertyValue=Government Servers,
+                                simScore=,
                                 mostSimilarKeyNode=Cyber Breach
                             )
                         ]
@@ -143,11 +152,9 @@ ApiResponse(
         payload=ProvideRecommendationsResponse(
             inputTask={Method=Truck, Article=CarAccident},
             recommendations=[
-                Recommendation(recType=Article, recItems=[Truck Ramming, Vehicle Attack]),
-                Recommendation(recType=Entity, recItems=[Group Gamma, Group Alpha]),
-                Recommendation(recType=Method, recItems=[Explosives, Suicide Vest]),
-                Recommendation(recType=Location, recItems=[City Square, Market District]),
-                Recommendation(recType=Motive, recItems=[Maximize Casualties, Intimidation])
+                Recommendation(recType=Article, recItems=[
+                    (Truck Ramming, 0.167316), (Vehicle Attack, 0.15927407)
+                ])
             ]
         )
     )
@@ -164,8 +171,12 @@ ApiResponse(
                 PredictedEventByType(
                     eventType=Article,
                     eventList=[
-                        EventDetails(eventName=Bombing, eventProperties={Entity=Group Alpha, Method=Explosives, Location=Market District, Motive=Intimidation}),
-                        EventDetails(eventName=Suicide Bombing, eventProperties={Entity=Sect Zeta, Method=Suicide Vest, Location=Train Station, Motive=Religious Motivation})
+                        EventDetails(
+                            eventName=Bombing,
+                            eventProperties={Entity=Group Alpha, Method=Explosives, Location=Market District, Motive=Intimidation}
+                            simScore=
+                        ),
+                        EventDetails(eventName=Suicide Bombing, eventProperties={Entity=Sect Zeta, Method=Suicide Vest, Location=Train Station, Motive=Religious Motivation}, simScore=)
                     ]
                 )
             ]
@@ -192,6 +203,38 @@ ApiResponse(
         )
     )
 )
+
+* For Anomaly Detection
+ApiResponse(
+    status=success,
+    timestamp=,
+    data=DetectAnomalyData(
+        payload=AnomalyDetectionResponse(
+            inputEvent={Method=Truck, Entity=Individual, Article=Test},
+            overallAnomaly=false,
+            flaggedPropertyCount=1,
+            propertyAnalyses=[
+                PropertyAgreement(propertyType=Entity, candidateValue=Individual, isAnomalous=true),
+                PropertyAgreement(propertyType=Method, candidateValue=Truck, isAnomalous=false)
+            ],
+            topSimilarEvents=[
+                SimilarEvent(
+                    eventName=Truck Ramming,
+                    propertyValues={Entity=Group Gamma, Method=Truck, Location=City Square, Motive=Unknown}
+                ),
+                SimilarEvent(
+                    eventName=Vehicle Attack,
+                    propertyValues={Entity=Group Gamma, Method=Truck, Location=City Square, Motive=Maximize Casualties}
+                ),
+                SimilarEvent(
+                    eventName=Bombing,
+                    propertyValues={Entity=Group Alpha, Method=Explosives, Location=Market District, Motive=Intimidation}
+                )
+            ]
+        )
+    )
+)
+
 */
 
 
