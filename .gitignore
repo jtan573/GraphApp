@@ -13,5 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
-app/src/main/jniLibs/x86_64/libhftokenizer.so
+app/src/main/jniLibs/x86_64/*
 app/src/main/assets/models/*
