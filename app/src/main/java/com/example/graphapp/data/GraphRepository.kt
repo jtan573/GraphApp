@@ -78,8 +78,6 @@ class GraphRepository (context: Context) {
         return queries.selectAllFreq().executeAsList().associate { it.id to it.frequency!!.toInt() }
     }
 
-
-
     fun initialiseDatabase() {
         insertNode("Bombing", "Article")
         insertNode("Group Alpha", "Entity", "A leading organization characterized by strong internal cohesion.")

@@ -6,7 +6,13 @@ object GraphSchema {
         "Method-Article" to "How",
         "Date-Article" to "When",
         "Location-Article" to "Where",
-        "Motive-Article" to "Why"
+        "Motive-Article" to "Why",
+        "Description-Entity" to "Description",
+        "Description-Method" to "Description",
+        "Description-Date" to "Description",
+        "Description-Location" to "Description",
+        "Description-Motive" to "Description",
+        "Description-Article" to "Description",
     )
 
     val keyNodes = listOf(

@@ -1,12 +1,37 @@
 package com.example.graphapp.data.schema
 
 import com.example.graphapp.data.GraphRepository
+import com.example.graphapp.data.VectorRepository
+import com.example.graphapp.data.local.NodeEntity
+import kotlin.io.path.Path
 import kotlin.math.ln
 
 private const val DECAY_FACTOR = 0.8f
 private const val ITERATIONS = 5
 
-fun initialiseSimilarityMatrix(
+/* -------------------------------------------------
+  Helper to compute Weighted Similarity between nodes
+------------------------------------------------- */
+fun computeWeightedSim(
+    targetId: Long,
+    candidateId: Long,
+//    repository: GraphRepository,
+    repository: VectorRepository
+): Float {
+    val simMatrix = initialiseSemanticSimilarityMatrix(repository)
+    val occurrenceCounts = repository.getAllNodeFrequencies()
+
+    val rawSim = simMatrix.getOrDefault(targetId to candidateId, 0f)
+    val freqFactor = ln(1f + (occurrenceCounts[candidateId] ?: 0)).toFloat()
+    val adjustedSim = rawSim * freqFactor
+
+    return adjustedSim
+}
+
+/* -------------------------------------------------
+  Helper to initialise SimRank Similarity Matrix
+------------------------------------------------- */
+fun initialiseSimRankSimilarityMatrix(
     repository: GraphRepository
 ): Map<Pair<Long, Long>, Float> {
     // Get all nodes
@@ -58,21 +83,9 @@ fun initialiseSimilarityMatrix(
     return sim
 }
 
-fun computeWeightedSim(
-    targetId: Long,
-    candidateId: Long,
-    repository: GraphRepository
-): Float {
-    val simMatrix = initialiseCommonNeighborsSimilarityMatrix(repository)
-    val occurrenceCounts = repository.selectAllFreq()
-
-    val rawSim = simMatrix.getOrDefault(targetId to candidateId, 0f)
-    val freqFactor = ln(1f + (occurrenceCounts[candidateId] ?: 0)).toFloat()
-    val adjustedSim = rawSim * freqFactor
-
-    return adjustedSim
-}
-
+/* -------------------------------------------------
+  Helper to initialise Common Neighbours Similarity Matrix
+------------------------------------------------- */
 fun initialiseCommonNeighborsSimilarityMatrix(
     repository: GraphRepository
 ): Map<Pair<Long, Long>, Float> {
@@ -114,6 +127,81 @@ fun initialiseCommonNeighborsSimilarityMatrix(
 
     return sim
 }
+
+/* -------------------------------------------------
+  Helpers to initialise Semantic Similarity Matrix
+------------------------------------------------- */
+fun getPropertyEmbeddings(
+    nodeId: Long,
+    repository: VectorRepository
+): Map<String, FloatArray?> {
+
+    val neighbourNodes = repository.getNeighboursOfNodeId(nodeId)
+    val embeddings = mutableMapOf<String, FloatArray?>()
+
+    for (node in neighbourNodes) {
+        if (node.type in GraphSchema.propertyNodes) {
+            embeddings[node.type] = node.embedding
+        }
+    }
+
+    return embeddings
+}
+
+fun computeSemanticSimilarity(
+    nodeId1: Long,
+    nodeId2: Long,
+    repository: VectorRepository,
+    threshold: Float = 0.5f
+): Float {
+    val e1 = getPropertyEmbeddings(nodeId1, repository)
+    val e2 = getPropertyEmbeddings(nodeId2, repository)
+
+    for (prop in GraphSchema.propertyNodes) {
+        val v1 = e1[prop]
+        val v2 = e2[prop]
+        if (v1 == null || v2 == null) return 0f
+
+        val similarity = repository.cosineDistance(v1, v2)
+        if (similarity < threshold) {
+            // If any property is too dissimilar, reject similarity
+            return 0f
+        }
+    }
+
+    // All properties passed threshold
+    // Optionally, aggregate (e.g., average)
+    val averageSimilarity = GraphSchema.propertyNodes.map { prop ->
+        repository.cosineDistance(e1[prop]!!, e2[prop]!!)
+    }.average().toFloat()
+
+    return averageSimilarity
+}
+
+fun initialiseSemanticSimilarityMatrix(
+    repository: VectorRepository,
+    threshold: Float = 0.5f
+): Map<Pair<Long, Long>, Float> {
+
+    val allNodes = repository.getAllNodes()
+    val nodeIds = allNodes.map { it.id }
+
+    val sim = mutableMapOf<Pair<Long, Long>, Float>()
+    for (i in nodeIds) {
+        for (j in nodeIds) {
+            val score = if (i == j) {
+                1f
+            } else {
+                computeSemanticSimilarity(i, j, repository, threshold)
+            }
+            sim[i to j] = score
+        }
+    }
+    return sim
+}
+
+
+
 
 
 

@@ -5,20 +5,16 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.graphapp.data.GraphRepository
-import com.example.graphapp.data.ObjectBoxRepository
+import com.example.graphapp.data.VectorRepository
 import com.example.graphapp.data.local.Event
 import com.example.graphapp.data.api.ApiResponse
-import com.example.graphapp.data.api.DiscoverEventsResponse
 import com.example.graphapp.data.api.EventRecommendationResult
-import com.example.graphapp.data.api.PatternFindingResponse
 import com.example.graphapp.data.schema.GraphSchema.edgeLabels
 import com.example.graphapp.data.schema.GraphSchema.keyNodes
-import com.example.graphapp.data.api.PredictMissingPropertiesResponse
-import com.example.graphapp.data.api.ProvideRecommendationsResponse
 import com.example.graphapp.data.api.ResponseData
 import com.example.graphapp.data.local.EdgeEntity
 import com.example.graphapp.data.local.NodeEntity
-import com.example.graphapp.data.local.ObjectBox
+import com.example.graphapp.data.local.NodeWithoutEmbedding
 import com.example.graphapp.data.schema.detectInputAnomaly
 import com.example.graphapp.data.schema.findPatterns
 import com.example.graphapp.data.schema.recommendOnInput
@@ -26,7 +22,6 @@ import com.example.graphapp.data.schema.predictMissingProperties
 import com.example.graphdb.Edge
 import com.example.graphdb.Node
 import com.google.gson.Gson
-import io.objectbox.kotlin.boxFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,18 +45,25 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     val filteredGraphData: StateFlow<String?> = _filteredGraphData
 
     // For ObjectBox Testing
-    private val obRepository = ObjectBoxRepository(application)
+    private val vectorRepository = VectorRepository(application)
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
+
+            vectorRepository.initializeEmbedding()
+            vectorRepository.initialiseVectorRepository()
+            val nodes = vectorRepository.getAllNodesWithoutEmbedding()
+            val edges = vectorRepository.getAllEdges()
+            val json = convertToJsonVector(nodes, edges)
+            _graphData.value = json
+
+            /*
             repository.initialiseDatabase()
             val nodes = repository.getAllNodes()
             val edges = repository.getAllEdges()
             val json = convertToJson(nodes, edges)
             _graphData.value = json
-
-            obRepository.initializeEmbedding()
-            testGraphEmbeddings()
+             */
         }
     }
 
@@ -76,6 +78,18 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             val source = nodes.find { it.id == edge.fromNode }?.name
             val target = nodes.find { it.id == edge.toNode }?.name
             mapOf("source" to source, "target" to target, "label" to edge.relationType)
+        }
+        val json = mapOf("nodes" to nodeList, "links" to edgeList)
+        return gson.toJson(json)
+    }
+
+    private fun convertToJsonVector(nodes: List<NodeWithoutEmbedding>, edges: List<EdgeEntity>): String {
+        val gson = Gson()
+        val nodeList = nodes.map { mapOf("id" to it.name, "type" to it.type) }
+        val edgeList = edges.map { edge ->
+            val source = nodes.find { it.id == edge.fromId }?.name
+            val target = nodes.find { it.id == edge.toId }?.name
+            mapOf("source" to source, "target" to target, "label" to edge.edgeType)
         }
         val json = mapOf("nodes" to nodeList, "links" to edgeList)
         return gson.toJson(json)
@@ -177,7 +191,6 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return
     }
 
-
 //     Function 4: Find Patterns/Clusters
     fun findGraphRelations() {
         val response = findPatterns(repository)
@@ -190,17 +203,5 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         Log.d("GraphPatterns", "Response: $apiRes")
 
         return
-    }
-
-    suspend fun testGraphEmbeddings() {
-        val e1: FloatArray = obRepository.embedText("Delhi has a population 32 million")
-        val e2: FloatArray = obRepository.embedText("What is the population of Delhi?")
-        val e3: FloatArray =
-            obRepository.embedText("Cities with a population greater than 4 million are termed as metro cities")
-
-        val d12 = obRepository.cosineDistance(e1, e2)
-        val d13 = obRepository.cosineDistance(e1, e3)
-        println("Similarity between e1 and e2: $d12")
-        println("Similarity between e1 and e3: $d13")
     }
 }
