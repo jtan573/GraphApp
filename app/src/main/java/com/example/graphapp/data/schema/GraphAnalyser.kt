@@ -1,7 +1,9 @@
 package com.example.graphapp.data.schema
 
 import android.util.Log
+import androidx.compose.runtime.simulateHotReload
 import com.example.graphapp.data.GraphRepository
+import com.example.graphapp.data.VectorRepository
 import com.example.graphapp.data.api.AnomalyDetectionResponse
 import com.example.graphapp.data.api.DiscoverEventsResponse
 import com.example.graphapp.data.api.EventDetails
@@ -17,10 +19,12 @@ import com.example.graphapp.data.api.PropertyAgreement
 import com.example.graphapp.data.api.ProvideRecommendationsResponse
 import com.example.graphapp.data.api.Recommendation
 import com.example.graphapp.data.api.SimilarEvent
+import com.example.graphapp.data.local.EdgeEntity
+import com.example.graphapp.data.local.NodeEntity
 import com.example.graphapp.data.schema.GraphSchema.keyNodes
 import com.example.graphapp.data.schema.GraphSchema.propertyNodes
-import com.example.graphdb.Edge
-import com.example.graphdb.Node
+//import com.example.graphdb.Edge
+//import com.example.graphdb.Node
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.iterator
@@ -29,8 +33,9 @@ import kotlin.collections.iterator
     Function 1: Predict missing properties
 ------------------------------------------------- */
 fun predictMissingProperties(
-    repository: GraphRepository
-): Pair<List<Edge>, PredictMissingPropertiesResponse> {
+//    repository: GraphRepository,
+    repository: VectorRepository,
+): Pair<List<EdgeEntity>, PredictMissingPropertiesResponse> {
 
     val predictionsList = mutableListOf<PredictMissingProperties>()
 
@@ -49,7 +54,7 @@ fun predictMissingProperties(
 
         var flag = false
         // missingPropType -> propNode, simScore, keyNodeName
-        val predictedPropertiesMap = mutableMapOf<String, Triple<Node, Float, String>>()
+        val predictedPropertiesMap = mutableMapOf<String, Triple<NodeEntity, Float, String>>()
 
         // Iterate over the missing properties
         for (prop in missingProps) {
@@ -62,13 +67,15 @@ fun predictMissingProperties(
             }
 
             // keyNode -> propNode, simValue
-            val scoreByValue = mutableMapOf<Node, Pair<Node, Float>>()
+            val scoreByValue = mutableMapOf<NodeEntity, Pair<NodeEntity, Float>>()
 
+            val simMatrix = initialiseSemanticSimilarityMatrix(repository)
             for (candidate in candidates) {
                 val simScore = computeWeightedSim(
                     targetId = node.id,
                     candidateId = candidate.id,
-                    repository = repository
+                    repository = repository,
+                    similarityMatrix = simMatrix
                 )
 
                 // Retrieve the property value of this candidate
@@ -123,17 +130,17 @@ fun predictMissingProperties(
     }
 
     // Creating Edges for UI
-    val newEdges = mutableListOf<Edge>()
+    val newEdges = mutableListOf<EdgeEntity>()
 
     for (prediction in predictionsList) {
         val targetNodeId = prediction.nodeId
         for ((prop, sourceNodeName) in prediction.predictedProperties) {
             val relationType = "Suggest-$prop"
-            val newEdge = Edge(
+            val newEdge = EdgeEntity(
                 id = -1L,
-                fromNode = repository.findNodeByNameAndType(sourceNodeName, prop),
-                toNode = targetNodeId,
-                relationType = relationType
+                fromId = repository.getNodeByNameAndType(sourceNodeName, prop)!!.id,
+                toId = targetNodeId,
+                edgeType = relationType
             )
             newEdges.add(newEdge)
         }
@@ -148,25 +155,26 @@ fun predictMissingProperties(
 ------------------------------------------------- */
 fun recommendOnInput (
     newEventMap: Map<String, String>,
-    repository: GraphRepository,
+    repository: VectorRepository,
     noKeyNode: Boolean
-) : Triple<List<Node>, List<Edge>, EventRecommendationResult> {
+) : Triple<List<NodeEntity>, List<EdgeEntity>, EventRecommendationResult> {
 
     val allNodes = repository.getAllNodes()
     val allNodesByType = allNodes
-        .filter { it.type in (keyNodes) } // Exclude description nodes
+        .filter { it.type in (keyNodes) }
         .groupBy { it.type }
 
     // Compute similarity of each candidate to all event nodes
     val eventNodeIds = newEventMap.entries.map { (type, value) ->
-        repository.findNodeByNameAndType(value, type)
+        repository.getNodeByNameAndType(value, type)!!.id
     }.toSet()
 
     // For each key node type, compute top 2
-    val topRecommendationsByType = mutableMapOf<String, List<Pair<Node, Float>>>()
+    val topRecommendationsByType = mutableMapOf<String, List<Pair<NodeEntity, Float>>>()
+    val simMatrix = initialiseSemanticSimilarityMatrix(repository)
 
     for ((type, candidates) in allNodesByType) {
-        val scoresForType = mutableListOf<Pair<Node, Float>>()
+        val scoresForType = mutableListOf<Pair<NodeEntity, Float>>()
 
         for (candidate in candidates) {
             if (candidate.id in eventNodeIds) continue // skip the event key nodes themselves
@@ -174,7 +182,8 @@ fun recommendOnInput (
                 val s = computeWeightedSim(
                     targetId = candidate.id,
                     candidateId = eventId,
-                    repository = repository
+                    repository = repository,
+                    similarityMatrix = simMatrix
                 )
                 s
             }.average().toFloat()
@@ -232,39 +241,40 @@ fun recommendOnInput (
     }
 
     // Creating filtered graph
-    val neighborNodes = mutableListOf<Node>()
-    val neighborEdges = mutableListOf<Edge>()
+    val neighborNodes = mutableSetOf<NodeEntity>()
+    val neighborEdges = mutableSetOf<EdgeEntity>()
 
     val eventKeyIds = newEventMap
         .filter { (type, value) -> value.isNotBlank() && type in (keyNodes + propertyNodes) }
         .mapNotNull { (type, value) ->
-            repository.findNodeByNameAndType(value, type)
+            repository.getNodeByNameAndType(value, type)!!.id
         }
     val allPredictedNodes = topRecommendationsByType.values.flatten().map { it.first.id }
 
     for (id in (allPredictedNodes + eventKeyIds)) {
         val nodes = repository.getNeighborsOfNodeById(id)
+
         for (n in nodes) {
-            val edges = repository.getEdgeBetweenNodes(id, n.id)
-            neighborEdges.addAll(edges.filter { it !in neighborEdges })
+            Log.d("CHECK NODES", "${n.id}, $id")
+            val edge = repository.getEdgeBetweenNodes(id, n.id)
+            neighborEdges.add(edge)
         }
-        neighborNodes.addAll(nodes.filter { it !in neighborNodes })
-        repository.findNodeById(id)?.let { node ->
-            if (node !in neighborNodes) {
-                neighborNodes.add(node)
-            }
-        }
+        neighborNodes.addAll(nodes)
+        neighborNodes.add(repository.getNodeById(id)!!)
+
+        val neighbourIds = neighborNodes.map { it.id }
+        Log.d("CHECK NODES", "$neighbourIds")
     }
 
     for (id in eventKeyIds) {
         for ((type, recs) in topRecommendationsByType) {
             for ((node, _) in recs) {
                 val relationType = "Suggest-$type"
-                val newEdge = Edge(
+                val newEdge = EdgeEntity(
                     id = -1L,
-                    fromNode = id,
-                    toNode = node.id,
-                    relationType = relationType
+                    fromId = id,
+                    toId = node.id,
+                    edgeType = relationType
                 )
                 neighborEdges.add(newEdge)
             }
@@ -273,14 +283,14 @@ fun recommendOnInput (
 
     return if (noKeyNode) {
         Triple(
-            neighborNodes,
-            neighborEdges,
+            neighborNodes.toList(),
+            neighborEdges.toList(),
             EventRecommendationResult.PropertyToEventRec(DiscoverEventsResponse(newEventMap, eventsByType))
         )
     } else {
         Triple(
-            neighborNodes,
-            neighborEdges,
+            neighborNodes.toList(),
+            neighborEdges.toList(),
             EventRecommendationResult.EventToEventRec(ProvideRecommendationsResponse(newEventMap, recList))
         )
     }
@@ -290,16 +300,16 @@ fun recommendOnInput (
     Function 4: Pattern Recognition
 ------------------------------------------------- */
 fun findPatterns(
-    repository: GraphRepository
+    repository: VectorRepository
 ) : PatternFindingResponse {
     // 1. Compute similarity matrix
-    val simMatrix = initialiseSimilarityMatrix(repository)
+    val simMatrix = initialiseSemanticSimilarityMatrix(repository)
 
     // 2. Build similarity graph (adjacency list)
     val threshold = 0.4f
     val similarityGraph = mutableMapOf<Long, MutableSet<Long>>()
 
-    val allKeyNodeIds = repository.getAllKeyNodeIds()
+    val allKeyNodeIds = repository.getAllNodes().map { it.id }
 
     for ((pair, score) in simMatrix) {
         val (id1, id2) = pair
@@ -340,7 +350,7 @@ fun findPatterns(
     for ((i, group) in filteredComponents.withIndex()) {
         val keyNodesList = mutableListOf<KeyNode>()
         for (nodeId in group) {
-             val targetNode = repository.findNodeById(nodeId)
+             val targetNode = repository.getNodeById(nodeId)
              val targetNodeProps = repository.getNeighborsOfNodeById(nodeId)
                  .filter { it.type in propertyNodes }.associate { it.type to it.name}
              val keyNode = KeyNode(
@@ -363,19 +373,21 @@ fun findPatterns(
 ------------------------------------------------- */
 fun detectInputAnomaly(
     newEventMap: Map<String, String>,
-    repository: GraphRepository
+//    repository: GraphRepository,
+    repository: VectorRepository
 ) : AnomalyDetectionResponse {
-    val simMatrix = initialiseSimilarityMatrix(repository)
+//    val simMatrix = initialiseSemanticSimilarityMatrix(repository)
 
     val allNodes = repository.getAllNodes()
     val allKeyNodes = allNodes.filter { it.type in (keyNodes) }
 
     val eventNodeIds = newEventMap.entries.map { (type, value) ->
-        repository.findNodeByNameAndType(value, type)
+        repository.getNodeByNameAndType(value, type)!!.id
     }.toSet()
 
     // For each key node type, compute top 3
-    val nodesWithSimilarityList = mutableListOf<Pair<Node, Float>>()
+    val nodesWithSimilarityList = mutableListOf<Pair<NodeEntity, Float>>()
+    val simMatrix = initialiseSemanticSimilarityMatrix(repository)
 
     for (candidate in allKeyNodes) {
         if (candidate.id in eventNodeIds) continue // skip the event key nodes themselves
@@ -384,7 +396,8 @@ fun detectInputAnomaly(
             val s = computeWeightedSim(
                 targetId = candidate.id,
                 candidateId = eventId,
-                repository = repository
+                repository = repository,
+                similarityMatrix = simMatrix
             )
             s
         }.average().toFloat()
@@ -403,7 +416,7 @@ fun detectInputAnomaly(
     for (propertyType in propertyNodes) {
         // 1. Get the candidate event's property node id
         val candidatePropertyNodeId = newEventMap[propertyType]?.let { propValue ->
-            repository.findNodeByNameAndType(propValue, propertyType)
+            repository.getNodeByNameAndType(propValue, propertyType)!!.id
         }
 
         if (candidatePropertyNodeId == null) {
@@ -434,7 +447,7 @@ fun detectInputAnomaly(
         propertyAnalyses.add(
             PropertyAgreement(
                 propertyType = propertyType,
-                candidateValue = repository.findNodeById(candidatePropertyNodeId)?.name ?: "Unknown",
+                candidateValue = repository.getNodeById(candidatePropertyNodeId)?.name ?: "Unknown",
                 isAnomalous = isAnomalous
             )
         )

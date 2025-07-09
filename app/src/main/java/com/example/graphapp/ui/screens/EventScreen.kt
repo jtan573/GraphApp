@@ -13,20 +13,24 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +45,9 @@ import com.example.graphapp.ui.components.EventForm
 import com.example.graphapp.ui.components.GraphWebView
 import com.example.graphapp.ui.viewmodels.GraphViewModel
 import io.ktor.websocket.Frame.Text
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import kotlin.collections.set
 
@@ -65,6 +72,9 @@ fun EventScreen(
     val filterOptions = GraphSchema.keyNodes + GraphSchema.propertyNodes + "All"
 
     val events by viewModel.createdEvents.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
+    var activeButton by remember { mutableStateOf(ActiveButton.NONE) }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -88,10 +98,21 @@ fun EventScreen(
                 ) {
                     Button(
                         onClick = { showForm = !showForm },
+                        enabled = !isLoading,
                         modifier = Modifier.padding(end = 3.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
                     ) {
-                        Text(if (showForm) "Hide" else "+ Event", fontSize = 12.sp)
+                        if (isLoading && activeButton == ActiveButton.EVENT) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = if (showForm) "Hide" else "+ Event",
+                                fontSize = 12.sp
+                            )
+                        }
                     }
                     Button(
                         onClick = { showFilterMenu = true },
@@ -123,10 +144,19 @@ fun EventScreen(
                 fieldKeys = fieldKeys,
                 eventInputMap = eventInputMap,
                 onSubmit = {
-                    viewModel.provideEventRec(eventInputMap)
-                    eventInputMap.clear()
-                    fieldKeys.forEach { eventInputMap[it] = "" }
-                    showForm = false
+                    coroutineScope.launch {
+                        withContext(Dispatchers.Main) {
+                            isLoading = true
+                            activeButton = ActiveButton.EVENT
+                        }
+                        viewModel.provideEventRec(eventInputMap)
+                        withContext(Dispatchers.Main) {
+                            isLoading = false
+                            activeButton = ActiveButton.NONE
+                            eventInputMap.clear()
+                            fieldKeys.forEach { eventInputMap[it] = "" }
+                            showForm = false }
+                    }
                 },
                 onCancel = { showForm = false }
             )

@@ -1,12 +1,14 @@
 package com.example.graphapp.data
 
 import android.content.Context
+import android.util.Log
 import com.example.graphapp.data.embedding.SentenceEmbedding
 import com.example.graphapp.data.local.EdgeEntity
 import com.example.graphapp.data.local.NodeEntity
 import com.example.graphapp.data.local.NodeWithoutEmbedding
 import com.example.graphapp.data.schema.GraphSchema.edgeLabels
 import com.example.graphapp.data.local.VectorDBQueries
+import com.example.graphdb.Edge
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -42,11 +44,6 @@ class VectorRepository(private val context: Context) {
             normalizeEmbeddings = true
         )
     }
-
-
-    // Function to get embeddings for input text
-    suspend fun embedText(text: String): FloatArray =
-        sentenceEmbedding.encode(text)
 
 
     // Function to calculate cosine similarity between nodes
@@ -127,7 +124,7 @@ class VectorRepository(private val context: Context) {
     }
 
     // Get all nodes without their embedding
-    fun getAllNodesWithoutEmbedding() : List<NodeWithoutEmbedding> {
+    fun getAllNodesWithoutEmbedding() : List<NodeEntity> {
         return queries.findAllNodesWithoutEmbeddingQuery()
     }
 
@@ -137,22 +134,23 @@ class VectorRepository(private val context: Context) {
     }
 
     // Find edges
-    fun getNeighboursOfNodeId(id: Long): List<NodeEntity> {
+    fun getNeighborsOfNodeById(id: Long): List<NodeEntity> {
         val neighbourEdges = queries.findAllEdgesAroundNodeIdQuery(id)
-        val neighbourNodes = mutableListOf<NodeEntity>()
+        val neighbourNodes = mutableSetOf<NodeEntity>()
 
         for (edge in neighbourEdges) {
-            var node: NodeEntity
-            if (edge.fromId != id) {
-                node = queries.findNodeByIdQuery(edge.fromId)!!
+            val node = if (edge.fromId == id) {
+                queries.findNodeByIdQuery(edge.fromId)!!
             } else {
-                node = queries.findNodeByIdQuery(edge.toId)!!
+                queries.findNodeByIdQuery(edge.toId)!!
             }
-            if (!neighbourNodes.contains(node)) {
-                neighbourNodes.add(node)
-            }
+            neighbourNodes.add(node)
         }
-        return neighbourNodes
+        return neighbourNodes.toList()
+    }
+
+    fun getEdgeBetweenNodes(first: Long, second: Long): EdgeEntity {
+        return queries.findEdgeBetweenNodeIdsQuery(first, second)!!
     }
 
     // Function to initialise repository
@@ -237,13 +235,13 @@ class VectorRepository(private val context: Context) {
 
         insertNodeIntoDb("Grenade Attack", "Article")
         insertNodeIntoDb("Group Epsilon", "Entity", "Recognized for its strategic influence and structured organization.")
-        insertNodeIntoDb("Grenades", "Method")
+        insertNodeIntoDb("Projectiles", "Method")
         insertNodeIntoDb("2019-10-05T13:38:27Z", "Date")
         insertNodeIntoDb("Police Station", "Location")
         insertNodeIntoDb("Weaken Law Enforcement", "Motive", "Focusing on the unauthorized acquisition of sensitive information.")
 
         insertEdgeIntoDB(getNodeByNameAndType("Group Epsilon", "Entity"), getNodeByNameAndType("Grenade Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Grenades", "Method"), getNodeByNameAndType("Grenade Attack", "Article"))
+        insertEdgeIntoDB(getNodeByNameAndType("Projectiles", "Method"), getNodeByNameAndType("Grenade Attack", "Article"))
         insertEdgeIntoDB(getNodeByNameAndType( "2019-10-05T13:38:27Z", "Date"), getNodeByNameAndType("Grenade Attack", "Article"))
         insertEdgeIntoDB(getNodeByNameAndType("Police Station", "Location"), getNodeByNameAndType("Grenade Attack", "Article"))
         insertEdgeIntoDB(getNodeByNameAndType("Weaken Law Enforcement", "Motive"), getNodeByNameAndType("Grenade Attack", "Article"))

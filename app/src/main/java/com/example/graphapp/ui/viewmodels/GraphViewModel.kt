@@ -15,6 +15,7 @@ import com.example.graphapp.data.api.ResponseData
 import com.example.graphapp.data.local.EdgeEntity
 import com.example.graphapp.data.local.NodeEntity
 import com.example.graphapp.data.local.NodeWithoutEmbedding
+import com.example.graphapp.data.schema.GraphSchema
 import com.example.graphapp.data.schema.detectInputAnomaly
 import com.example.graphapp.data.schema.findPatterns
 import com.example.graphapp.data.schema.recommendOnInput
@@ -56,19 +57,11 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             val edges = vectorRepository.getAllEdges()
             val json = convertToJsonVector(nodes, edges)
             _graphData.value = json
-
-            /*
-            repository.initialiseDatabase()
-            val nodes = repository.getAllNodes()
-            val edges = repository.getAllEdges()
-            val json = convertToJson(nodes, edges)
-            _graphData.value = json
-             */
         }
     }
 
     fun getNodeTypes(): List<String> {
-        return repository.getNodeTypes()
+        return GraphSchema.keyNodes + GraphSchema.propertyNodes + GraphSchema.otherNodes
     }
 
     private fun convertToJson(nodes: List<Node>, edges: List<Edge>): String {
@@ -83,7 +76,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return gson.toJson(json)
     }
 
-    private fun convertToJsonVector(nodes: List<NodeWithoutEmbedding>, edges: List<EdgeEntity>): String {
+    private fun convertToJsonVector(nodes: List<NodeEntity>, edges: List<EdgeEntity>): String {
         val gson = Gson()
         val nodeList = nodes.map { mapOf("id" to it.name, "type" to it.type) }
         val edgeList = edges.map { edge ->
@@ -96,9 +89,9 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun reloadGraphData() {
-        val nodes = repository.getAllNodes()
-        val edges = repository.getAllEdges()
-        val json = convertToJson(nodes, edges)
+        val nodes = vectorRepository.getAllNodes()
+        val edges = vectorRepository.getAllEdges()
+        val json = convertToJsonVector(nodes, edges)
         _graphData.value = json
     }
 
@@ -106,10 +99,10 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     fun fillMissingLinks() {
 
         // Creating updated graph
-        val (newEdges, response) = predictMissingProperties(repository)
-        val nodes = repository.getAllNodes()
-        val edges = repository.getAllEdges() + newEdges
-        val json = convertToJson(nodes, edges)
+        val (newEdges, response) = predictMissingProperties(vectorRepository)
+        val nodes = vectorRepository.getAllNodes()
+        val edges = vectorRepository.getAllEdges() + newEdges
+        val json = convertToJsonVector(nodes, edges)
         _graphData.value = json
 
         // Creating API response
@@ -125,21 +118,23 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Function 2/3/5: Predict Top Relationships based on Incoming Event/Detect input anomaly
-    fun provideEventRec( map: Map<String, String> ) {
+    suspend fun provideEventRec( map: Map<String, String> ) {
 
         val normalizedMap = map.filterValues { it.isNotBlank() }
         if (normalizedMap.isEmpty()) { return }
 
         for ((type, value) in normalizedMap) {
-            repository.insertNode(value, type, null)
+            vectorRepository.insertNodeIntoDb(inputName = value, inputType = type)
         }
         for ((type1, value1) in normalizedMap) {
             for ((type2, value2) in normalizedMap) {
                 if (type1 != type2) {
                     val edgeType = edgeLabels["$type1-$type2"]
                     if (edgeType != null) {
-                        repository.insertEdge(fromNodeName = value1, fromNodeType = type1,
-                            toNodeName = value2, toNodeType = type2, relationType = edgeType)
+                        vectorRepository.insertEdgeIntoDB(
+                            fromNode = NodeEntity(name = value1, type = type1),
+                            toNode = NodeEntity(name = value2, type = type2),
+                        )
                     }
                 }
             }
@@ -154,7 +149,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _createdEvents.value = currentList
 
         // Detect anomaly
-        val response = detectInputAnomaly(normalizedMap, repository)
+        val response = detectInputAnomaly(normalizedMap, vectorRepository)
         val apiRes = ApiResponse(
             status = "success",
             timestamp = "",
@@ -164,8 +159,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
         // Create updated graph
         val noKeyTypes = normalizedMap.keys.none { it in keyNodes }
-        val (nodes, edges, result) = recommendOnInput(normalizedMap, repository, noKeyTypes)
-        val json = convertToJson(nodes, edges)
+        val (nodes, edges, result) = recommendOnInput(normalizedMap, vectorRepository, noKeyTypes)
+        val json = convertToJsonVector(nodes, edges)
         _filteredGraphData.value = json
 
         // Create API response
@@ -193,7 +188,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
 //     Function 4: Find Patterns/Clusters
     fun findGraphRelations() {
-        val response = findPatterns(repository)
+        val response = findPatterns(vectorRepository)
 
         val apiRes = ApiResponse(
             status = "success",
