@@ -16,8 +16,9 @@ import com.example.graphapp.data.local.EdgeEntity
 import com.example.graphapp.data.local.NodeEntity
 import com.example.graphapp.data.local.NodeWithoutEmbedding
 import com.example.graphapp.data.schema.GraphSchema
-import com.example.graphapp.data.schema.detectInputAnomaly
+import com.example.graphapp.data.schema.detectReplicateInput
 import com.example.graphapp.data.schema.findPatterns
+import com.example.graphapp.data.schema.initialiseSemanticSimilarityMatrix
 import com.example.graphapp.data.schema.recommendOnInput
 import com.example.graphapp.data.schema.predictMissingProperties
 import com.example.graphdb.Edge
@@ -62,18 +63,6 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     fun getNodeTypes(): List<String> {
         return GraphSchema.keyNodes + GraphSchema.propertyNodes + GraphSchema.otherNodes
-    }
-
-    private fun convertToJson(nodes: List<Node>, edges: List<Edge>): String {
-        val gson = Gson()
-        val nodeList = nodes.map { mapOf("id" to it.name, "type" to it.type) }
-        val edgeList = edges.map { edge ->
-            val source = nodes.find { it.id == edge.fromNode }?.name
-            val target = nodes.find { it.id == edge.toNode }?.name
-            mapOf("source" to source, "target" to target, "label" to edge.relationType)
-        }
-        val json = mapOf("nodes" to nodeList, "links" to edgeList)
-        return gson.toJson(json)
     }
 
     private fun convertToJsonVector(nodes: List<NodeEntity>, edges: List<EdgeEntity>): String {
@@ -149,17 +138,18 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _createdEvents.value = currentList
 
         // Detect anomaly
-        val response = detectInputAnomaly(normalizedMap, vectorRepository)
+        val simMatrix = initialiseSemanticSimilarityMatrix(vectorRepository)
+        val response = detectReplicateInput(normalizedMap, vectorRepository)
         val apiRes = ApiResponse(
             status = "success",
             timestamp = "",
-            data = ResponseData.DetectAnomalyData(response)
+            data = ResponseData.DetectReplicaEventData(response)
         )
-        Log.d("DetectInputAnomaly", "Anomaly: $apiRes")
+        Log.d("DetectReplicaEvent", "Output: $apiRes")
 
         // Create updated graph
         val noKeyTypes = normalizedMap.keys.none { it in keyNodes }
-        val (nodes, edges, result) = recommendOnInput(normalizedMap, vectorRepository, noKeyTypes)
+        val (nodes, edges, result) = recommendOnInput(normalizedMap, vectorRepository, noKeyTypes, simMatrix)
         val json = convertToJsonVector(nodes, edges)
         _filteredGraphData.value = json
 

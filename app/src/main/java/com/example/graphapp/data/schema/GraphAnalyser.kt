@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.compose.runtime.simulateHotReload
 import com.example.graphapp.data.GraphRepository
 import com.example.graphapp.data.VectorRepository
-import com.example.graphapp.data.api.AnomalyDetectionResponse
 import com.example.graphapp.data.api.DiscoverEventsResponse
 import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.data.api.EventRecommendationResult
@@ -15,9 +14,9 @@ import com.example.graphapp.data.api.PredictMissingProperties
 import com.example.graphapp.data.api.PredictMissingPropertiesResponse
 import com.example.graphapp.data.api.PredictedEventByType
 import com.example.graphapp.data.api.PredictedProperty
-import com.example.graphapp.data.api.PropertyAgreement
 import com.example.graphapp.data.api.ProvideRecommendationsResponse
 import com.example.graphapp.data.api.Recommendation
+import com.example.graphapp.data.api.ReplicaDetectionResponse
 import com.example.graphapp.data.api.SimilarEvent
 import com.example.graphapp.data.local.EdgeEntity
 import com.example.graphapp.data.local.NodeEntity
@@ -156,7 +155,8 @@ fun predictMissingProperties(
 fun recommendOnInput (
     newEventMap: Map<String, String>,
     repository: VectorRepository,
-    noKeyNode: Boolean
+    noKeyNode: Boolean,
+    similarityMatrix: Map<Pair<Long, Long>, Float>
 ) : Triple<List<NodeEntity>, List<EdgeEntity>, EventRecommendationResult> {
 
     val allNodes = repository.getAllNodes()
@@ -171,19 +171,19 @@ fun recommendOnInput (
 
     // For each key node type, compute top 2
     val topRecommendationsByType = mutableMapOf<String, List<Pair<NodeEntity, Float>>>()
-    val simMatrix = initialiseSemanticSimilarityMatrix(repository)
+//    val simMatrix = initialiseSemanticSimilarityMatrix(repository)
 
     for ((type, candidates) in allNodesByType) {
         val scoresForType = mutableListOf<Pair<NodeEntity, Float>>()
 
         for (candidate in candidates) {
-            if (candidate.id in eventNodeIds) continue // skip the event key nodes themselves
+            if (candidate.id in eventNodeIds) continue
             val avg = eventNodeIds.map { eventId ->
                 val s = computeWeightedSim(
                     targetId = candidate.id,
                     candidateId = eventId,
                     repository = repository,
-                    similarityMatrix = simMatrix
+                    similarityMatrix = similarityMatrix
                 )
                 s
             }.average().toFloat()
@@ -256,6 +256,7 @@ fun recommendOnInput (
 
         for (n in nodes) {
             Log.d("CHECK NODES", "${n.id}, $id")
+            if (id == n.id) continue
             val edge = repository.getEdgeBetweenNodes(id, n.id)
             neighborEdges.add(edge)
         }
@@ -369,167 +370,73 @@ fun findPatterns(
 }
 
 /* -------------------------------------------------
-    Function 5: Anomaly Detection
+    Function 5: Detecting Same Event / Fusing Events
 ------------------------------------------------- */
-fun detectInputAnomaly(
+fun detectReplicateInput(
     newEventMap: Map<String, String>,
-//    repository: GraphRepository,
-    repository: VectorRepository
-) : AnomalyDetectionResponse {
-//    val simMatrix = initialiseSemanticSimilarityMatrix(repository)
+    repository: VectorRepository,
+    ratioThreshold: Float = 0.8f,
+    similarityThreshold: Float = 0.8f
+) : ReplicaDetectionResponse {
 
     val allNodes = repository.getAllNodes()
     val allKeyNodes = allNodes.filter { it.type in (keyNodes) }
 
-    val eventNodeIds = newEventMap.entries.map { (type, value) ->
-        repository.getNodeByNameAndType(value, type)!!.id
-    }.toSet()
-
-    // For each key node type, compute top 3
-    val nodesWithSimilarityList = mutableListOf<Pair<NodeEntity, Float>>()
-    val simMatrix = initialiseSemanticSimilarityMatrix(repository)
-
-    for (candidate in allKeyNodes) {
-        if (candidate.id in eventNodeIds) continue // skip the event key nodes themselves
-
-        val avg = eventNodeIds.map { eventId ->
-            val s = computeWeightedSim(
-                targetId = candidate.id,
-                candidateId = eventId,
-                repository = repository,
-                similarityMatrix = simMatrix
-            )
-            s
-        }.average().toFloat()
-        nodesWithSimilarityList.add(candidate to avg)
+    val inputEmbeddings = newEventMap.entries.associate { (type, value) ->
+        type to repository.getNodeByNameAndType(value, type)
     }
 
-    val mostSimilarNodes = nodesWithSimilarityList
-        .sortedByDescending { it.second }
-        .take(3)
+    val matchingCandidates = mutableListOf<SimilarEvent>()
 
-    // For each property type, compute weighted agreement
-    val propertyAnalyses = mutableListOf<PropertyAgreement>()
-    val thresholdAgreement = 0.4f // can tune
-    var flaggedProperties = 0
+    for (candidate in allKeyNodes) {
+        val propertySimilarities = mutableMapOf<String, Float>()
+        var matchingCount = 0
+        var numProperties = propertyNodes.size
 
-    for (propertyType in propertyNodes) {
-        // 1. Get the candidate event's property node id
-        val candidatePropertyNodeId = newEventMap[propertyType]?.let { propValue ->
-            repository.getNodeByNameAndType(propValue, propertyType)!!.id
-        }
-
-        if (candidatePropertyNodeId == null) {
-            continue
-        }
-
-        // 2. Collect weighted votes from similar nodes
-        val weightedVotes = mutableMapOf<Long, Float>()
-        for ((similarNode, simScore) in mostSimilarNodes) {
-            // For each similar node, get its property node
-            val neighbor = repository.getNeighborsOfNodeById(similarNode.id)
+        for (propertyType in propertyNodes) {
+            val candidatePropertyNode = repository.getNeighborsOfNodeById(candidate.id)
                 .firstOrNull { it.type == propertyType }
-            if (neighbor != null) {
-                weightedVotes[neighbor.id] =
-                    weightedVotes.getOrDefault(neighbor.id, 0f) + simScore
+
+            if (candidatePropertyNode!= null &&
+                candidatePropertyNode.embedding != null &&
+                inputEmbeddings[propertyType] != null
+            ) {
+                val similarity = repository.cosineDistance(
+                    candidatePropertyNode.embedding!!, inputEmbeddings[propertyType]!!.embedding!!
+                )
+                propertySimilarities.put(propertyType, similarity)
+
+                if (similarity >= similarityThreshold) {
+                    matchingCount++
+                }
             }
         }
 
-        // 3. Compute agreement
-        val totalWeight = weightedVotes.values.sum()
-        val agreeingWeight = weightedVotes[candidatePropertyNodeId] ?: 0f
-        val agreement = if (totalWeight > 0f) agreeingWeight / totalWeight else 0f
+        if (matchingCount == 0) continue
 
-        val isAnomalous = agreement < thresholdAgreement
-        if (isAnomalous) flaggedProperties++
-
-        // Add to analyses
-        propertyAnalyses.add(
-            PropertyAgreement(
-                propertyType = propertyType,
-                candidateValue = repository.getNodeById(candidatePropertyNodeId)?.name ?: "Unknown",
-                isAnomalous = isAnomalous
+        val ratio = matchingCount.toFloat() / numProperties
+        if (ratio >= ratioThreshold) {
+            matchingCandidates.add(
+                SimilarEvent(
+                    eventName = candidate.name,
+                    propertySimilarities = propertySimilarities,
+                    similarityRatio = ratio,
+                    averageSimilarityScore = propertySimilarities.map { it.value }.average().toFloat()
+                )
             )
-        )
-    }
-    // Build top similar event details
-    val topSimilarEvents = mostSimilarNodes.map { (node, simScore) ->
-        val propertyValues = propertyNodes.associateWith { propertyType ->
-            repository.getNeighborsOfNodeById(node.id)
-                .firstOrNull { it.type == propertyType }
-                ?.name ?: "Unknown"
         }
-        SimilarEvent(
-            eventName = node.name,
-            propertyValues = propertyValues
-        )
     }
+
+    // Determine if any exceed threshold
+    val isLikelyDuplicate = matchingCandidates.any { it.averageSimilarityScore >= similarityThreshold }
 
     // Build the response
-    return AnomalyDetectionResponse(
+    return ReplicaDetectionResponse(
         inputEvent = newEventMap,
-        overallAnomaly = flaggedProperties >= 2,
-        flaggedPropertyCount = flaggedProperties,
-        propertyAnalyses = propertyAnalyses,
-        topSimilarEvents = topSimilarEvents
+        topSimilarEvents = matchingCandidates.sortedWith(
+            compareByDescending<SimilarEvent> { it.similarityRatio }
+                .thenByDescending { it.averageSimilarityScore }),
+        isLikelyDuplicate = isLikelyDuplicate
     )
 }
 
-//fun findExistingRelations(
-//    repository: GraphRepository
-//) : List<Edge> {
-//
-//    val simMatrix = initialiseSimilarityMatrix(repository)
-//
-//    // Collect all candidate key nodes, grouped by type
-//    val allNodes = repository.getAllNodes()
-//    val relevantNodes = allNodes
-//        .filter { it.type in (keyNodes) }
-////        .groupBy { it.type }
-//
-//    val allScores = mutableListOf<Triple<Long, Long, Float>>()
-//
-//    for (node in relevantNodes) {
-//        for (other in relevantNodes) {
-//            if ( node.id == other.id ) continue
-//
-//            val (small, large) = if (node.id < other.id) node.id to other.id else other.id to node.id
-//            val s = simMatrix.getOrDefault(small to large, 0f)
-//
-//            if (s>=0.20f) continue // skip zero similarity
-//            allScores.add(Triple(small, large, s))
-//        }
-//    }
-//
-//    val topScoringRelations = allScores.toSet().toList()
-//        .sortedByDescending { it.third }
-//        .take(5)
-//
-//    Log.d("topScoringRelations", "Here: $topScoringRelations")
-//
-//    val floats = allScores.map { it.third }
-//    val sorted = floats.sorted()
-//    fun percentile(p: Double): Float {
-//        if (sorted.isEmpty()) return 0f
-//        val index = ((p / 100.0) * (sorted.size - 1)).toInt()
-//        return sorted[index]
-//    }
-//
-//    Log.d("Distribution", "25th percentile: ${percentile(25.0)}")
-//    Log.d("Distribution", "50th percentile: ${percentile(50.0)}")
-//    Log.d("Distribution", "75th percentile: ${percentile(75.0)}")
-//
-//    val newEdges = mutableListOf<Edge>()
-//
-//    for ((id1, id2, _) in topScoringRelations) {
-//        val relationType = "Related"
-//        val newEdge = Edge(
-//            id = -1L,
-//            fromNode = id1,
-//            toNode = id2,
-//            relationType = relationType
-//        )
-//        newEdges.add(newEdge)
-//    }
-//    return newEdges
-//}

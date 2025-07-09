@@ -11,7 +11,7 @@ sealed class ResponseData {
     data class ProvideRecommendationsData(val payload: ProvideRecommendationsResponse) : ResponseData()
     data class PatternFindingData(val payload: PatternFindingResponse) : ResponseData()
     data class DiscoverEventsData(val payload: DiscoverEventsResponse) : ResponseData()
-    data class DetectAnomalyData(val payload: AnomalyDetectionResponse) : ResponseData()
+    data class DetectReplicaEventData(val payload: ReplicaDetectionResponse) : ResponseData()
 }
 
 /* -------------------------------------------------
@@ -91,25 +91,19 @@ data class KeyNode(
 )
 
 /* -------------------------------------------------
-    Function 5: Anomaly Detection
+    Function 5: Detect Replica Event
 ------------------------------------------------- */
-data class AnomalyDetectionResponse(
+data class ReplicaDetectionResponse(
     val inputEvent: Map<String, String>,
-    val overallAnomaly: Boolean,
-    val flaggedPropertyCount: Int,
-    val propertyAnalyses: List<PropertyAgreement>,
-    val topSimilarEvents: List<SimilarEvent>
-)
-
-data class PropertyAgreement(
-    val propertyType: String,
-    val candidateValue: String, // From new event
-    val isAnomalous: Boolean
+    val topSimilarEvents: List<SimilarEvent>,
+    val isLikelyDuplicate: Boolean
 )
 
 data class SimilarEvent(
     val eventName: String,
-    val propertyValues: Map<String, String>
+    val propertySimilarities: Map<String, Float>,
+    val similarityRatio: Float,
+    val averageSimilarityScore: Float
 )
 
 

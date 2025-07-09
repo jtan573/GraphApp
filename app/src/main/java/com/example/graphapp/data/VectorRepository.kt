@@ -45,6 +45,10 @@ class VectorRepository(private val context: Context) {
         )
     }
 
+    suspend fun getTextEmbeddings(inputString: String): FloatArray {
+        return sentenceEmbedding.encode(inputString)
+    }
+
 
     // Function to calculate cosine similarity between nodes
     fun cosineDistance(
@@ -140,9 +144,9 @@ class VectorRepository(private val context: Context) {
 
         for (edge in neighbourEdges) {
             val node = if (edge.fromId == id) {
-                queries.findNodeByIdQuery(edge.fromId)!!
-            } else {
                 queries.findNodeByIdQuery(edge.toId)!!
+            } else {
+                queries.findNodeByIdQuery(edge.fromId)!!
             }
             neighbourNodes.add(node)
         }

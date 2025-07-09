@@ -15,6 +15,9 @@ object VectorDatabase {
         store = MyObjectBox.builder()
             .androidContext(context)
             .build()
+
+        store.boxFor(NodeEntity::class.java).removeAll()
+        store.boxFor(EdgeEntity::class.java).removeAll()
     }
 }
 
