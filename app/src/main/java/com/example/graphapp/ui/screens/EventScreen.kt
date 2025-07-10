@@ -53,13 +53,12 @@ import kotlin.collections.set
 
 @Composable
 fun EventScreen(
-    viewModel: GraphViewModel,
-    navController: NavHostController
+    viewModel: GraphViewModel
 ) {
     val filteredGraphData by viewModel.filteredGraphData.collectAsState()
     var showForm by remember { mutableStateOf(false) }
 
-    val fieldKeys = viewModel.getNodeTypes()
+    val fieldKeys = GraphSchema.propertyNodes + GraphSchema.otherNodes
     val eventInputMap = remember(fieldKeys) {
         mutableStateMapOf<String, String>().apply {
             fieldKeys.forEach { putIfAbsent(it, "") }

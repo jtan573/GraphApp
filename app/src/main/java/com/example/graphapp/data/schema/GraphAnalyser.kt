@@ -22,6 +22,7 @@ import com.example.graphapp.data.local.EdgeEntity
 import com.example.graphapp.data.local.NodeEntity
 import com.example.graphapp.data.schema.GraphSchema.keyNodes
 import com.example.graphapp.data.schema.GraphSchema.propertyNodes
+import com.example.graphdb.Node
 //import com.example.graphdb.Edge
 //import com.example.graphdb.Node
 import kotlin.collections.component1
@@ -32,8 +33,8 @@ import kotlin.collections.iterator
     Function 1: Predict missing properties
 ------------------------------------------------- */
 fun predictMissingProperties(
-//    repository: GraphRepository,
     repository: VectorRepository,
+    simMatrix: Map<Pair<Long, Long>, Float>
 ): Pair<List<EdgeEntity>, PredictMissingPropertiesResponse> {
 
     val predictionsList = mutableListOf<PredictMissingProperties>()
@@ -68,7 +69,6 @@ fun predictMissingProperties(
             // keyNode -> propNode, simValue
             val scoreByValue = mutableMapOf<NodeEntity, Pair<NodeEntity, Float>>()
 
-            val simMatrix = initialiseSemanticSimilarityMatrix(repository)
             for (candidate in candidates) {
                 val simScore = computeWeightedSim(
                     targetId = node.id,
@@ -156,13 +156,17 @@ fun recommendOnInput (
     newEventMap: Map<String, String>,
     repository: VectorRepository,
     noKeyNode: Boolean,
-    similarityMatrix: Map<Pair<Long, Long>, Float>
+    simMatrix: Map<Pair<Long, Long>, Float>
 ) : Triple<List<NodeEntity>, List<EdgeEntity>, EventRecommendationResult> {
 
+    val keyEventType = newEventMap.keys.intersect(keyNodes)
     val allNodes = repository.getAllNodes()
-    val allNodesByType = allNodes
-        .filter { it.type in (keyNodes) }
-        .groupBy { it.type }
+
+    val allNodesByType = if (keyEventType.isNotEmpty()) {
+        allNodes.filter { it.type in keyEventType }.groupBy { it.type }
+    } else {
+        allNodes.filter { it.type in keyNodes }.groupBy { it.type }
+    }
 
     // Compute similarity of each candidate to all event nodes
     val eventNodeIds = newEventMap.entries.map { (type, value) ->
@@ -171,7 +175,6 @@ fun recommendOnInput (
 
     // For each key node type, compute top 2
     val topRecommendationsByType = mutableMapOf<String, List<Pair<NodeEntity, Float>>>()
-//    val simMatrix = initialiseSemanticSimilarityMatrix(repository)
 
     for ((type, candidates) in allNodesByType) {
         val scoresForType = mutableListOf<Pair<NodeEntity, Float>>()
@@ -183,16 +186,17 @@ fun recommendOnInput (
                     targetId = candidate.id,
                     candidateId = eventId,
                     repository = repository,
-                    similarityMatrix = similarityMatrix
+                    similarityMatrix = simMatrix
                 )
                 s
             }.average().toFloat()
             scoresForType.add(candidate to avg)
+            Log.d("CHECK SCORES","scores: ${candidate.id} to $avg")
         }
 
         val topForType = scoresForType
             .sortedByDescending { it.second }
-            .take(2)
+            .take(3)
 
         topRecommendationsByType[type] = topForType
     }
@@ -260,8 +264,16 @@ fun recommendOnInput (
             val edge = repository.getEdgeBetweenNodes(id, n.id)
             neighborEdges.add(edge)
         }
-        neighborNodes.addAll(nodes)
-        neighborNodes.add(repository.getNodeById(id)!!)
+        nodes.forEach { node ->
+            if (neighborNodes.none { it.id == node.id }) {
+                neighborNodes.add(node)
+            }
+        }
+
+        val node = repository.getNodeById(id)
+        if (node != null && neighborNodes.none { it.id == node.id }) {
+            neighborNodes.add(node)
+        }
 
         val neighbourIds = neighborNodes.map { it.id }
         Log.d("CHECK NODES", "$neighbourIds")
@@ -301,10 +313,9 @@ fun recommendOnInput (
     Function 4: Pattern Recognition
 ------------------------------------------------- */
 fun findPatterns(
-    repository: VectorRepository
+    repository: VectorRepository,
+    simMatrix: Map<Pair<Long, Long>, Float>
 ) : PatternFindingResponse {
-    // 1. Compute similarity matrix
-    val simMatrix = initialiseSemanticSimilarityMatrix(repository)
 
     // 2. Build similarity graph (adjacency list)
     val threshold = 0.4f
@@ -379,11 +390,17 @@ fun detectReplicateInput(
     similarityThreshold: Float = 0.8f
 ) : ReplicaDetectionResponse {
 
-    val allNodes = repository.getAllNodes()
-    val allKeyNodes = allNodes.filter { it.type in (keyNodes) }
-
     val inputEmbeddings = newEventMap.entries.associate { (type, value) ->
         type to repository.getNodeByNameAndType(value, type)
+    }
+    val keyEventType = inputEmbeddings.keys.intersect(keyNodes)
+
+    val allNodes = repository.getAllNodes()
+
+    val allKeyNodes = if (keyEventType.isNotEmpty()) {
+        allNodes.filter { it.type in keyEventType }
+    } else {
+        allNodes.filter { it.type in keyNodes }
     }
 
     val matchingCandidates = mutableListOf<SimilarEvent>()

@@ -137,9 +137,14 @@ class VectorRepository(private val context: Context) {
         return queries.findAllNodeFrequenciesQuery()
     }
 
+    fun findAllEdgesAroundNodeId(id: Long): List<EdgeEntity> {
+        return queries.findAllEdgesAroundNodeIdQuery(id)
+    }
+
     // Find edges
     fun getNeighborsOfNodeById(id: Long): List<NodeEntity> {
         val neighbourEdges = queries.findAllEdgesAroundNodeIdQuery(id)
+
         val neighbourNodes = mutableSetOf<NodeEntity>()
 
         for (edge in neighbourEdges) {
@@ -159,183 +164,322 @@ class VectorRepository(private val context: Context) {
 
     // Function to initialise repository
     suspend fun initialiseVectorRepository() {
-        insertNodeIntoDb("Bombing", "Article")
-        insertNodeIntoDb("Group Alpha", "Entity", "A leading organization characterized by strong internal cohesion.")
-        insertNodeIntoDb("Explosives", "Method")
-        insertNodeIntoDb("2022-06-12T04:23:11Z", "Date")
-        insertNodeIntoDb("Market District", "Location")
-        insertNodeIntoDb("Intimidation", "Motive")
 
-        insertEdgeIntoDB(getNodeByNameAndType("Group Alpha", "Entity"), getNodeByNameAndType("Bombing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Explosives", "Method"), getNodeByNameAndType("Bombing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2022-06-12T04:23:11Z", "Date"), getNodeByNameAndType("Bombing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Market District", "Location"), getNodeByNameAndType("Bombing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Intimidation", "Motive"), getNodeByNameAndType("Bombing", "Article"))
+        // --- Entities ---
+        insertNodeIntoDb("Alpha Company", "Entity")
+        insertNodeIntoDb("Bravo Company", "Entity")
+        insertNodeIntoDb("Charlie Squadron", "Entity")
+        insertNodeIntoDb("Delta Platoon", "Entity")
+        insertNodeIntoDb("Echo Unit", "Entity")
+        insertNodeIntoDb("Enemy Forces", "Entity")
+        insertNodeIntoDb("Enemy Group", "Entity")
+        insertNodeIntoDb("Enemy Anonymous", "Entity")
+        insertNodeIntoDb("Joint Task Force Command", "Entity")
+        insertNodeIntoDb("Insurgent Cell", "Entity")
+        insertNodeIntoDb("Hostile Militia", "Entity")
+        insertNodeIntoDb("Opposing Battalion", "Entity")
+        insertNodeIntoDb("Rival Faction", "Entity")
+        insertNodeIntoDb("Support Platoon", "Entity")
+        insertNodeIntoDb("Engineering Corps", "Entity")
+        insertNodeIntoDb("Medical Detachment", "Entity")
+        insertNodeIntoDb("Logistics Division", "Entity")
 
-        insertNodeIntoDb("Suicide Bombing", "Article")
-        insertNodeIntoDb("Sect Zeta", "Entity", "A specialized faction known for its unique ideology and practices.")
-        insertNodeIntoDb("Suicide Vest", "Method")
-        insertNodeIntoDb("2021-11-03T14:10:45Z", "Date")
-        insertNodeIntoDb("Train Station", "Location")
-        insertNodeIntoDb("Religious Motivation", "Motive", "Based on ideological or faith-driven objectives.")
 
-        insertEdgeIntoDB(getNodeByNameAndType("Sect Zeta", "Entity"), getNodeByNameAndType("Suicide Bombing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Suicide Vest", "Method"), getNodeByNameAndType("Suicide Bombing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2021-11-03T14:10:45Z", "Date"), getNodeByNameAndType("Suicide Bombing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Train Station", "Location"), getNodeByNameAndType("Suicide Bombing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Religious Motivation", "Motive"), getNodeByNameAndType("Suicide Bombing", "Article"))
+// --- Locations ---
+        insertNodeIntoDb("Sector Alpha", "Location")
+        insertNodeIntoDb("Sector Bravo", "Location")
+        insertNodeIntoDb("Sector Charlie", "Location")
+        insertNodeIntoDb("Sector Delta", "Location")
+        insertNodeIntoDb("Route Red", "Location")
+        insertNodeIntoDb("Landing Zone Echo", "Location")
+        insertNodeIntoDb("Village Delta", "Location")
+        insertNodeIntoDb("Checkpoint Zulu", "Location")
+        insertNodeIntoDb("Base Camp Foxtrot", "Location")
 
-        insertNodeIntoDb("Knife Attack", "Article")
-        insertNodeIntoDb("Individual Y", "Entity", "A key figure known for their independent actions.")
-        insertNodeIntoDb("Knife", "Method")
-        insertNodeIntoDb("2020-09-15T21:55:30Z", "Date")
-        insertNodeIntoDb("Shopping Center", "Location")
-        insertNodeIntoDb("Personal Grievance", "Motive", "Driven by individual resentment or perceived injustice.")
+// --- Methods ---
+        insertNodeIntoDb("Foot patrol with UAV support", "Method")
+        insertNodeIntoDb("Armored convoy", "Method")
+        insertNodeIntoDb("Helicopter insertion", "Method")
+        insertNodeIntoDb("IED detonation", "Method")
+        insertNodeIntoDb("Small arms engagement", "Method")
+        insertNodeIntoDb("MEDEVAC extraction", "Method")
+        insertNodeIntoDb("Casualty extraction", "Method")
+        insertNodeIntoDb("Sniper overwatch", "Method")
+        insertNodeIntoDb("Drone surveillance", "Method")
+        insertNodeIntoDb("Night vision assault", "Method")
+        insertNodeIntoDb("Night operations", "Method")
+        insertNodeIntoDb("Precision drone strike", "Method")
 
-        insertEdgeIntoDB(getNodeByNameAndType("Individual Y", "Entity"), getNodeByNameAndType("Knife Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Knife", "Method"), getNodeByNameAndType("Knife Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2020-09-15T21:55:30Z", "Date"), getNodeByNameAndType("Knife Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Shopping Center", "Location"), getNodeByNameAndType("Knife Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Personal Grievance", "Motive"), getNodeByNameAndType("Knife Attack", "Article"))
+// --- Motives ---
+        insertNodeIntoDb("Gather enemy intel", "Motive")
+        insertNodeIntoDb("Secure supply route", "Motive")
+        insertNodeIntoDb("Disrupt enemy logistics", "Motive")
+        insertNodeIntoDb("Respond to threat", "Motive")
+        insertNodeIntoDb("Establish forward base", "Motive")
+        insertNodeIntoDb("Retaliate against attack", "Motive")
+        insertNodeIntoDb("Secure high-value target", "Motive")
+        insertNodeIntoDb("Protect civilian population", "Motive")
+        insertNodeIntoDb("Enemy information acquisition", "Motive")
 
-        insertNodeIntoDb("Vehicle Attack", "Article")
-        insertNodeIntoDb("Group Gamma", "Entity", "An organized collective recognized for coordinated initiatives.")
-        insertNodeIntoDb("Truck", "Method")
-        insertNodeIntoDb("2019-07-22T08:02:19Z", "Date")
-        insertNodeIntoDb("City Square", "Location")
-        insertNodeIntoDb("Maximize Casualties", "Motive", "Intending to cause the highest possible loss of life.")
+// --- Dates (unique) ---
+        insertNodeIntoDb("2023-09-15T06:00Z", "Date") //1
+        insertNodeIntoDb("2023-09-15T08:30Z", "Date") //2
+//        insertNodeIntoDb("2023-09-15T09:15Z", "Date") //3
+        insertNodeIntoDb("2023-09-16T10:45Z", "Date") //4
+        insertNodeIntoDb("2023-09-16T14:20Z", "Date") //5
+        insertNodeIntoDb("2023-09-17T05:10Z", "Date") //6
+        insertNodeIntoDb("2023-09-17T18:00Z", "Date") //7
+        insertNodeIntoDb("2023-09-18T04:00Z", "Date") //8
+        insertNodeIntoDb("2023-09-18T12:00Z", "Date") //9
+        insertNodeIntoDb("2023-09-19T07:30Z", "Date") //10
+        insertNodeIntoDb("2023-09-20T05:00Z", "Date") //11
+        insertNodeIntoDb("2023-09-21T11:45Z", "Date") //12
+        insertNodeIntoDb("2023-09-22T02:15Z", "Date") //13
+        insertNodeIntoDb("2023-09-23T04:30Z", "Date") //14
+        insertNodeIntoDb("2023-09-24T03:20Z", "Date") //15
+        insertNodeIntoDb("2023-09-25T07:00Z", "Date") //16
+        insertNodeIntoDb("2023-09-26T08:00Z", "Date") //17
+        insertNodeIntoDb("2023-09-28T12:30Z", "Date") //19
+        insertNodeIntoDb("2023-09-29T15:45Z", "Date") //20
 
-        insertEdgeIntoDB(getNodeByNameAndType("Group Gamma", "Entity"), getNodeByNameAndType("Vehicle Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Truck", "Method"), getNodeByNameAndType("Vehicle Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2019-07-22T08:02:19Z", "Date"), getNodeByNameAndType("Vehicle Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("City Square", "Location"), getNodeByNameAndType("Vehicle Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Maximize Casualties", "Motive"), getNodeByNameAndType("Vehicle Attack", "Article"))
+        // Event Nodes
+        insertNodeIntoDb("Reconnaissance Patrol", "Task")
+        insertNodeIntoDb("Convoy Escort", "Task")
+        insertNodeIntoDb("Forward Observation", "Task")
+        insertNodeIntoDb("Resupply Mission", "Task")
+        insertNodeIntoDb("Quick Reaction Deployment", "Task")
+        insertNodeIntoDb("Area Surveillance Operation", "Task")
+        insertNodeIntoDb("Supply Convoy Security", "Task")
 
-        insertNodeIntoDb("Arson", "Article")
-        insertNodeIntoDb("Individual Z", "Entity", "Notable for their influential role within the community.")
-        insertNodeIntoDb("Incendiary Device", "Method")
-        insertNodeIntoDb("2020-02-11T19:45:00Z", "Date")
-        insertNodeIntoDb("Warehouse District", "Location")
-        insertNodeIntoDb("Economic Disruption", "Motive", "Aiming to acquire money or valuable assets.")
+        insertNodeIntoDb("Ambush", "Incident")
+        insertNodeIntoDb("Roadside Bombing", "Incident")
+        insertNodeIntoDb("Sniper Attack", "Incident")
+        insertNodeIntoDb("Vehicle Breakdown", "Incident")
+        insertNodeIntoDb("Airstrike Misfire", "Incident")
+        insertNodeIntoDb("Surprise Attack", "Incident")
+        insertNodeIntoDb("Improvised Explosive Strike", "Incident")
 
-        insertEdgeIntoDB(getNodeByNameAndType("Individual Z", "Entity"), getNodeByNameAndType("Arson", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Incendiary Device", "Method"), getNodeByNameAndType("Arson", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2020-02-11T19:45:00Z", "Date"), getNodeByNameAndType("Arson", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Warehouse District", "Location"), getNodeByNameAndType("Arson", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Economic Disruption", "Motive"), getNodeByNameAndType("Arson", "Article"))
+        insertNodeIntoDb("Extraction Completed", "Outcome")
+        insertNodeIntoDb("Objective Secured", "Outcome")
+        insertNodeIntoDb("Casualty Evacuation", "Outcome")
+        insertNodeIntoDb("Mission Delay", "Outcome")
+        insertNodeIntoDb("Equipment Loss", "Outcome")
+        insertNodeIntoDb("Evacuation Finalized", "Outcome")
+        insertNodeIntoDb("Target Area Secured", "Outcome")
 
-        insertNodeIntoDb("Cyber Attack", "Article")
-        insertNodeIntoDb("Group Delta", "Entity", "A prominent group engaged in various collaborative projects.")
-        insertNodeIntoDb("Malware", "Method")
-        insertNodeIntoDb("2021-05-30T02:15:42Z", "Date")
-        insertNodeIntoDb("Government Servers", "Location")
-        insertNodeIntoDb("Data Theft", "Motive", "Focusing on the unauthorized acquisition of sensitive information.")
+        insertNodeIntoDb("Operational Delay", "Impact")
+        insertNodeIntoDb("Intel Gap Created", "Impact")
+        insertNodeIntoDb("Resource Shortage", "Impact")
+        insertNodeIntoDb("Increased Hostilities", "Impact")
+        insertNodeIntoDb("Strategic Advantage Lost", "Impact")
+        insertNodeIntoDb("Mission Timeline Extended", "Impact")
 
-        insertEdgeIntoDB(getNodeByNameAndType("Group Delta", "Entity"), getNodeByNameAndType("Cyber Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Malware", "Method"), getNodeByNameAndType("Cyber Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2021-05-30T02:15:42Z", "Date"), getNodeByNameAndType("Cyber Attack", "Article"))
-//        insertEdgeIntoDB(getNodeByNameAndType("Government Servers", "Location"), getNodeByNameAndType("Cyber Attack", "Article"), "Where")
-        insertEdgeIntoDB(getNodeByNameAndType("Data Theft", "Motive"), getNodeByNameAndType("Cyber Attack", "Article"))
+// --- Tasks (unique properties per Task) ---
+        insertEdgeIntoDB(getNodeByNameAndType("Alpha Company", "Entity"), getNodeByNameAndType("Reconnaissance Patrol", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Gather enemy intel", "Motive"), getNodeByNameAndType("Reconnaissance Patrol", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-15T06:00Z", "Date"), getNodeByNameAndType("Reconnaissance Patrol", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Sector Alpha", "Location"), getNodeByNameAndType("Reconnaissance Patrol", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Foot patrol with UAV support", "Method"), getNodeByNameAndType("Reconnaissance Patrol", "Task"))
 
-        insertNodeIntoDb("Grenade Attack", "Article")
-        insertNodeIntoDb("Group Epsilon", "Entity", "Recognized for its strategic influence and structured organization.")
-        insertNodeIntoDb("Projectiles", "Method")
-        insertNodeIntoDb("2019-10-05T13:38:27Z", "Date")
-        insertNodeIntoDb("Police Station", "Location")
-        insertNodeIntoDb("Weaken Law Enforcement", "Motive", "Focusing on the unauthorized acquisition of sensitive information.")
+        insertNodeIntoDb("2023-09-15T07:00Z", "Date")
+        insertEdgeIntoDB(getNodeByNameAndType("Alpha Company", "Entity"), getNodeByNameAndType("Area Surveillance Operation", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Enemy information acquisition", "Motive"), getNodeByNameAndType("Area Surveillance Operation", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-15T07:00Z", "Date"), getNodeByNameAndType("Area Surveillance Operation", "Task"))
+//        insertEdgeIntoDB(getNodeByNameAndType("Sector Alpha", "Location"), getNodeByNameAndType("Area Surveillance Operation", "Task"))
+//        insertEdgeIntoDB(getNodeByNameAndType("Foot patrol", "Method"), getNodeByNameAndType("Area Surveillance Operation", "Task"))
 
-        insertEdgeIntoDB(getNodeByNameAndType("Group Epsilon", "Entity"), getNodeByNameAndType("Grenade Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Projectiles", "Method"), getNodeByNameAndType("Grenade Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType( "2019-10-05T13:38:27Z", "Date"), getNodeByNameAndType("Grenade Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Police Station", "Location"), getNodeByNameAndType("Grenade Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Weaken Law Enforcement", "Motive"), getNodeByNameAndType("Grenade Attack", "Article"))
 
-        insertNodeIntoDb("Bomb Threat", "Article")
-        insertNodeIntoDb("Individual Q", "Entity", "Has a reputation for decisive leadership and personal achievements.")
-        insertNodeIntoDb("Phone Call", "Method")
-        insertNodeIntoDb("2020-12-01T23:59:59Z", "Date")
-        insertNodeIntoDb("School Building", "Location")
-        insertNodeIntoDb("Evacuation", "Motive", "Focusing on the unauthorized acquisition of sensitive information.")
+        insertEdgeIntoDB(getNodeByNameAndType("Bravo Company", "Entity"), getNodeByNameAndType("Convoy Escort", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Secure supply route", "Motive"), getNodeByNameAndType("Convoy Escort", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-16T10:45Z", "Date"), getNodeByNameAndType("Convoy Escort", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Checkpoint Zulu", "Location"), getNodeByNameAndType("Convoy Escort", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Armored convoy", "Method"), getNodeByNameAndType("Convoy Escort", "Task"))
 
-        insertEdgeIntoDB(getNodeByNameAndType("Individual Q", "Entity"), getNodeByNameAndType("Bomb Threat", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Phone Call", "Method"), getNodeByNameAndType("Bomb Threat", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2020-12-01T23:59:59Z", "Date"), getNodeByNameAndType("Bomb Threat", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("School Building", "Location"), getNodeByNameAndType("Bomb Threat", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Evacuation", "Motive"), getNodeByNameAndType("Bomb Threat", "Article"))
+        insertNodeIntoDb("Defend transport route", "Motive")
+        insertNodeIntoDb("Protected convoy", "Method")
+        insertEdgeIntoDB(getNodeByNameAndType("Bravo Company", "Entity"), getNodeByNameAndType("Supply Convoy Security", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Defend transport route", "Motive"), getNodeByNameAndType("Supply Convoy Security", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-16T10:45Z", "Date"), getNodeByNameAndType("Supply Convoy Security", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Checkpoint Zulu", "Location"), getNodeByNameAndType("Supply Convoy Security", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Protected convoy", "Method"), getNodeByNameAndType("Supply Convoy Security", "Task"))
 
-        insertNodeIntoDb("Explosion", "Article")
-        insertNodeIntoDb("2021-08-08T06:06:06Z", "Date")
 
-        insertEdgeIntoDB(getNodeByNameAndType("Explosives", "Method"), getNodeByNameAndType("Explosion", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2021-08-08T06:06:06Z", "Date"), getNodeByNameAndType("Explosion", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Market District", "Location"), getNodeByNameAndType("Explosion", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Intimidation", "Motive"), getNodeByNameAndType("Explosion", "Article"))
+        insertEdgeIntoDB(getNodeByNameAndType("Charlie Squadron", "Entity"), getNodeByNameAndType("Forward Observation", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Secure high-value target", "Motive"), getNodeByNameAndType("Forward Observation", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-17T05:10Z", "Date"), getNodeByNameAndType("Forward Observation", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Sector Charlie", "Location"), getNodeByNameAndType("Forward Observation", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Helicopter insertion", "Method"), getNodeByNameAndType("Forward Observation", "Task"))
 
-        insertNodeIntoDb("Cyber Breach", "Article")
-        insertNodeIntoDb("2022-03-15T15:45:15Z", "Date")
+        insertEdgeIntoDB(getNodeByNameAndType("Delta Platoon", "Entity"), getNodeByNameAndType("Resupply Mission", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Protect civilian population", "Motive"), getNodeByNameAndType("Resupply Mission", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-20T05:00Z", "Date"), getNodeByNameAndType("Resupply Mission", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Village Delta", "Location"), getNodeByNameAndType("Resupply Mission", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Armored convoy", "Method"), getNodeByNameAndType("Resupply Mission", "Task"))
 
-        insertEdgeIntoDB(getNodeByNameAndType("Group Delta", "Entity"), getNodeByNameAndType("Cyber Breach", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Malware", "Method"), getNodeByNameAndType("Cyber Breach", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2022-03-15T15:45:15Z", "Date"), getNodeByNameAndType("Cyber Breach", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Government Servers", "Location"), getNodeByNameAndType("Cyber Breach", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Data Theft", "Motive"), getNodeByNameAndType("Cyber Breach", "Article"))
+        insertEdgeIntoDB(getNodeByNameAndType("Echo Unit", "Entity"), getNodeByNameAndType("Quick Reaction Deployment", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Retaliate against attack", "Motive"), getNodeByNameAndType("Quick Reaction Deployment", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-21T11:45Z", "Date"), getNodeByNameAndType("Quick Reaction Deployment", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Base Camp Foxtrot", "Location"), getNodeByNameAndType("Quick Reaction Deployment", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Night vision assault", "Method"), getNodeByNameAndType("Quick Reaction Deployment", "Task"))
 
-        insertNodeIntoDb("Truck Ramming", "Article")
-        insertNodeIntoDb("2019-12-25T11:22:33Z", "Date")
 
-        insertEdgeIntoDB(getNodeByNameAndType("Group Gamma", "Entity"), getNodeByNameAndType("Truck Ramming", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Truck", "Method"), getNodeByNameAndType("Truck Ramming", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2019-12-25T11:22:33Z", "Date"), getNodeByNameAndType("Truck Ramming", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("City Square", "Location"), getNodeByNameAndType("Truck Ramming", "Article"))
+// --- Incidents (unique Dates, varied properties) ---
+        insertEdgeIntoDB(getNodeByNameAndType("Enemy Forces", "Entity"), getNodeByNameAndType("Ambush", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Retaliate against attack", "Motive"), getNodeByNameAndType("Ambush", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-15T08:30Z", "Date"), getNodeByNameAndType("Ambush", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Sector Bravo", "Location"), getNodeByNameAndType("Ambush", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("IED detonation", "Method"), getNodeByNameAndType("Ambush", "Incident"))
 
-        insertNodeIntoDb("Stabbing", "Article")
-        insertNodeIntoDb("Individual V", "Entity", "Distinguished by their contributions and distinctive perspective.")
-        insertNodeIntoDb("2022-02-20T05:05:05Z", "Date")
-        insertNodeIntoDb("Random Violence", "Motive", "Involving unpredictable attacks without specific targets.")
+        insertNodeIntoDb("Enemies", "Entity")
+        insertNodeIntoDb("Counterattack", "Motive")
+        insertNodeIntoDb("2023-09-15T10:50Z", "Date")
+        insertEdgeIntoDB(getNodeByNameAndType("Enemies", "Entity"), getNodeByNameAndType("Surprise Attack", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Counterattack", "Motive"), getNodeByNameAndType("Surprise Attack", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-15T10:50Z", "Date"), getNodeByNameAndType("Surprise Attack", "Incident"))
+//        insertEdgeIntoDB(getNodeByNameAndType("Sector Bravo", "Location"), getNodeByNameAndType("Surprise Attack", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("IED detonation", "Method"), getNodeByNameAndType("Surprise Attack", "Incident"))
 
-        insertEdgeIntoDB(getNodeByNameAndType("Individual V", "Entity"), getNodeByNameAndType("Stabbing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Knife", "Method"), getNodeByNameAndType("Stabbing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2022-02-20T05:05:05Z", "Date"), getNodeByNameAndType("Stabbing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Train Station", "Location"), getNodeByNameAndType("Stabbing", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Random Violence", "Motive"), getNodeByNameAndType("Stabbing", "Article"))
 
-        insertNodeIntoDb("Arson Attack", "Article")
-        insertNodeIntoDb("2021-09-09T17:30:00Z", "Date")
+        insertEdgeIntoDB(getNodeByNameAndType("Enemy Group", "Entity"), getNodeByNameAndType("Roadside Bombing", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Disrupt enemy logistics", "Motive"), getNodeByNameAndType("Roadside Bombing", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-16T14:20Z", "Date"), getNodeByNameAndType("Roadside Bombing", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Checkpoint Zulu", "Location"), getNodeByNameAndType("Roadside Bombing", "Incident"))
+//        insertEdgeIntoDB(getNodeByNameAndType("IED explosion", "Method"), getNodeByNameAndType("Roadside Bombing", "Incident"))
 
-        insertEdgeIntoDB(getNodeByNameAndType("Incendiary Device", "Method"), getNodeByNameAndType("Arson Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2021-09-09T17:30:00Z", "Date"), getNodeByNameAndType("Arson Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Warehouse District", "Location"), getNodeByNameAndType("Arson Attack", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Economic Disruption", "Motive"), getNodeByNameAndType("Arson Attack", "Article"))
+        insertNodeIntoDb("Interfere with enemy supply lines", "Motive")
+        insertNodeIntoDb("Explosion of IED", "Method")
+        insertNodeIntoDb("2023-09-16T15:42Z", "Date")
+//        insertEdgeIntoDB(getNodeByNameAndType("Enemy Group", "Entity"), getNodeByNameAndType("Improvised Explosive Strike", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Interfere with enemy supply lines", "Motive"), getNodeByNameAndType("Improvised Explosive Strike", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-16T15:42Z", "Date"), getNodeByNameAndType("Improvised Explosive Strike", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Checkpoint Zulu", "Location"), getNodeByNameAndType("Improvised Explosive Strike", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Explosion of IED", "Method"), getNodeByNameAndType("Improvised Explosive Strike", "Incident"))
 
-        insertNodeIntoDb("Cybersecurity Breach", "Article")
-        insertNodeIntoDb("Group Theta", "Entity", "Operates as a cohesive unit with significant collective impact.")
-        insertNodeIntoDb("Ransomware", "Method")
-        insertNodeIntoDb("2022-05-05T03:14:15Z", "Date")
-        insertNodeIntoDb("Hospital Network", "Location")
-        insertNodeIntoDb("Financial Gain", "Motive", "Intending to destabilize financial systems or markets.")
 
-        insertEdgeIntoDB(getNodeByNameAndType("Group Theta", "Entity"), getNodeByNameAndType("Cybersecurity Breach", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Ransomware", "Method"), getNodeByNameAndType("Cybersecurity Breach", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2022-05-05T03:14:15Z", "Date"), getNodeByNameAndType("Cybersecurity Breach", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Hospital Network", "Location"), getNodeByNameAndType("Cybersecurity Breach", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Financial Gain", "Motive"), getNodeByNameAndType("Cybersecurity Breach", "Article"))
+        insertEdgeIntoDB(getNodeByNameAndType("Enemy Anonymous", "Entity"), getNodeByNameAndType("Sniper Attack", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Secure high-value target", "Motive"), getNodeByNameAndType("Sniper Attack", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-17T18:00Z", "Date"), getNodeByNameAndType("Sniper Attack", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Sector Charlie", "Location"), getNodeByNameAndType("Sniper Attack", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Sniper overwatch", "Method"), getNodeByNameAndType("Sniper Attack", "Incident"))
 
-        insertNodeIntoDb("Grenade Explosion", "Article")
-        insertNodeIntoDb("2020-03-03T22:00:00Z", "Date")
+        insertEdgeIntoDB(getNodeByNameAndType("Hostile Militia", "Entity"), getNodeByNameAndType("Vehicle Breakdown", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Secure supply route", "Motive"), getNodeByNameAndType("Vehicle Breakdown", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-18T04:00Z", "Date"), getNodeByNameAndType("Vehicle Breakdown", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Route Red", "Location"), getNodeByNameAndType("Vehicle Breakdown", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Armored convoy", "Method"), getNodeByNameAndType("Vehicle Breakdown", "Incident"))
 
-        insertEdgeIntoDB(getNodeByNameAndType("Group Epsilon", "Entity"), getNodeByNameAndType("Grenade Explosion", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("Grenades", "Method"), getNodeByNameAndType("Grenade Explosion", "Article"))
-        insertEdgeIntoDB(getNodeByNameAndType("2020-03-03T22:00:00Z", "Date"), getNodeByNameAndType("Grenade Explosion", "Article"))
+        insertEdgeIntoDB(getNodeByNameAndType("Rival Faction", "Entity"), getNodeByNameAndType("Airstrike Misfire", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Protect civilian population", "Motive"), getNodeByNameAndType("Airstrike Misfire", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-22T02:15Z", "Date"), getNodeByNameAndType("Airstrike Misfire", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Village Delta", "Location"), getNodeByNameAndType("Airstrike Misfire", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Precision drone strike", "Method"), getNodeByNameAndType("Airstrike Misfire", "Incident"))
 
-        insertNodeIntoDb("Difficult to trace origin", "Description")
-        insertEdgeIntoDB(getNodeByNameAndType("Difficult to trace origin", "Description"), getNodeByNameAndType("Malware", "Method"))
-        insertEdgeIntoDB(getNodeByNameAndType("Difficult to trace origin", "Description"), getNodeByNameAndType("Ransomware", "Method"))
 
-        insertNodeIntoDb("Instil Fear", "Description")
-        insertEdgeIntoDB(getNodeByNameAndType("Instil Fear", "Description"), getNodeByNameAndType("Intimidation", "Motive"))
-        insertEdgeIntoDB(getNodeByNameAndType("Instil Fear", "Description"), getNodeByNameAndType("Evacuation", "Motive"))
+        // --- Outcomes (unique Dates, varied properties) ---
+//        insertEdgeIntoDB(getNodeByNameAndType("Echo Unit", "Entity"), getNodeByNameAndType("Extraction Completed", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Protect civilian population", "Motive"), getNodeByNameAndType("Extraction Completed", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-23T04:30Z", "Date"), getNodeByNameAndType("Extraction Completed", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Landing Zone Echo", "Location"), getNodeByNameAndType("Extraction Completed", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("MEDEVAC extraction", "Method"), getNodeByNameAndType("Extraction Completed", "Outcome"))
 
-    }
+        insertNodeIntoDb("Guard general public", "Motive")
+        insertNodeIntoDb("2023-09-23T04:30Z", "Date")
+        insertEdgeIntoDB(getNodeByNameAndType("Echo Unit", "Entity"), getNodeByNameAndType("Evacuation Finalized", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Guard general public", "Motive"), getNodeByNameAndType("Evacuation Finalized", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-23T04:30Z", "Date"), getNodeByNameAndType("Evacuation Finalized", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Landing Zone Echo", "Location"), getNodeByNameAndType("Evacuation Finalized", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("MEDEVAC extraction", "Method"), getNodeByNameAndType("Evacuation Finalized", "Outcome"))
+
+
+        insertEdgeIntoDB(getNodeByNameAndType("Bravo Company", "Entity"), getNodeByNameAndType("Objective Secured", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Establish forward base", "Motive"), getNodeByNameAndType("Objective Secured", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-24T03:20Z", "Date"), getNodeByNameAndType("Objective Secured", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Base Camp Foxtrot", "Location"), getNodeByNameAndType("Objective Secured", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Night vision assault", "Method"), getNodeByNameAndType("Objective Secured", "Outcome"))
+
+        insertNodeIntoDb("Create advanced base", "Motive")
+        insertNodeIntoDb("2023-09-28T08:20Z", "Date")
+        insertNodeIntoDb("Nighttime offensive", "Method")
+        insertEdgeIntoDB(getNodeByNameAndType("Bravo Company", "Entity"), getNodeByNameAndType("Target Area Secured", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Create advanced base", "Motive"), getNodeByNameAndType("Target Area Secured", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-28T08:20Z", "Date"), getNodeByNameAndType("Target Area Secured", "Outcome"))
+//        insertEdgeIntoDB(getNodeByNameAndType("Base Camp Foxtrot", "Location"), getNodeByNameAndType("Target Area Secured", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Nighttime offensive", "Method"), getNodeByNameAndType("Target Area Secured", "Outcome"))
+
+
+        insertEdgeIntoDB(getNodeByNameAndType("Medical Detachment", "Entity"), getNodeByNameAndType("Casualty Evacuation", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Respond to threat", "Motive"), getNodeByNameAndType("Casualty Evacuation", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-25T07:00Z", "Date"), getNodeByNameAndType("Casualty Evacuation", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Landing Zone Echo", "Location"), getNodeByNameAndType("Casualty Evacuation", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Casualty extraction", "Method"), getNodeByNameAndType("Casualty Evacuation", "Outcome"))
+
+        insertEdgeIntoDB(getNodeByNameAndType("Delta Platoon", "Entity"), getNodeByNameAndType("Mission Delay", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Disrupt enemy logistics", "Motive"), getNodeByNameAndType("Mission Delay", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-26T08:00Z", "Date"), getNodeByNameAndType("Mission Delay", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Sector Charlie", "Location"), getNodeByNameAndType("Mission Delay", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Drone surveillance", "Method"), getNodeByNameAndType("Mission Delay", "Outcome"))
+
+        insertEdgeIntoDB(getNodeByNameAndType("Support Platoon", "Entity"), getNodeByNameAndType("Equipment Loss", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Retaliate against attack", "Motive"), getNodeByNameAndType("Equipment Loss", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-27T09:15Z", "Date"), getNodeByNameAndType("Equipment Loss", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Route Red", "Location"), getNodeByNameAndType("Equipment Loss", "Outcome"))
+        insertEdgeIntoDB(getNodeByNameAndType("Small arms engagement", "Method"), getNodeByNameAndType("Equipment Loss", "Outcome"))
+
+// --- Impacts (unique Dates, varied properties) ---
+        insertEdgeIntoDB(getNodeByNameAndType("Joint Task Force Command", "Entity"), getNodeByNameAndType("Operational Delay", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Gather enemy intel", "Motive"), getNodeByNameAndType("Operational Delay", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-28T12:30Z", "Date"), getNodeByNameAndType("Operational Delay", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Sector Delta", "Location"), getNodeByNameAndType("Operational Delay", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Drone surveillance", "Method"), getNodeByNameAndType("Operational Delay", "Impact"))
+
+        insertNodeIntoDb("Gather enemy information", "Motive")
+        insertNodeIntoDb("Drone monitoring", "Method")
+        insertEdgeIntoDB(getNodeByNameAndType("Joint Task Force Command", "Entity"), getNodeByNameAndType("Mission Timeline Extended", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Gather enemy information", "Motive"), getNodeByNameAndType("Mission Timeline Extended", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-28T12:30Z", "Date"), getNodeByNameAndType("Mission Timeline Extended", "Impact"))
+//        insertEdgeIntoDB(getNodeByNameAndType("Sector Delta", "Location"), getNodeByNameAndType("Mission Timeline Extended", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Drone monitoring", "Method"), getNodeByNameAndType("Mission Timeline Extended", "Impact"))
+
+        insertEdgeIntoDB(getNodeByNameAndType("Engineering Corps", "Entity"), getNodeByNameAndType("Intel Gap Created", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Secure high-value target", "Motive"), getNodeByNameAndType("Intel Gap Created", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-29T15:45Z", "Date"), getNodeByNameAndType("Intel Gap Created", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Base Camp Foxtrot", "Location"), getNodeByNameAndType("Intel Gap Created", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Precision drone strike", "Method"), getNodeByNameAndType("Intel Gap Created", "Impact"))
+
+        insertEdgeIntoDB(getNodeByNameAndType("Support Platoon", "Entity"), getNodeByNameAndType("Resource Shortage", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Disrupt enemy logistics", "Motive"), getNodeByNameAndType("Resource Shortage", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-19T07:30Z", "Date"), getNodeByNameAndType("Resource Shortage", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Village Delta", "Location"), getNodeByNameAndType("Resource Shortage", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Armored convoy", "Method"), getNodeByNameAndType("Resource Shortage", "Impact"))
+
+        insertEdgeIntoDB(getNodeByNameAndType("Enemy Anonymous", "Entity"), getNodeByNameAndType("Increased Hostilities", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Retaliate against attack", "Motive"), getNodeByNameAndType("Increased Hostilities", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-18T12:00Z", "Date"), getNodeByNameAndType("Increased Hostilities", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Checkpoint Zulu", "Location"), getNodeByNameAndType("Increased Hostilities", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Small arms engagement", "Method"), getNodeByNameAndType("Increased Hostilities", "Impact"))
+
+        insertEdgeIntoDB(getNodeByNameAndType("Joint Task Force Command", "Entity"), getNodeByNameAndType("Strategic Advantage Lost", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Establish forward base", "Motive"), getNodeByNameAndType("Strategic Advantage Lost", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("2023-09-17T05:10Z", "Date"), getNodeByNameAndType("Strategic Advantage Lost", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Sector Charlie", "Location"), getNodeByNameAndType("Strategic Advantage Lost", "Impact"))
+        insertEdgeIntoDB(getNodeByNameAndType("Night operations", "Method"), getNodeByNameAndType("Strategic Advantage Lost", "Impact"))
+
+        // --- Edges between Events ---
+        insertEdgeIntoDB(getNodeByNameAndType("Ambush", "Incident"), getNodeByNameAndType("Reconnaissance Patrol", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Roadside Bombing", "Incident"), getNodeByNameAndType("Convoy Escort", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Sniper Attack", "Incident"), getNodeByNameAndType("Forward Observation", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Vehicle Breakdown", "Incident"), getNodeByNameAndType("Resupply Mission", "Task"))
+
+        insertEdgeIntoDB(getNodeByNameAndType("Reconnaissance Patrol", "Outcome"), getNodeByNameAndType("Extraction Completed", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Convoy Escort", "Outcome"), getNodeByNameAndType("Objective Secured", "Task"))
+        insertEdgeIntoDB(getNodeByNameAndType("Forward Observation", "Outcome"), getNodeByNameAndType("Casualty Evacuation", "Task"))
+
+        insertEdgeIntoDB(getNodeByNameAndType("Operational Delay", "Impact"), getNodeByNameAndType("Ambush", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Resource Shortage", "Impact"), getNodeByNameAndType("Roadside Bombing", "Incident"))
+        insertEdgeIntoDB(getNodeByNameAndType("Increased Hostilities", "Impact"), getNodeByNameAndType("Sniper Attack", "Incident"))
+
+    Log.d("INITIALISE DATABASE", "Data initialised.")
+}
 
 
 }

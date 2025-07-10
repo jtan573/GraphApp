@@ -10,32 +10,28 @@ import com.example.graphapp.data.local.Event
 import com.example.graphapp.data.api.ApiResponse
 import com.example.graphapp.data.api.EventRecommendationResult
 import com.example.graphapp.data.schema.GraphSchema.edgeLabels
-import com.example.graphapp.data.schema.GraphSchema.keyNodes
 import com.example.graphapp.data.api.ResponseData
 import com.example.graphapp.data.local.EdgeEntity
 import com.example.graphapp.data.local.NodeEntity
-import com.example.graphapp.data.local.NodeWithoutEmbedding
 import com.example.graphapp.data.schema.GraphSchema
 import com.example.graphapp.data.schema.detectReplicateInput
 import com.example.graphapp.data.schema.findPatterns
 import com.example.graphapp.data.schema.initialiseSemanticSimilarityMatrix
 import com.example.graphapp.data.schema.recommendOnInput
 import com.example.graphapp.data.schema.predictMissingProperties
-import com.example.graphdb.Edge
-import com.example.graphdb.Node
+import com.example.graphapp.data.schema.updateSemanticSimilarityMatrix
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.map
 import kotlin.text.isNotBlank
 
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository = GraphRepository(application)
 
     private val _graphData = MutableStateFlow<String?>(null)
     val graphData: StateFlow<String?> = _graphData
@@ -46,8 +42,14 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     private val _filteredGraphData = MutableStateFlow<String?>(null)
     val filteredGraphData: StateFlow<String?> = _filteredGraphData
 
-    // For ObjectBox Testing
     private val vectorRepository = VectorRepository(application)
+
+    // Similarity Matrix
+    private var _simMatrix: Map<Pair<Long, Long>, Float>? = null
+    val simMatrix: Map<Pair<Long, Long>, Float>
+        get() = _simMatrix ?: initialiseSemanticSimilarityMatrix(vectorRepository).also {
+            _simMatrix = it
+        }
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -84,11 +86,19 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _graphData.value = json
     }
 
+    private fun reloadSimMatrix(
+        repository: VectorRepository,
+        simMatrix: MutableMap<Pair<Long, Long>, Float>,
+        newEventMap: Map<String, String>,
+    ) {
+        _simMatrix = updateSemanticSimilarityMatrix(repository, simMatrix, newEventMap)
+    }
+
     // Function 1: Predict missing properties
     fun fillMissingLinks() {
 
         // Creating updated graph
-        val (newEdges, response) = predictMissingProperties(vectorRepository)
+        val (newEdges, response) = predictMissingProperties(vectorRepository, simMatrix)
         val nodes = vectorRepository.getAllNodes()
         val edges = vectorRepository.getAllEdges() + newEdges
         val json = convertToJsonVector(nodes, edges)
@@ -107,38 +117,12 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Function 2/3/5: Predict Top Relationships based on Incoming Event/Detect input anomaly
-    suspend fun provideEventRec( map: Map<String, String> ) {
+    fun provideEventRec( map: Map<String, String> ) {
 
         val normalizedMap = map.filterValues { it.isNotBlank() }
         if (normalizedMap.isEmpty()) { return }
 
-        for ((type, value) in normalizedMap) {
-            vectorRepository.insertNodeIntoDb(inputName = value, inputType = type)
-        }
-        for ((type1, value1) in normalizedMap) {
-            for ((type2, value2) in normalizedMap) {
-                if (type1 != type2) {
-                    val edgeType = edgeLabels["$type1-$type2"]
-                    if (edgeType != null) {
-                        vectorRepository.insertEdgeIntoDB(
-                            fromNode = NodeEntity(name = value1, type = type1),
-                            toNode = NodeEntity(name = value2, type = type2),
-                        )
-                    }
-                }
-            }
-        }
-
-        // Retrieve graph from db
-        reloadGraphData()
-
-        // Add to event logs
-        val currentList = _createdEvents.value.toMutableList()
-        currentList.add(Event(normalizedMap).toString())
-        _createdEvents.value = currentList
-
-        // Detect anomaly
-        val simMatrix = initialiseSemanticSimilarityMatrix(vectorRepository)
+        // Check if its a replica event
         val response = detectReplicateInput(normalizedMap, vectorRepository)
         val apiRes = ApiResponse(
             status = "success",
@@ -146,31 +130,66 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             data = ResponseData.DetectReplicaEventData(response)
         )
         Log.d("DetectReplicaEvent", "Output: $apiRes")
+        if (response.isLikelyDuplicate == true) return
 
-        // Create updated graph
-        val noKeyTypes = normalizedMap.keys.none { it in keyNodes }
-        val (nodes, edges, result) = recommendOnInput(normalizedMap, vectorRepository, noKeyTypes, simMatrix)
-        val json = convertToJsonVector(nodes, edges)
-        _filteredGraphData.value = json
-
-        // Create API response
-        when (result) {
-            is EventRecommendationResult.EventToEventRec -> {
-                val apiRes = ApiResponse(
-                    status = "success",
-                    timestamp = "",
-                    data = ResponseData.ProvideRecommendationsData(result.items)
-                )
-                Log.d("RecommendRelatedEvents", "Response: $apiRes")
-
+        viewModelScope.launch {
+            // If not replica event, then add into DB
+            for ((type, value) in normalizedMap) {
+                vectorRepository.insertNodeIntoDb(inputName = value, inputType = type)
             }
-            is EventRecommendationResult.PropertyToEventRec -> {
-                val apiRes = ApiResponse(
-                    status = "success",
-                    timestamp = "",
-                    data = ResponseData.DiscoverEventsData(result.items)
-                )
-                Log.d("RecommendRelatedEvents", "Response: $apiRes")
+            for ((type1, value1) in normalizedMap) {
+                for ((type2, value2) in normalizedMap) {
+                    if (type1 != type2) {
+                        val edgeType = edgeLabels["$type1-$type2"]
+                        if (edgeType != null) {
+                            vectorRepository.insertEdgeIntoDB(
+                                fromNode = vectorRepository.getNodeByNameAndType(value1, type1),
+                                toNode = vectorRepository.getNodeByNameAndType(value2, type2)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Retrieve graph from db
+            withContext(Dispatchers.Default) {
+                reloadGraphData()
+
+                val currentList = _createdEvents.value.toMutableList()
+                currentList.add(Event(normalizedMap).toString())
+                _createdEvents.value = currentList
+            }
+
+            // Update the similarity matrix
+            reloadSimMatrix(
+                vectorRepository, simMatrix.toMutableMap(), normalizedMap
+            )
+
+            // Create updated graph
+            val noKeyTypes = normalizedMap.keys.none { it in GraphSchema.keyNodes }
+            val (nodes, edges, result) = recommendOnInput(normalizedMap, vectorRepository, noKeyTypes, simMatrix)
+            val json = convertToJsonVector(nodes, edges)
+            _filteredGraphData.value = json
+
+            // Create API response
+            when (result) {
+                is EventRecommendationResult.EventToEventRec -> {
+                    val apiRes = ApiResponse(
+                        status = "success",
+                        timestamp = "",
+                        data = ResponseData.ProvideRecommendationsData(result.items)
+                    )
+                    Log.d("RecommendRelatedEvents", "Response: $apiRes")
+
+                }
+                is EventRecommendationResult.PropertyToEventRec -> {
+                    val apiRes = ApiResponse(
+                        status = "success",
+                        timestamp = "",
+                        data = ResponseData.DiscoverEventsData(result.items)
+                    )
+                    Log.d("RecommendRelatedEvents", "Response: $apiRes")
+                }
             }
         }
         return
@@ -178,7 +197,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
 //     Function 4: Find Patterns/Clusters
     fun findGraphRelations() {
-        val response = findPatterns(vectorRepository)
+        val response = findPatterns(vectorRepository, simMatrix)
 
         val apiRes = ApiResponse(
             status = "success",

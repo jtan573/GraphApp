@@ -25,6 +25,8 @@ fun computeWeightedSim(
 
     val rawSim = similarityMatrix.getOrDefault(targetId to candidateId, 0f)
     val freqFactor = ln(1f + (occurrenceCounts[candidateId] ?: 0)).toFloat()
+
+//    Log.d("CHECK SIM", "$rawSim to $freqFactor")
     val adjustedSim = rawSim * freqFactor
 
     return adjustedSim
@@ -56,6 +58,7 @@ fun computeSemanticSimilarity(
     repository: VectorRepository,
     threshold: Float = 0.5f
 ): Float {
+
     val e1 = getPropertyEmbeddings(nodeId1, repository)
     val e2 = getPropertyEmbeddings(nodeId2, repository)
 
@@ -68,7 +71,7 @@ fun computeSemanticSimilarity(
 
         val similarity = repository.cosineDistance(v1, v2)
 
-        if (similarity < threshold) { return 0f }
+//        if (similarity < threshold) { return 0f }
 
         similarities.add(similarity)
     }
@@ -84,22 +87,62 @@ fun initialiseSemanticSimilarityMatrix(
 ): Map<Pair<Long, Long>, Float> {
 
     val allNodes = repository.getAllNodes()
-    val nodeIds = allNodes.map { it.id }
+    val nodeIds = allNodes
+        .filter { it.type in GraphSchema.keyNodes }
+        .map { it.id }
 
-    val sim = mutableMapOf<Pair<Long, Long>, Float>()
-    for (i in nodeIds) {
-        for (j in nodeIds) {
-            val score = if (i == j) {
-                1f
-            } else {
-                computeSemanticSimilarity(i, j, repository, threshold)
+    val simMatrix = mutableMapOf<Pair<Long, Long>, Float>()
+    if (nodeIds.isNotEmpty()) {
+        for (i in nodeIds) {
+            for (j in nodeIds) {
+                val score = if (i == j) {
+                    1f
+                } else {
+                    computeSemanticSimilarity(i, j, repository, threshold)
+                }
+                simMatrix[i to j] = score
             }
-            sim[i to j] = score
         }
     }
-    return sim
+
+    Log.d("INITIALISE MATRIX", "INITIALISED MATRIX")
+    return simMatrix
 }
 
+fun updateSemanticSimilarityMatrix(
+    repository: VectorRepository,
+    simMatrix: MutableMap<Pair<Long, Long>, Float>,
+    newEventMap: Map<String, String>,
+    threshold: Float = 0.5f
+): Map<Pair<Long, Long>, Float> {
+    // 1. Get all nodes in DB
+    val allNodes = repository.getAllNodes()
+    val allNodeIds = allNodes
+        .filter { it.type in GraphSchema.keyNodes }
+        .map { it.id }
+
+    // 2. Get IDs of the newly added nodes
+    val newNodeIds = newEventMap.entries
+        .filter{ it.key in GraphSchema.keyNodes }
+        .mapNotNull { (type, name) ->
+        repository.getNodeByNameAndType(name, type)?.id
+    }
+
+    for (newId in newNodeIds) {
+        for (otherId in allNodeIds) {
+            val score = if (newId == otherId) {
+                1f
+            } else {
+                computeSemanticSimilarity(newId, otherId, repository, threshold)
+            }
+            // Update both (newId, otherId) and (otherId, newId)
+            simMatrix[newId to otherId] = score
+            simMatrix[otherId to newId] = score
+        }
+    }
+    Log.d("UPDATE MATRIX", "UPDATED MATRIX")
+    return simMatrix
+}
 
 /* -------------------------------------------------
   Helper to initialise SimRank Similarity Matrix

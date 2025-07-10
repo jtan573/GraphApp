@@ -21,7 +21,7 @@ fun AppNavigation (
             GraphViewScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.Events.route) {
-            EventScreen(viewModel = viewModel, navController = navController)
+            EventScreen(viewModel = viewModel)
         }
     }
 }

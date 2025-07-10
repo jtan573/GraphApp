@@ -1,17 +1,23 @@
 package com.example.graphapp.data.local
 
 import android.content.Context
+import android.util.Log
 import io.objectbox.BoxStore
+import io.objectbox.BoxStoreBuilder
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.HnswIndex
 import io.objectbox.annotation.Id
 import io.objectbox.annotation.VectorDistanceType
+import java.io.File
 
 object VectorDatabase {
     lateinit var store: BoxStore
         private set
 
     fun init(context: Context) {
+
+        BoxStore.deleteAllFiles(context, BoxStoreBuilder.DEFAULT_NAME)
+
         store = MyObjectBox.builder()
             .androidContext(context)
             .build()

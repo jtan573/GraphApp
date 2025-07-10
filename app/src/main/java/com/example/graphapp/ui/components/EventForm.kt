@@ -3,16 +3,24 @@ package com.example.graphapp.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.graphapp.data.schema.GraphSchema
 
 @Composable
 fun EventForm(
@@ -21,9 +29,35 @@ fun EventForm(
     onSubmit: () -> Unit,
     onCancel: () -> Unit
 ) {
+
+    val eventTypes = listOf("Task", "Incident", "Outcome", "Impact")
+    val selectedTab = remember { mutableStateOf(0) }
+
+    // Keep event type in input map
+    LaunchedEffect(selectedTab.value) {
+        eventInputMap[eventTypes[selectedTab.value]] = ""
+    }
+
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text("Insert Event:")
-        fieldKeys.forEach { key ->
+
+        // Tabs
+        TabRow(selectedTabIndex = selectedTab.value) {
+            eventTypes.forEachIndexed { index, type ->
+                Tab(
+                    selected = selectedTab.value == index,
+                    onClick = { selectedTab.value = index },
+                    text = { Text(type) }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        val inputKeys = arrayOf(eventTypes[selectedTab.value]) + fieldKeys
+
+        // All base fields
+        inputKeys.forEach { key ->
             OutlinedTextField(
                 value = eventInputMap[key] ?: "",
                 onValueChange = { eventInputMap[key] = it },
@@ -33,6 +67,7 @@ fun EventForm(
                     .padding(bottom = 6.dp)
             )
         }
+
         Row(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.padding(vertical = 6.dp)
