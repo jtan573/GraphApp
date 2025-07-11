@@ -57,7 +57,7 @@ data class ProvideRecommendationsResponse(
 
 data class Recommendation(
     val recType: String,
-    val recItems: List<Pair<String, Float>>
+    val recItems: List<String>
 )
 
 // Function 3

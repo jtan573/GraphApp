@@ -4,21 +4,23 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.graphapp.data.GraphRepository
 import com.example.graphapp.data.VectorRepository
 import com.example.graphapp.data.local.Event
 import com.example.graphapp.data.api.ApiResponse
 import com.example.graphapp.data.api.EventRecommendationResult
-import com.example.graphapp.data.schema.GraphSchema.edgeLabels
 import com.example.graphapp.data.api.ResponseData
 import com.example.graphapp.data.local.EdgeEntity
 import com.example.graphapp.data.local.NodeEntity
-import com.example.graphapp.data.schema.GraphSchema
+import com.example.graphapp.data.schema.GraphSchema.SchemaEdgeLabels
+import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
+import com.example.graphapp.data.schema.GraphSchema.SchemaOtherNodes
+import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
 import com.example.graphapp.data.schema.detectReplicateInput
 import com.example.graphapp.data.schema.findPatterns
 import com.example.graphapp.data.schema.initialiseSemanticSimilarityMatrix
-import com.example.graphapp.data.schema.recommendOnInput
 import com.example.graphapp.data.schema.predictMissingProperties
+import com.example.graphapp.data.schema.recommendEventForEvent
+import com.example.graphapp.data.schema.recommendEventsForProps
 import com.example.graphapp.data.schema.updateSemanticSimilarityMatrix
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -64,15 +66,15 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getNodeTypes(): List<String> {
-        return GraphSchema.keyNodes + GraphSchema.propertyNodes + GraphSchema.otherNodes
+        return SchemaKeyNodes + SchemaPropertyNodes + SchemaOtherNodes
     }
 
     private fun convertToJsonVector(nodes: List<NodeEntity>, edges: List<EdgeEntity>): String {
         val gson = Gson()
         val nodeList = nodes.map { mapOf("id" to it.name, "type" to it.type) }
         val edgeList = edges.map { edge ->
-            val source = nodes.find { it.id == edge.fromId }?.name
-            val target = nodes.find { it.id == edge.toId }?.name
+            val source = nodes.find { it.id == edge.firstNodeId }?.name
+            val target = nodes.find { it.id == edge.secondNodeId }?.name
             mapOf("source" to source, "target" to target, "label" to edge.edgeType)
         }
         val json = mapOf("nodes" to nodeList, "links" to edgeList)
@@ -130,7 +132,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             data = ResponseData.DetectReplicaEventData(response)
         )
         Log.d("DetectReplicaEvent", "Output: $apiRes")
-        if (response.isLikelyDuplicate == true) return
+//        if (response.isLikelyDuplicate == true) return
 
         viewModelScope.launch {
             // If not replica event, then add into DB
@@ -140,7 +142,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             for ((type1, value1) in normalizedMap) {
                 for ((type2, value2) in normalizedMap) {
                     if (type1 != type2) {
-                        val edgeType = edgeLabels["$type1-$type2"]
+                        val edgeType = SchemaEdgeLabels["$type1-$type2"]
                         if (edgeType != null) {
                             vectorRepository.insertEdgeIntoDB(
                                 fromNode = vectorRepository.getNodeByNameAndType(value1, type1),
@@ -166,8 +168,14 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             )
 
             // Create updated graph
-            val noKeyTypes = normalizedMap.keys.none { it in GraphSchema.keyNodes }
-            val (nodes, edges, result) = recommendOnInput(normalizedMap, vectorRepository, noKeyTypes, simMatrix)
+            val noKeyTypes = normalizedMap.keys.none { it in SchemaKeyNodes }
+
+            val (nodes, edges, result) = if (noKeyTypes) {
+                recommendEventsForProps(normalizedMap, vectorRepository, simMatrix)
+            } else {
+                recommendEventForEvent(normalizedMap, vectorRepository, simMatrix)
+            }
+
             val json = convertToJsonVector(nodes, edges)
             _filteredGraphData.value = json
 

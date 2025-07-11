@@ -5,10 +5,8 @@ import android.util.Log
 import com.example.graphapp.data.embedding.SentenceEmbedding
 import com.example.graphapp.data.local.EdgeEntity
 import com.example.graphapp.data.local.NodeEntity
-import com.example.graphapp.data.local.NodeWithoutEmbedding
-import com.example.graphapp.data.schema.GraphSchema.edgeLabels
 import com.example.graphapp.data.local.VectorDBQueries
-import com.example.graphdb.Edge
+import com.example.graphapp.data.schema.GraphSchema.SchemaEdgeLabels
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -49,7 +47,6 @@ class VectorRepository(private val context: Context) {
         return sentenceEmbedding.encode(inputString)
     }
 
-
     // Function to calculate cosine similarity between nodes
     fun cosineDistance(
         x1: FloatArray,
@@ -67,7 +64,6 @@ class VectorRepository(private val context: Context) {
         mag2 = sqrt(mag2)
         return product / (mag1 * mag2)
     }
-
 
     // Function to add node
     suspend fun insertNodeIntoDb(
@@ -92,7 +88,6 @@ class VectorRepository(private val context: Context) {
         }
     }
 
-
     // Function to add edge
     fun insertEdgeIntoDB(
         fromNode: NodeEntity?,
@@ -101,7 +96,7 @@ class VectorRepository(private val context: Context) {
         if (fromNode == null || toNode == null) {
             return
         } else {
-            val edgeType = edgeLabels["${fromNode.type}-${toNode.type}"]
+            val edgeType = SchemaEdgeLabels["${fromNode.type}-${toNode.type}"]
             queries.addEdgeIntoDbQuery(fromNode.id, toNode.id, edgeType!!)
         }
     }
@@ -148,10 +143,10 @@ class VectorRepository(private val context: Context) {
         val neighbourNodes = mutableSetOf<NodeEntity>()
 
         for (edge in neighbourEdges) {
-            val node = if (edge.fromId == id) {
-                queries.findNodeByIdQuery(edge.toId)!!
+            val node = if (edge.firstNodeId == id) {
+                queries.findNodeByIdQuery(edge.secondNodeId)!!
             } else {
-                queries.findNodeByIdQuery(edge.fromId)!!
+                queries.findNodeByIdQuery(edge.firstNodeId)!!
             }
             neighbourNodes.add(node)
         }

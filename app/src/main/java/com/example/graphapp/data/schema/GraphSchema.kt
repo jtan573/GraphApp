@@ -1,7 +1,7 @@
 package com.example.graphapp.data.schema
 
 object GraphSchema {
-    val edgeLabels = mapOf(
+    val SchemaEdgeLabels = mapOf(
         "Entity-Task" to "Who",
         "Method-Task" to "How",
         "Date-Task" to "When",
@@ -26,25 +26,25 @@ object GraphSchema {
         "Location-Impact" to "Where",
         "Motive-Impact" to "Why",
 
-        "Incident-Task" to "Why",
-        "Outcome-Incident" to "Why",
-        "Impact-Incident" to "Why",
+        "Incident-Task" to "Linked",
+        "Outcome-Incident" to "Linked",
+        "Impact-Incident" to "Linked",
 //        "Description-Entity" to "Description",
 //        "Description-Method" to "Description",
     )
 
-    val keyNodes = listOf(
+    val SchemaKeyNodes = listOf(
         "Task", "Incident", "Outcome", "Impact"
     )
 
-    val propertyNodes = listOf(
+    val SchemaPropertyNodes = listOf(
         "Entity",
         "Method",
         "Location",
         "Motive"
     )
 
-    val otherNodes = listOf(
+    val SchemaOtherNodes = listOf(
         "Date",
         "Description"
     )

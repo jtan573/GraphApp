@@ -34,7 +34,7 @@
     },
     {
       "id": "2:8226138168356977246",
-      "lastPropertyId": "5:2193148011711539536",
+      "lastPropertyId": "6:2330197681084002894",
       "name": "NodeEntity",
       "properties": [
         {
@@ -62,13 +62,20 @@
           "id": "5:2193148011711539536",
           "name": "frequency",
           "type": 5
+        },
+        {
+          "id": "6:2330197681084002894",
+          "name": "embedding",
+          "indexId": "1:2499525094058215446",
+          "type": 28,
+          "flags": 8
         }
       ],
       "relations": []
     }
   ],
   "lastEntityId": "2:8226138168356977246",
-  "lastIndexId": "0:0",
+  "lastIndexId": "1:2499525094058215446",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

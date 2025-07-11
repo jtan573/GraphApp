@@ -1,11 +1,8 @@
 package com.example.graphapp.data.schema
 
-import android.R
 import android.util.Log
 import com.example.graphapp.data.GraphRepository
 import com.example.graphapp.data.VectorRepository
-import com.example.graphapp.data.local.NodeEntity
-import kotlin.io.path.Path
 import kotlin.math.ln
 
 private const val DECAY_FACTOR = 0.8f
@@ -44,7 +41,7 @@ fun getPropertyEmbeddings(
     val embeddings = mutableMapOf<String, FloatArray?>()
 
     for (node in neighbourNodes) {
-        if (node.type in GraphSchema.propertyNodes) {
+        if (node.type in GraphSchema.SchemaPropertyNodes) {
             embeddings[node.type] = node.embedding
         }
     }
@@ -64,7 +61,7 @@ fun computeSemanticSimilarity(
 
     val similarities = mutableListOf<Float>()
 
-    for (prop in GraphSchema.propertyNodes) {
+    for (prop in GraphSchema.SchemaPropertyNodes) {
         val v1 = e1[prop]
         val v2 = e2[prop]
         if (v1 == null || v2 == null) continue
@@ -88,7 +85,7 @@ fun initialiseSemanticSimilarityMatrix(
 
     val allNodes = repository.getAllNodes()
     val nodeIds = allNodes
-        .filter { it.type in GraphSchema.keyNodes }
+        .filter { it.type in GraphSchema.SchemaKeyNodes }
         .map { it.id }
 
     val simMatrix = mutableMapOf<Pair<Long, Long>, Float>()
@@ -118,12 +115,12 @@ fun updateSemanticSimilarityMatrix(
     // 1. Get all nodes in DB
     val allNodes = repository.getAllNodes()
     val allNodeIds = allNodes
-        .filter { it.type in GraphSchema.keyNodes }
+        .filter { it.type in GraphSchema.SchemaKeyNodes }
         .map { it.id }
 
     // 2. Get IDs of the newly added nodes
     val newNodeIds = newEventMap.entries
-        .filter{ it.key in GraphSchema.keyNodes }
+        .filter{ it.key in GraphSchema.SchemaKeyNodes }
         .mapNotNull { (type, name) ->
         repository.getNodeByNameAndType(name, type)?.id
     }

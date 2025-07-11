@@ -1,7 +1,5 @@
 package com.example.graphapp.data.local
 
-import android.util.Log
-import com.example.graphdb.Edge
 import io.objectbox.kotlin.boxFor
 
 class VectorDBQueries() {
@@ -33,7 +31,7 @@ class VectorDBQueries() {
     fun addEdgeIntoDbQuery(fromId: Long, toId: Long, edgeType: String){
         edgesBox.put(
             EdgeEntity(
-                fromId = fromId, toId = toId, edgeType = edgeType
+                firstNodeId = fromId, secondNodeId = toId, edgeType = edgeType
             )
         )
 //        Log.d("ADDED EDGE", "Inserted new edge")
@@ -92,14 +90,14 @@ class VectorDBQueries() {
 
     fun findAllEdgesAroundNodeIdQuery(id: Long): List<EdgeEntity> {
         return edgesBox.query(
-            EdgeEntity_.fromId.equal(id).or(EdgeEntity_.toId.equal(id))
+            EdgeEntity_.firstNodeId.equal(id).or(EdgeEntity_.secondNodeId.equal(id))
         ).build().find()
     }
 
     fun findEdgeBetweenNodeIdsQuery(first: Long, second: Long): EdgeEntity? {
         return edgesBox.query(
-            (EdgeEntity_.fromId.equal(first).and(EdgeEntity_.toId.equal(second)))
-                .or(EdgeEntity_.fromId.equal(second).and(EdgeEntity_.toId.equal(first)))
+            (EdgeEntity_.firstNodeId.equal(first).and(EdgeEntity_.secondNodeId.equal(second)))
+                .or(EdgeEntity_.firstNodeId.equal(second).and(EdgeEntity_.secondNodeId.equal(first)))
         ).build().findFirst()
     }
 }

@@ -1,9 +1,5 @@
 package com.example.graphapp.ui.screens
 
-import android.util.Log
-import android.view.ViewGroup
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,10 +17,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -38,17 +32,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.navigation.NavHostController
 import com.example.graphapp.data.schema.GraphSchema
 import com.example.graphapp.ui.components.EventForm
 import com.example.graphapp.ui.components.GraphWebView
 import com.example.graphapp.ui.viewmodels.GraphViewModel
-import io.ktor.websocket.Frame.Text
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import kotlin.collections.set
 
 @Composable
@@ -58,7 +48,7 @@ fun EventScreen(
     val filteredGraphData by viewModel.filteredGraphData.collectAsState()
     var showForm by remember { mutableStateOf(false) }
 
-    val fieldKeys = GraphSchema.propertyNodes + GraphSchema.otherNodes
+    val fieldKeys = GraphSchema.SchemaPropertyNodes + GraphSchema.SchemaOtherNodes
     val eventInputMap = remember(fieldKeys) {
         mutableStateMapOf<String, String>().apply {
             fieldKeys.forEach { putIfAbsent(it, "") }
@@ -68,7 +58,7 @@ fun EventScreen(
     // Dropdown state
     var showFilterMenu by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("All") }
-    val filterOptions = GraphSchema.keyNodes + GraphSchema.propertyNodes + "All"
+    val filterOptions = GraphSchema.SchemaKeyNodes + GraphSchema.SchemaPropertyNodes + "All"
 
     val events by viewModel.createdEvents.collectAsState()
     val coroutineScope = rememberCoroutineScope()

@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:888083991365062946",
-      "lastPropertyId": "4:3532490916491348741",
+      "lastPropertyId": "6:4424182388377089787",
       "name": "EdgeEntity",
       "properties": [
         {
@@ -15,26 +15,26 @@
           "flags": 1
         },
         {
-          "id": "2:8266259862293127551",
-          "name": "fromId",
-          "type": 6
-        },
-        {
-          "id": "3:1442187797777626323",
-          "name": "toId",
-          "type": 6
-        },
-        {
           "id": "4:3532490916491348741",
           "name": "edgeType",
           "type": 9
+        },
+        {
+          "id": "5:9154187561952619691",
+          "name": "firstNodeId",
+          "type": 6
+        },
+        {
+          "id": "6:4424182388377089787",
+          "name": "secondNodeId",
+          "type": 6
         }
       ],
       "relations": []
     },
     {
       "id": "2:8226138168356977246",
-      "lastPropertyId": "6:2330197681084002894",
+      "lastPropertyId": "7:932391426139082172",
       "name": "NodeEntity",
       "properties": [
         {
@@ -69,6 +69,11 @@
           "indexId": "1:2499525094058215446",
           "type": 28,
           "flags": 8
+        },
+        {
+          "id": "7:932391426139082172",
+          "name": "cachedNodeIds",
+          "type": 13
         }
       ],
       "relations": []
@@ -82,7 +87,10 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    8266259862293127551,
+    1442187797777626323
+  ],
   "retiredRelationUids": [],
   "version": 1
 }
