@@ -3,6 +3,8 @@ package com.example.graphapp.data.schema
 import android.util.Log
 import com.example.graphapp.data.GraphRepository
 import com.example.graphapp.data.VectorRepository
+import com.example.graphapp.data.local.NodeEntity
+import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
 import kotlin.math.ln
 
 private const val DECAY_FACTOR = 0.8f
@@ -53,7 +55,7 @@ fun computeSemanticSimilarity(
     nodeId1: Long,
     nodeId2: Long,
     repository: VectorRepository,
-    threshold: Float = 0.5f
+    threshold: Float = 0.5f,
 ): Float {
 
     val e1 = getPropertyEmbeddings(nodeId1, repository)
@@ -139,6 +141,49 @@ fun updateSemanticSimilarityMatrix(
     }
     Log.d("UPDATE MATRIX", "UPDATED MATRIX")
     return simMatrix
+}
+
+//fun updateSemanticSimilarityMatrixByEventType(
+//    repository: VectorRepository,
+//    simMatrix: MutableMap<Pair<Long, Long>, Float>,
+//    newEventMap: Map<String, String>,
+//    inputEventType: String,
+//    threshold: Float = 0.5f
+//): Map<Pair<Long, Long>, Float> {
+//    // Get all nodes in DB
+//    val allNodes = repository.getAllNodes()
+//    val allKeyNodeIds = allNodes
+//        .filter { it.type == inputEventType }
+//        .map { it.id }
+//
+//    // Get filtered similarity matrix
+//    val filteredSimMatrix = simMatrix.filter { (keyPair, _) ->
+//        keyPair.second in allKeyNodeIds || keyPair.first in allKeyNodeIds
+//    }
+//
+//    // 2. Get IDs of the newly added nodes
+//    val newNodes = newEventMap.entries.filter{ it.key in SchemaKeyNodes }
+//        .mapNotNull { (type, name) ->
+//            NodeEntity(name = name, type = type)
+//        }
+//
+//    Log.d("CHECK NEW NODES", "check: $newNodes")
+//
+//    for (newNode in newNodes) {
+//        for (otherId in allKeyNodeIds) {
+//
+//            computeSemanticSimilarity(newId, otherId, repository, threshold)
+//            // Update both (newId, otherId) and (otherId, newId)
+//            simMatrix[newId to otherId] = score
+//            simMatrix[otherId to newId] = score
+//        }
+//    }
+//    Log.d("UPDATE MATRIX", "UPDATED MATRIX")
+//    return simMatrix
+//}
+
+fun computeSemanticSim() {
+
 }
 
 /* -------------------------------------------------

@@ -119,20 +119,14 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Function 2/3/5: Predict Top Relationships based on Incoming Event/Detect input anomaly
-    fun provideEventRec( map: Map<String, String> ) {
+    fun provideEventRecOnInsert( map: Map<String, String> ) {
 
         val normalizedMap = map.filterValues { it.isNotBlank() }
         if (normalizedMap.isEmpty()) { return }
 
         // Check if its a replica event
-        val response = detectReplicateInput(normalizedMap, vectorRepository)
-        val apiRes = ApiResponse(
-            status = "success",
-            timestamp = "",
-            data = ResponseData.DetectReplicaEventData(response)
-        )
-        Log.d("DetectReplicaEvent", "Output: $apiRes")
-//        if (response.isLikelyDuplicate == true) return
+        val isDuplicateEvent = detectDuplicateEvent(normalizedMap)
+        if (isDuplicateEvent == true) return
 
         viewModelScope.launch {
             // If not replica event, then add into DB
@@ -203,7 +197,56 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return
     }
 
-//     Function 4: Find Patterns/Clusters
+    fun provideEventRecOnQuery(map: Map<String, String>) {
+
+        val normalizedMap = map.filterValues { it.isNotBlank() }
+        if (normalizedMap.isEmpty()) { return }
+
+        // Check if its a replica event
+        val isDuplicateEvent = detectDuplicateEvent(normalizedMap)
+        if (isDuplicateEvent == true) return
+
+        viewModelScope.launch {
+            // Retrieve graph from db
+            withContext(Dispatchers.Default) { }
+
+            // Create updated graph
+            val noKeyTypes = normalizedMap.keys.none { it in SchemaKeyNodes }
+
+            val (nodes, edges, result) = if (noKeyTypes) {
+                recommendEventsForProps(normalizedMap, vectorRepository, simMatrix)
+            } else {
+                recommendEventForEvent(normalizedMap, vectorRepository, simMatrix)
+            }
+
+            val json = convertToJsonVector(nodes, edges)
+            _filteredGraphData.value = json
+
+            // Create API response
+            when (result) {
+                is EventRecommendationResult.EventToEventRec -> {
+                    val apiRes = ApiResponse(
+                        status = "success",
+                        timestamp = "",
+                        data = ResponseData.ProvideRecommendationsData(result.items)
+                    )
+                    Log.d("RecommendRelatedEvents", "Response: $apiRes")
+
+                }
+                is EventRecommendationResult.PropertyToEventRec -> {
+                    val apiRes = ApiResponse(
+                        status = "success",
+                        timestamp = "",
+                        data = ResponseData.DiscoverEventsData(result.items)
+                    )
+                    Log.d("RecommendRelatedEvents", "Response: $apiRes")
+                }
+            }
+        }
+        return
+    }
+
+    // Function 4: Find Patterns/Clusters
     fun findGraphRelations() {
         val response = findPatterns(vectorRepository, simMatrix)
 
@@ -216,4 +259,19 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
         return
     }
+
+    // Function 5: Detect Same Event
+    fun detectDuplicateEvent(normalizedMap: Map<String, String>): Boolean {
+        // Check if its a replica event
+        val response = detectReplicateInput(normalizedMap, vectorRepository)
+        val apiRes = ApiResponse(
+            status = "success",
+            timestamp = "",
+            data = ResponseData.DetectReplicaEventData(response)
+        )
+        Log.d("DetectReplicaEvent", "Output: $apiRes")
+        return response.isLikelyDuplicate
+    }
+
+
 }

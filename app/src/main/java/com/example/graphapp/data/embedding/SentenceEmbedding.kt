@@ -82,7 +82,6 @@ class SentenceEmbedding() {
                 inputTensorMap["token_type_ids"] = tokenTypeIdsTensor
             }
 
-            Log.d("CHECK SHAPE", "$inputTensorMap")
             val outputs = ortSession.run(inputTensorMap)
             val tokenEmbeddings3D = outputs.get(0).value as Array<Array<FloatArray>>
             val tokenEmbeddings = tokenEmbeddings3D[0]

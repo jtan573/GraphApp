@@ -173,13 +173,30 @@ fun GraphViewScreen(
                             isLoading = true
                             activeButton = ActiveButton.EVENT
                         }
-                        viewModel.provideEventRec(eventInputMap)
                         withContext(Dispatchers.Main) {
                             isLoading = false
                             activeButton = ActiveButton.NONE
                             eventInputMap.clear()
                             fieldKeys.forEach { eventInputMap[it] = "" }
-                            showForm = false }
+                            showForm = false
+                        }
+                        viewModel.provideEventRecOnInsert(eventInputMap)
+                    }
+                },
+                onQuery = {
+                    coroutineScope.launch {
+                        withContext(Dispatchers.Main) {
+                            isLoading = true
+                            activeButton = ActiveButton.EVENT
+                        }
+                        withContext(Dispatchers.Main) {
+                            isLoading = false
+                            activeButton = ActiveButton.NONE
+                            eventInputMap.clear()
+                            fieldKeys.forEach { eventInputMap[it] = "" }
+                            showForm = false
+                        }
+                        viewModel.provideEventRecOnQuery(eventInputMap)
                     }
                 },
                 onCancel = { showForm = false }

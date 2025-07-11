@@ -27,6 +27,7 @@ fun EventForm(
     fieldKeys: List<String>,
     eventInputMap: SnapshotStateMap<String, String>,
     onSubmit: () -> Unit,
+    onQuery: () -> Unit,
     onCancel: () -> Unit
 ) {
 
@@ -74,6 +75,9 @@ fun EventForm(
         ) {
             Button(onClick = onSubmit) {
                 Text("Insert Event", fontSize = 12.sp)
+            }
+            Button(onClick = onSubmit) {
+                Text("Query Event", fontSize = 12.sp)
             }
             Button(onClick = onCancel) {
                 Text("Cancel", fontSize = 12.sp)
