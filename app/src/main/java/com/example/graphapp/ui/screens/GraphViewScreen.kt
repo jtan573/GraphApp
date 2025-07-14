@@ -180,7 +180,7 @@ fun GraphViewScreen(
                             fieldKeys.forEach { eventInputMap[it] = "" }
                             showForm = false
                         }
-                        viewModel.provideEventRecOnInsert(eventInputMap)
+                        viewModel.provideEventRecOnInsert(eventInputMap, false)
                     }
                 },
                 onQuery = {
@@ -196,7 +196,8 @@ fun GraphViewScreen(
                             fieldKeys.forEach { eventInputMap[it] = "" }
                             showForm = false
                         }
-                        viewModel.provideEventRecOnQuery(eventInputMap)
+//                        viewModel.provideEventRecOnQuery(eventInputMap)
+                        viewModel.provideEventRecOnInsert(eventInputMap, true)
                     }
                 },
                 onCancel = { showForm = false }

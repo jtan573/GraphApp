@@ -76,7 +76,7 @@ fun EventForm(
             Button(onClick = onSubmit) {
                 Text("Insert Event", fontSize = 12.sp)
             }
-            Button(onClick = onSubmit) {
+            Button(onClick = onQuery) {
                 Text("Query Event", fontSize = 12.sp)
             }
             Button(onClick = onCancel) {
