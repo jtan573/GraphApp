@@ -1,14 +1,14 @@
-package com.example.graphapp.data
+package com.example.graphapp.data.repository
 
 import android.content.Context
 import com.example.graphapp.data.local.createDriver
-import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
+import com.example.graphapp.data.schema.GraphSchema
 import com.example.graphdb.Edge
 import com.example.graphdb.GraphDatabase
 import com.example.graphdb.Node
 
 class GraphRepository (context: Context) {
-    private val database = GraphDatabase(createDriver(context))
+    private val database = GraphDatabase.Companion(createDriver(context))
     private val queries = database.graphDatabaseQueries
 
     fun getAllNodes(): List<Node> {
@@ -17,7 +17,7 @@ class GraphRepository (context: Context) {
 
     fun getAllKeyNodeIds(): List<Long> {
         return getAllNodes()
-            .filter { it.type in SchemaKeyNodes }
+            .filter { it.type in GraphSchema.SchemaKeyNodes }
             .map { it.id }
     }
 

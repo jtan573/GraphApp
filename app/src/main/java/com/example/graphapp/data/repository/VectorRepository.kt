@@ -1,4 +1,4 @@
-package com.example.graphapp.data
+package com.example.graphapp.data.repository
 
 import android.content.Context
 import android.util.Log
@@ -6,7 +6,7 @@ import com.example.graphapp.data.embedding.SentenceEmbedding
 import com.example.graphapp.data.local.EdgeEntity
 import com.example.graphapp.data.local.NodeEntity
 import com.example.graphapp.data.local.VectorDBQueries
-import com.example.graphapp.data.schema.GraphSchema.SchemaEdgeLabels
+import com.example.graphapp.data.schema.GraphSchema
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -96,7 +96,7 @@ class VectorRepository(private val context: Context) {
         if (fromNode == null || toNode == null) {
             return
         } else {
-            val edgeType = SchemaEdgeLabels["${fromNode.type}-${toNode.type}"]
+            val edgeType = GraphSchema.SchemaEdgeLabels["${fromNode.type}-${toNode.type}"]
             queries.addEdgeIntoDbQuery(fromNode.id, toNode.id, edgeType!!)
         }
     }

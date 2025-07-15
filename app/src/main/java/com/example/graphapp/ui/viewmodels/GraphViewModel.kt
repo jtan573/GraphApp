@@ -2,28 +2,29 @@ package com.example.graphapp.ui.viewmodels
 
 import android.app.Application
 import android.util.Log
+import androidx.compose.ui.input.key.Key
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.graphapp.data.VectorRepository
-import com.example.graphapp.data.local.Event
+import com.example.graphapp.data.repository.VectorRepository
+import com.example.graphapp.data.schema.Event
 import com.example.graphapp.data.api.ApiResponse
 import com.example.graphapp.data.api.EventRecommendationResult
 import com.example.graphapp.data.api.ResponseData
 import com.example.graphapp.data.local.EdgeEntity
 import com.example.graphapp.data.local.NodeEntity
-import com.example.graphapp.data.local.UiEvent
-import com.example.graphapp.data.schema.GraphSchema.SchemaEdgeLabels
+import com.example.graphapp.data.schema.UiEvent
 import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaOtherNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
-import com.example.graphapp.data.schema.computeSemanticMatrixForQuery
-import com.example.graphapp.data.schema.detectReplicateInput
-import com.example.graphapp.data.schema.findPatterns
-import com.example.graphapp.data.schema.initialiseSemanticSimilarityMatrix
-import com.example.graphapp.data.schema.predictMissingProperties
-import com.example.graphapp.data.schema.recommendEventForEvent
-import com.example.graphapp.data.schema.recommendEventsForProps
-import com.example.graphapp.data.schema.updateSemanticSimilarityMatrix
+import com.example.graphapp.data.local.computeSemanticMatrixForQuery
+import com.example.graphapp.data.local.detectReplicateInput
+import com.example.graphapp.data.local.findPatterns
+import com.example.graphapp.data.local.initialiseSemanticSimilarityMatrix
+import com.example.graphapp.data.local.predictMissingProperties
+import com.example.graphapp.data.local.recommendEventForEvent
+import com.example.graphapp.data.local.recommendEventsForProps
+import com.example.graphapp.data.local.updateSemanticSimilarityMatrix
+import com.example.graphapp.domain.usecases.findRelevantContactsUseCase
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -32,8 +33,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.collections.map
 import kotlin.text.isNotBlank
 
@@ -102,6 +101,16 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _simMatrix = updateSemanticSimilarityMatrix(repository, simMatrix, newEventMap)
     }
 
+    private fun createFullGraph(nodes: List<NodeEntity>, edges: List<EdgeEntity>) {
+        val json = convertToJsonVector(nodes, edges)
+        _graphData.value = json
+    }
+
+    private fun createFilteredGraph(nodes: List<NodeEntity>, edges: List<EdgeEntity>) {
+        val json = convertToJsonVector(nodes, edges)
+        _filteredGraphData.value = json
+    }
+
     // Function 1: Predict missing properties
     fun fillMissingLinks() {
 
@@ -109,8 +118,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         val (newEdges, response) = predictMissingProperties(vectorRepository, simMatrix)
         val nodes = vectorRepository.getAllNodes()
         val edges = vectorRepository.getAllEdges() + newEdges
-        val json = convertToJsonVector(nodes, edges)
-        _graphData.value = json
+        createFullGraph(nodes, edges)
 
         // Creating API response
         val apiRes = ApiResponse(
@@ -118,14 +126,13 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             timestamp = "",
             data = ResponseData.PredictMissingPropertiesData(response)
         )
-
-        Log.d("PredictMissingLinks", "Predict Response: $apiRes")
+        Log.d("PredictMissingLinks", "Response: $apiRes")
 
         return
     }
 
     // Function 2/3/5: Predict Top Relationships based on Incoming Event/Detect input anomaly
-    suspend fun provideEventRecommendation(map: Map<String, String>, isQuery: Boolean) {
+    fun provideEventRecommendation(map: Map<String, String>, isQuery: Boolean, queryKey: String? = null) {
 
         // Logic starts here
         viewModelScope.launch {
@@ -139,9 +146,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
             // For entries with no key nodes
             if (noKeyTypes) {
-                val (nodes, edges, result) = recommendEventsForProps(normalizedMap, vectorRepository)
-                val json = convertToJsonVector(nodes, edges)
-                _filteredGraphData.value = json
+                val (nodes, edges, result) = recommendEventsForProps(normalizedMap, vectorRepository, queryKey)
+                createFilteredGraph(nodes, edges)
 
                 if (result is EventRecommendationResult.PropertyToEventRec) {
                     val apiRes = ApiResponse(
@@ -155,61 +161,35 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             // Check if its a duplicate event
-            val (isDuplicateEvent, duplicateNode) = detectDuplicateEvent(normalizedMap, isQuery)
+            val (isDuplicateEvent, duplicateNode) = detectDuplicateEvent(normalizedMap)
 
             // Update created event list for UI
             val currentList = _createdEvents.value.toMutableList()
             currentList.add(Event(normalizedMap).toString())
             _createdEvents.value = currentList
 
-
-            val newEventNodes = mutableListOf<NodeEntity>()
-            var filteredSimMatrix = mapOf<Pair<Long, Long>, Float>()
-
-            if (isDuplicateEvent && duplicateNode != null) {
-                newEventNodes.add(duplicateNode)
-                newEventNodes.addAll(vectorRepository.getNeighborsOfNodeById(duplicateNode.id)
-                    .filter { it.type in SchemaPropertyNodes })
-            }
-
-            else if (!isQuery) {
-                // Adding nodes into database
-                val eventNodesCreated = addNewEventIntoDb(normalizedMap, vectorRepository)
-                newEventNodes.addAll(eventNodesCreated)
-
-                // Retrieve graph from db
-                withContext(Dispatchers.Default) {
-                    reloadGraphData()
-                }
-
-                // Update the similarity matrix
-                reloadSimMatrix(
-                    vectorRepository, simMatrix.toMutableMap(), normalizedMap
-                )
-
-            // If query information and no duplicate found
-            } else {
-                val keyNodeType = normalizedMap.filter { it.key in SchemaKeyNodes }
-                    .map { it.key }.single()
-
-                val (filteredSemSimMatrix, eventNodesCreated) = computeSemanticMatrixForQuery(
-                    vectorRepository, simMatrix, normalizedMap, keyNodeType
-                )
-                filteredSimMatrix = filteredSemSimMatrix
-                newEventNodes.addAll(eventNodesCreated)
-            }
+            // Action based on type of input
+            val (newEventNodes, filteredSimMatrix) = prepareNewEventNodesAndMatrix(
+                isDuplicateEvent = isDuplicateEvent,
+                duplicateNode = duplicateNode,
+                isQuery = isQuery,
+                normalizedMap = normalizedMap,
+                vectorRepository = vectorRepository,
+                simMatrix = simMatrix,
+                reloadGraphData = { reloadGraphData() },
+                reloadSimMatrix = { repo, matrix, map -> reloadSimMatrix(repo, matrix, map) }
+            )
 
             // Get recommendations and results
             val (nodes, edges, result) =
                 if (isQuery && !isDuplicateEvent) {
-                    recommendEventForEvent(normalizedMap, vectorRepository, filteredSimMatrix, true, newEventNodes)
+                    recommendEventForEvent(normalizedMap, vectorRepository, filteredSimMatrix, newEventNodes, queryKey, true)
                 } else {
-                    recommendEventForEvent(normalizedMap, vectorRepository, simMatrix, false, newEventNodes)
+                    recommendEventForEvent(normalizedMap, vectorRepository, simMatrix, newEventNodes, queryKey, false)
                 }
 
             // Create update graph
-            val json = convertToJsonVector(nodes, edges)
-            _filteredGraphData.value = json
+            createFilteredGraph(nodes, edges)
 
             // Create API response
             if (result is EventRecommendationResult.EventToEventRec) {
@@ -241,10 +221,10 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
 
     // Function 5: Detect Same Event
-    suspend fun detectDuplicateEvent(normalizedMap: Map<String, String>, isQuery: Boolean):
+    suspend fun detectDuplicateEvent(normalizedMap: Map<String, String>):
             Pair<Boolean, NodeEntity?> {
-        // Check if its a replica event
-        val (graphComponents, duplicateNode, response) = detectReplicateInput(normalizedMap, vectorRepository)
+
+        val (duplicateNode, response) = detectReplicateInput(normalizedMap, vectorRepository)
         val apiRes = ApiResponse(
             status = "success",
             timestamp = "",
@@ -252,11 +232,22 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         )
         Log.d("DetectReplicaEvent", "Output: $apiRes")
 
-        // Display duplicate data immediately if its not a query
         if (response.isLikelyDuplicate == true) {
             _uiEvent.trySend(UiEvent.ShowSnackbar("Very similar event(s) found."))
         }
 
         return response.isLikelyDuplicate to duplicateNode
+    }
+
+    // Use Case Function
+    suspend fun findRelevantContacts(map: Map<String, String>) {
+        val normalizedMap = map.filterValues { it.isNotBlank() }
+        if (normalizedMap.isEmpty()) return
+
+        val (nodes, edges, result) = findRelevantContactsUseCase(
+            map, vectorRepository, simMatrix
+        )
+
+        createFilteredGraph(nodes, edges)
     }
 }

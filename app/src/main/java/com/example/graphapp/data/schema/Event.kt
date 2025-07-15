@@ -1,4 +1,4 @@
-package com.example.graphapp.data.local
+package com.example.graphapp.data.schema
 
 data class Event(val fields: Map<String, String>)
 

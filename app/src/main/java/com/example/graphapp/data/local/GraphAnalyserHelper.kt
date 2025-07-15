@@ -1,13 +1,13 @@
-package com.example.graphapp.data.schema
+package com.example.graphapp.data.local
 
 import android.util.Log
-import androidx.compose.runtime.key
-import com.example.graphapp.data.GraphRepository
-import com.example.graphapp.data.VectorRepository
-import com.example.graphapp.data.local.NodeEntity
+import androidx.room.util.query
+import com.example.graphapp.data.repository.GraphRepository
+import com.example.graphapp.data.repository.VectorRepository
+import com.example.graphapp.data.schema.GraphSchema.SchemaEdgeLabels
 import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
-import com.example.graphdb.Node
+import kotlin.collections.iterator
 import kotlin.math.ln
 
 private const val DECAY_FACTOR = 0.8f
@@ -24,11 +24,8 @@ fun computeWeightedSim(
 ): Float {
 
     val occurrenceCounts = repository.getAllNodeFrequencies()
-
     val rawSim = similarityMatrix.getOrDefault(targetId to candidateId, 0f)
     val freqFactor = ln(1f + (occurrenceCounts[candidateId] ?: 1)).toFloat()
-
-//    Log.d("CHECK SIM", "$rawSim to $freqFactor")
     val adjustedSim = rawSim * freqFactor
 
     return adjustedSim
@@ -193,11 +190,20 @@ suspend fun computeSemanticMatrixForQuery(
 fun computeSemanticSimilarEventsForProps(
     repository: VectorRepository,
     onlyPropertiesMap: Map<String, NodeEntity>,
+    queryKey: String? = null,
     threshold: Float = 0.5f
 ): Map<String, List<Pair<Long, Float>>>{
+
     val allNodes = repository.getAllNodes()
-    val allKeyNodeIdsByType = allNodes.filter { it.type in SchemaKeyNodes }.groupBy { it.type }
-        .mapValues { (_, nodes) -> nodes.map { it.id } }
+
+    var allKeyNodeIdsByType = mapOf<String, List<Long>>()
+    if (queryKey != null) {
+        allKeyNodeIdsByType = allNodes.filter { it.type == queryKey }.groupBy { it.type }
+            .mapValues { (_, nodes) -> nodes.map { it.id } }
+    } else {
+        allKeyNodeIdsByType = allNodes.filter { it.type in SchemaKeyNodes }.groupBy { it.type }
+            .mapValues { (_, nodes) -> nodes.map { it.id } }
+    }
 
     val propsInEvent = onlyPropertiesMap.values.toList()
 
@@ -222,57 +228,135 @@ fun computeSemanticSimilarEventsForProps(
     return topEventsByType
 }
 
+
 /* -------------------------------------------------
-  Helper to initialise SimRank Similarity Matrix
+    Helper to build graph
 ------------------------------------------------- */
-fun initialiseSimRankSimilarityMatrix(
-    repository: GraphRepository
-): Map<Pair<Long, Long>, Float> {
-    // Get all nodes
-    val allNodes = repository.getAllNodes()
-    val nodeIds = allNodes.map { it.id }
+fun buildGraphContext(
+    repository: VectorRepository,
+    predictedNodeIds: Collection<Long>,
+    extraNodes: Collection<NodeEntity> = emptyList(),
+    addSuggestionEdges: (
+        MutableSet<EdgeEntity>,
+        Set<NodeEntity>
+    ) -> Unit
+): Pair<MutableSet<NodeEntity>, MutableSet<EdgeEntity>> {
 
-    // Get all edges
-    val edges = repository.getAllEdges()
-    val neighborMap = mutableMapOf<Long, MutableSet<Long>>()
-    for (edge in edges) {
-        neighborMap.getOrPut(edge.fromNode) { mutableSetOf() }.add(edge.toNode)
-        neighborMap.getOrPut(edge.toNode) { mutableSetOf() }.add(edge.fromNode)
-    }
+    val neighborNodes = mutableSetOf<NodeEntity>()
+    val neighborEdges = mutableSetOf<EdgeEntity>()
 
-    // Compute SimRank similarity
-    val sim = mutableMapOf<Pair<Long, Long>, Float>()
-    for (i in nodeIds) {
-        for (j in nodeIds) {
-            sim[i to j] = if (i == j) 1f else 0f
+    for (id in predictedNodeIds) {
+        val nodes = repository.getNeighborsOfNodeById(id)
+        for (n in nodes) {
+            if (id == n.id) continue
+            val edge = repository.getEdgeBetweenNodes(id, n.id)
+            neighborEdges.add(edge)
+        }
+
+        nodes.forEach { node ->
+            if (neighborNodes.none { it.id == node.id }) { neighborNodes.add(node) }
+        }
+        val node = repository.getNodeById(id)
+        if (node != null && neighborNodes.none { it.id == node.id }) {
+            neighborNodes.add(node)
         }
     }
 
-    repeat(ITERATIONS) {
-        val newSim = mutableMapOf<Pair<Long, Long>, Float>()
-        for (i in nodeIds) {
-            for (j in nodeIds) {
-                if (i == j) {
-                    newSim[i to j] = 1f
-                } else {
-                    val neighborsI = neighborMap[i].orEmpty()
-                    val neighborsJ = neighborMap[j].orEmpty()
-                    if (neighborsI.isEmpty() || neighborsJ.isEmpty()) {
-                        newSim[i to j] = 0f
-                    } else {
-                        val sum = neighborsI.sumOf { ni ->
-                            neighborsJ.sumOf { nj ->
-                                sim.getOrDefault(ni to nj, 0f).toDouble()
-                            }
-                        }
-                        newSim[i to j] = (DECAY_FACTOR * (sum / (neighborsI.size * neighborsJ.size))).toFloat()
-                    }
+    // Add any explicitly supplied extra nodes
+    neighborNodes += extraNodes
+
+    // Let the caller add any custom edges
+    addSuggestionEdges(neighborEdges, neighborNodes)
+
+    return neighborNodes.toMutableSet() to neighborEdges.toMutableSet()
+}
+
+/* -------------------------------------------------
+    Helper to load data from cache
+------------------------------------------------- */
+fun loadCachedRecommendations(
+    inputKeyNode: NodeEntity,
+    repository: VectorRepository,
+    queryKey: String?
+): MutableMap<String, MutableList<NodeEntity>> {
+    val result = mutableMapOf<String, MutableList<NodeEntity>>()
+
+    if (inputKeyNode.cachedNodeIds.isNotEmpty()) {
+        if (queryKey != null) {
+            val cachedQueryIds = inputKeyNode.cachedNodeIds[queryKey]
+            if (cachedQueryIds != null) {
+                for (id in cachedQueryIds) {
+                    result.getOrPut(queryKey) { mutableListOf() }
+                        .add(repository.getNodeById(id)!!)
+                }
+            }
+        } else {
+            for ((type, cacheIds) in inputKeyNode.cachedNodeIds) {
+                for (id in cacheIds) {
+                    result.getOrPut(type) { mutableListOf() }
+                        .add(repository.getNodeById(id)!!)
                 }
             }
         }
-        sim.clear()
-        sim.putAll(newSim)
     }
 
-    return sim
+    return result
 }
+
+/* -------------------------------------------------
+    Helper to calculate top recommendations
+------------------------------------------------- */
+fun computeTopRecommendations(
+    inputKeyNode: NodeEntity,
+    repository: VectorRepository,
+    simMatrix: Map<Pair<Long, Long>, Float>,
+    queryKey: String? = null
+): MutableMap<String, MutableList<NodeEntity>> {
+
+    val result = mutableMapOf<String, MutableList<NodeEntity>>()
+
+    // 1. Find all nodes of same event type
+    val allNodesOfEventType = repository.getAllNodes().filter { it.type == inputKeyNode.type }
+
+    val scores = mutableListOf<Pair<NodeEntity, Float>>()
+
+    // 2. Compute similarities
+    for (candidate in allNodesOfEventType) {
+        if (candidate.id == inputKeyNode.id) continue
+
+        val simScore = computeWeightedSim(
+            targetId = candidate.id,
+            candidateId = inputKeyNode.id,
+            repository = repository,
+            similarityMatrix = simMatrix
+        ).toFloat()
+
+        scores.add(candidate to simScore)
+    }
+
+    // 3. Sort & take top 3
+    val topForType = scores.sortedByDescending { it.second }.take(3)
+
+    // 4. Populate recommendations
+    for ((simNode, _) in topForType) {
+
+        if (queryKey == null || queryKey == simNode.type) {
+            result.getOrPut(simNode.type) { mutableListOf() }.add(simNode)
+        }
+
+        val neighborKeyNodes = repository.getNeighborsOfNodeById(simNode.id)
+            .filter { it.type in SchemaKeyNodes }
+
+        for (neighbor in neighborKeyNodes) {
+            if (queryKey == null || queryKey == neighbor.type) {
+                result.getOrPut(neighbor.type) { mutableListOf() }.add(neighbor)
+            }
+        }
+    }
+
+    return result
+}
+
+
+
+
