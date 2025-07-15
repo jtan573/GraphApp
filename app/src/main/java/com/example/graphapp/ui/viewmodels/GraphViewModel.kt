@@ -24,7 +24,6 @@ import com.example.graphapp.data.schema.predictMissingProperties
 import com.example.graphapp.data.schema.recommendEventForEvent
 import com.example.graphapp.data.schema.recommendEventsForProps
 import com.example.graphapp.data.schema.updateSemanticSimilarityMatrix
-import com.example.graphdb.Edge
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -126,19 +125,43 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Function 2/3/5: Predict Top Relationships based on Incoming Event/Detect input anomaly
-    suspend fun provideEventRecOnInsert( map: Map<String, String>, isQuery: Boolean) {
+    suspend fun provideEventRecommendation(map: Map<String, String>, isQuery: Boolean) {
 
-        val normalizedMap = map.filterValues { it.isNotBlank() }
-        if (normalizedMap.isEmpty()) { return }
-
-        // Check if its a replica event
-        val (isDuplicateEvent, duplicateNode) = detectDuplicateEvent(normalizedMap, isQuery)
-
-        val currentList = _createdEvents.value.toMutableList()
-        currentList.add(Event(normalizedMap).toString())
-        _createdEvents.value = currentList
-
+        // Logic starts here
         viewModelScope.launch {
+
+            val normalizedMap = map.filterValues { it.isNotBlank() }
+            if (normalizedMap.isEmpty()) {
+                return@launch
+            }
+
+            val noKeyTypes = normalizedMap.keys.none { it in SchemaKeyNodes }
+
+            // For entries with no key nodes
+            if (noKeyTypes) {
+                val (nodes, edges, result) = recommendEventsForProps(normalizedMap, vectorRepository)
+                val json = convertToJsonVector(nodes, edges)
+                _filteredGraphData.value = json
+
+                if (result is EventRecommendationResult.PropertyToEventRec) {
+                    val apiRes = ApiResponse(
+                        status = "success",
+                        timestamp = "",
+                        data = ResponseData.DiscoverEventsData(result.items)
+                    )
+                    Log.d("RecommendRelatedEvents", "Response: $apiRes")
+                }
+                return@launch
+            }
+
+            // Check if its a duplicate event
+            val (isDuplicateEvent, duplicateNode) = detectDuplicateEvent(normalizedMap, isQuery)
+
+            // Update created event list for UI
+            val currentList = _createdEvents.value.toMutableList()
+            currentList.add(Event(normalizedMap).toString())
+            _createdEvents.value = currentList
+
 
             val newEventNodes = mutableListOf<NodeEntity>()
             var filteredSimMatrix = mapOf<Pair<Long, Long>, Float>()
@@ -148,24 +171,11 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
                 newEventNodes.addAll(vectorRepository.getNeighborsOfNodeById(duplicateNode.id)
                     .filter { it.type in SchemaPropertyNodes })
             }
+
             else if (!isQuery) {
-                for ((type, value) in normalizedMap) {
-                    vectorRepository.insertNodeIntoDb(inputName = value, inputType = type)
-                    newEventNodes.add(vectorRepository.getNodeByNameAndType(value, type)!!)
-                }
-                for ((type1, value1) in normalizedMap) {
-                    for ((type2, value2) in normalizedMap) {
-                        if (type1 != type2) {
-                            val edgeType = SchemaEdgeLabels["$type1-$type2"]
-                            if (edgeType != null) {
-                                vectorRepository.insertEdgeIntoDB(
-                                    fromNode = vectorRepository.getNodeByNameAndType(value1, type1),
-                                    toNode = vectorRepository.getNodeByNameAndType(value2, type2)
-                                )
-                            }
-                        }
-                    }
-                }
+                // Adding nodes into database
+                val eventNodesCreated = addNewEventIntoDb(normalizedMap, vectorRepository)
+                newEventNodes.addAll(eventNodesCreated)
 
                 // Retrieve graph from db
                 withContext(Dispatchers.Default) {
@@ -189,41 +199,26 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
                 newEventNodes.addAll(eventNodesCreated)
             }
 
-            // Create updated graph
-            val noKeyTypes = normalizedMap.keys.none { it in SchemaKeyNodes }
-
-            val (nodes, edges, result) = if (noKeyTypes) {
-                recommendEventsForProps(normalizedMap, vectorRepository, simMatrix)
-            } else {
+            // Get recommendations and results
+            val (nodes, edges, result) =
                 if (isQuery && !isDuplicateEvent) {
                     recommendEventForEvent(normalizedMap, vectorRepository, filteredSimMatrix, true, newEventNodes)
                 } else {
                     recommendEventForEvent(normalizedMap, vectorRepository, simMatrix, false, newEventNodes)
                 }
-            }
 
+            // Create update graph
             val json = convertToJsonVector(nodes, edges)
             _filteredGraphData.value = json
 
             // Create API response
-            when (result) {
-                is EventRecommendationResult.EventToEventRec -> {
-                    val apiRes = ApiResponse(
-                        status = "success",
-                        timestamp = "",
-                        data = ResponseData.ProvideRecommendationsData(result.items)
-                    )
-                    Log.d("RecommendRelatedEvents", "Response: $apiRes")
-
-                }
-                is EventRecommendationResult.PropertyToEventRec -> {
-                    val apiRes = ApiResponse(
-                        status = "success",
-                        timestamp = "",
-                        data = ResponseData.DiscoverEventsData(result.items)
-                    )
-                    Log.d("RecommendRelatedEvents", "Response: $apiRes")
-                }
+            if (result is EventRecommendationResult.EventToEventRec) {
+                val apiRes = ApiResponse(
+                    status = "success",
+                    timestamp = "",
+                    data = ResponseData.ProvideRecommendationsData(result.items)
+                )
+                Log.d("RecommendRelatedEvents", "Response: $apiRes")
             }
         }
         return
@@ -258,11 +253,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         Log.d("DetectReplicaEvent", "Output: $apiRes")
 
         // Display duplicate data immediately if its not a query
-        if (!isQuery && response.isLikelyDuplicate == true) {
+        if (response.isLikelyDuplicate == true) {
             _uiEvent.trySend(UiEvent.ShowSnackbar("Very similar event(s) found."))
-
-            val json = convertToJsonVector(graphComponents.first, graphComponents.second)
-            _filteredGraphData.value = json
         }
 
         return response.isLikelyDuplicate to duplicateNode

@@ -21,6 +21,7 @@ import com.example.graphapp.data.local.NodeEntity
 import com.example.graphapp.data.schema.GraphSchema.SchemaEdgeLabels
 import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
+import com.example.graphdb.Node
 //import com.example.graphdb.Edge
 //import com.example.graphdb.Node
 import kotlin.collections.component1
@@ -161,58 +162,6 @@ fun recommendEventForEvent(
     val start = System.currentTimeMillis()
 
     if (inputKeyNode.cachedNodeIds.isNotEmpty()) {
-        // Check if there are cached similar nodes
-        Log.d("CACHEDNODES", "Found cached nodes: ${inputKeyNode.cachedNodeIds}")
-
-        for ((type, cacheIds) in inputKeyNode.cachedNodeIds) {
-            for (id in cacheIds) {
-                topRecommendationsByType.getOrPut(type) { mutableListOf() }.add(repository.getNodeById(id)!!)
-            }
-        }
-        val end = System.currentTimeMillis()
-        println("Time taken: ${end - start} ms")
-    } else {
-        // If cache is empty, then calculate similarity
-        val allNodesOfEventType = repository.getAllNodes()
-            .filter { it.type == inputKeyNode.type }
-
-        val scoresForEventKeyType = mutableListOf<Pair<NodeEntity, Float>>()
-
-        for (candidate in allNodesOfEventType) {
-            if (candidate.id == inputKeyNode.id) continue
-
-            val simScore = computeWeightedSim(
-                targetId = candidate.id,
-                candidateId = inputKeyNode.id,
-                repository = repository,
-                similarityMatrix = simMatrix
-            ).toFloat()
-            scoresForEventKeyType.add(candidate to simScore)
-        }
-        val topForType = scoresForEventKeyType.sortedByDescending { it.second }.take(3)
-
-        // Compute Top Recommendations
-        for ((simNode, _) in topForType) {
-
-            topRecommendationsByType.getOrPut(simNode.type) { mutableListOf() }.add(simNode)
-
-            val neighbourKeyNodes = repository.getNeighborsOfNodeById(simNode.id)
-                .filter { it.type in SchemaKeyNodes }
-
-            if (neighbourKeyNodes.isEmpty()) continue
-
-            for (neighbour in neighbourKeyNodes) {
-                topRecommendationsByType.getOrPut(neighbour.type) { mutableListOf() }.add(neighbour)
-            }
-        }
-        val end = System.currentTimeMillis()
-        println("Time taken: ${end - start} ms")
-    }
-
-    if (inputKeyNode.cachedNodeIds.isNotEmpty()) {
-        // Check if there are cached similar nodes
-        Log.d("CACHEDNODES", "Found cached nodes: ${inputKeyNode.cachedNodeIds}")
-
         for ((type, cacheIds) in inputKeyNode.cachedNodeIds) {
             for (id in cacheIds) {
                 topRecommendationsByType.getOrPut(type) { mutableListOf() }.add(repository.getNodeById(id)!!)
@@ -322,49 +271,25 @@ fun recommendEventForEvent(
     )
 }
 
-fun recommendEventsForProps (
+suspend fun recommendEventsForProps (
     newEventMap: Map<String, String>,
-    repository: VectorRepository,
-    simMatrix: Map<Pair<Long, Long>, Float>,
-//    isQuery: Boolean,
-//    newEventNodes: List<NodeEntity>
+    repository: VectorRepository
 ) : Triple<List<NodeEntity>, List<EdgeEntity>, EventRecommendationResult> {
 
-    val allNodesByType = repository.getAllNodes()
-        .filter { it.type in SchemaKeyNodes }.groupBy { it.type }
-
     // Compute similarity of each candidate to event nodes
-    var eventNodeIds = mutableListOf<Long>()
+    var eventPropNodesByType = mutableMapOf<String, NodeEntity>()
     newEventMap.entries.map { (type, value) ->
-        eventNodeIds.add(repository.getNodeByNameAndType(value, type)!!.id)
+        val propExist = repository.getNodeByNameAndType(value, type)
+        if (propExist != null) {
+            eventPropNodesByType[type] = propExist
+        } else {
+            eventPropNodesByType[type] = (NodeEntity(id = (-1L * (1..1_000_000).random()), name = value, type = type, embedding = repository.getTextEmbeddings(value)))
+        }
+
     }
 
     // For each key node type, compute top 3
-    val topRecommendationsByType = mutableMapOf<String, List<Pair<NodeEntity, Float>>>()
-
-    for ((type, candidates) in allNodesByType) {
-        val scoresForType = mutableListOf<Pair<NodeEntity, Float>>()
-
-        for (candidate in candidates) {
-            if (candidate.id in eventNodeIds) continue
-            val avg = eventNodeIds.map { eventId ->
-                val s = computeWeightedSim(
-                    targetId = candidate.id,
-                    candidateId = eventId,
-                    repository = repository,
-                    similarityMatrix = simMatrix
-                )
-                s
-            }.average().toFloat()
-            scoresForType.add(candidate to avg)
-        }
-
-        val topForType = scoresForType
-            .sortedByDescending { it.second }
-            .take(3)
-
-        topRecommendationsByType[type] = topForType
-    }
+    val topRecommendationsByType = computeSemanticSimilarEventsForProps(repository, eventPropNodesByType)
 
     // Create different format API response for "predict" and "discover" functions
     val eventsByType = mutableListOf<PredictedEventByType>()
@@ -372,12 +297,14 @@ fun recommendEventsForProps (
     for ((type, recs) in topRecommendationsByType) {
         val predictedEventsList = mutableListOf<EventDetails>()
         for (rec in recs) {
-            val neighbourProps = repository.getNeighborsOfNodeById(rec.first.id)
+            val neighbourProps = repository.getNeighborsOfNodeById(rec.first)
                 .filter { it.type in SchemaPropertyNodes }
                 .associate { it.type to it.name }
+
+            val recNode = repository.getNodeById(rec.first)!!
             predictedEventsList.add(
                 EventDetails(
-                    eventName = rec.first.name,
+                    eventName = recNode.name,
                     eventProperties = neighbourProps,
                     simScore = rec.second
                 )
@@ -395,9 +322,10 @@ fun recommendEventsForProps (
     val neighborNodes = mutableSetOf<NodeEntity>()
     val neighborEdges = mutableSetOf<EdgeEntity>()
 
-    val allPredictedNodes = topRecommendationsByType.values.flatten().map { it.first.id }
+    val allPredictedNodesIds = topRecommendationsByType.values.flatten().map{ it.first }
+    val eventPropNodes = eventPropNodesByType.values.toList()
 
-    for (id in (allPredictedNodes + eventNodeIds)) {
+    for (id in allPredictedNodesIds) {
         val nodes = repository.getNeighborsOfNodeById(id)
 
         for (n in nodes) {
@@ -417,14 +345,20 @@ fun recommendEventsForProps (
         }
     }
 
-    for (id in eventNodeIds) {
+    eventPropNodes.forEach { node ->
+        if (neighborNodes.none { it.id == node.id }) {
+            neighborNodes.add(node)
+        }
+    }
+
+    for (id in eventPropNodesByType.map { it.value.id }) {
         for ((type, recs) in topRecommendationsByType) {
-            for ((node, _) in recs) {
+            for (rec in recs) {
                 val relationType = "Suggest-$type"
                 val newEdge = EdgeEntity(
                     id = -1L,
                     firstNodeId = id,
-                    secondNodeId = node.id,
+                    secondNodeId = rec.first,
                     edgeType = relationType
                 )
                 neighborEdges.add(newEdge)

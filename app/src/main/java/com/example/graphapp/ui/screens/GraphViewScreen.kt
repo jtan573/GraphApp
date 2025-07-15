@@ -1,9 +1,5 @@
 package com.example.graphapp.ui.screens
 
-import android.util.Log
-import android.view.ViewGroup
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,9 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,14 +27,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
-import com.example.graphapp.data.schema.GraphSchema
 import com.example.graphapp.ui.components.EventForm
 import com.example.graphapp.ui.components.GraphWebView
 import com.example.graphapp.ui.viewmodels.GraphViewModel
 import kotlinx.coroutines.Dispatchers
-import org.json.JSONObject
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -180,7 +170,7 @@ fun GraphViewScreen(
                             fieldKeys.forEach { eventInputMap[it] = "" }
                             showForm = false
                         }
-                        viewModel.provideEventRecOnInsert(eventInputMap, false)
+                        viewModel.provideEventRecommendation(eventInputMap, false)
                     }
                 },
                 onQuery = {
@@ -197,7 +187,7 @@ fun GraphViewScreen(
                             showForm = false
                         }
 //                        viewModel.provideEventRecOnQuery(eventInputMap)
-                        viewModel.provideEventRecOnInsert(eventInputMap, true)
+                        viewModel.provideEventRecommendation(eventInputMap, true)
                     }
                 },
                 onCancel = { showForm = false }

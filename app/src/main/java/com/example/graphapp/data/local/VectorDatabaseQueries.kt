@@ -88,6 +88,11 @@ class VectorDBQueries() {
             .associate { node -> node.id to (node.frequency ?: 0) }
     }
 
+    fun findNodeFrequencyOfNodeId(inputId: Long) : Int? {
+        return nodesBox.query(NodeEntity_.id.equal(inputId)).build()
+            .findFirst()!!.frequency
+    }
+
     fun findAllEdgesAroundNodeIdQuery(id: Long): List<EdgeEntity> {
         return edgesBox.query(
             EdgeEntity_.firstNodeId.equal(id).or(EdgeEntity_.secondNodeId.equal(id))

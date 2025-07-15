@@ -1,6 +1,7 @@
 package com.example.graphapp.data.schema
 
 import android.util.Log
+import androidx.compose.runtime.key
 import com.example.graphapp.data.GraphRepository
 import com.example.graphapp.data.VectorRepository
 import com.example.graphapp.data.local.NodeEntity
@@ -158,16 +159,14 @@ suspend fun computeSemanticMatrixForQuery(
 ): Pair<Map<Pair<Long, Long>, Float>, List<NodeEntity>> {
 
     val allNodes = repository.getAllNodes()
-    val allKeyNodeIds = allNodes
-        .filter { it.type == inputEventType }
-        .map { it.id }
+    val allKeyNodeIds = allNodes.filter { it.type == inputEventType }.map { it.id }
 
     // Get filtered similarity matrix
     val filteredSimMatrix = simMatrix.filter { (keyPair, _) ->
         keyPair.first in allKeyNodeIds || keyPair.second in allKeyNodeIds
     }.toMutableMap()
 
-    // 2. Get IDs of the newly added nodes
+    // Get IDs of the newly added nodes
     val newKeyNode = newEventMap.entries.filter{ it.key in SchemaKeyNodes }
         .map { (type, name) ->
             NodeEntity(id = (-1L * (1..1_000_000).random()), name = name, type = type, embedding = repository.getTextEmbeddings(name))
@@ -189,6 +188,38 @@ suspend fun computeSemanticMatrixForQuery(
 
     Log.d("FILTERED MATRIX", "FILTERED MATRIX")
     return filteredSimMatrix to (newPropertyNodes + newKeyNode)
+}
+
+fun computeSemanticSimilarEventsForProps(
+    repository: VectorRepository,
+    onlyPropertiesMap: Map<String, NodeEntity>,
+    threshold: Float = 0.5f
+): Map<String, List<Pair<Long, Float>>>{
+    val allNodes = repository.getAllNodes()
+    val allKeyNodeIdsByType = allNodes.filter { it.type in SchemaKeyNodes }.groupBy { it.type }
+        .mapValues { (_, nodes) -> nodes.map { it.id } }
+
+    val propsInEvent = onlyPropertiesMap.values.toList()
+
+    val simMatrix = mutableMapOf<String, MutableList<Pair<Long, Float>>>()
+
+    for ((eventType, keyNodeIds) in allKeyNodeIdsByType) {
+        for (keyNodeId in keyNodeIds) {
+            val sim = computeSemanticSimilarity(-0L, keyNodeId, repository, threshold, propsInEvent)
+            val freqFactor = ln(1f + (repository.getNodeFrequencyOfNodeId(keyNodeId) ?: 1)).toFloat()
+
+            val adjustedSim = sim * freqFactor
+            if (adjustedSim > threshold) {
+                simMatrix.getOrPut(eventType) { mutableListOf() }.add(keyNodeId to adjustedSim)
+            }
+        }
+    }
+
+    val topEventsByType = simMatrix.mapValues { (_, pairs) ->
+        pairs.sortedByDescending { it.second }.take(3)
+    }
+
+    return topEventsByType
 }
 
 /* -------------------------------------------------
@@ -245,57 +276,3 @@ fun initialiseSimRankSimilarityMatrix(
 
     return sim
 }
-
-/* -------------------------------------------------
-  Helper to initialise Common Neighbours Similarity Matrix
-------------------------------------------------- */
-fun initialiseCommonNeighborsSimilarityMatrix(
-    repository: GraphRepository
-): Map<Pair<Long, Long>, Float> {
-    // 1. Get all nodes
-    val allNodes = repository.getAllNodes()
-    val nodeIds = allNodes.map { it.id }
-
-    // 2. Get all edges and build adjacency list
-    val edges = repository.getAllEdges()
-    val neighborMap = mutableMapOf<Long, MutableSet<Long>>()
-    for (edge in edges) {
-        neighborMap.getOrPut(edge.fromNode) { mutableSetOf() }.add(edge.toNode)
-        neighborMap.getOrPut(edge.toNode) { mutableSetOf() }.add(edge.fromNode)
-    }
-
-    // 3. Compute Common Neighbors similarity matrix
-    val sim = mutableMapOf<Pair<Long, Long>, Float>()
-
-    for (i in nodeIds) {
-        for (j in nodeIds) {
-            if (i == j) {
-                sim[i to j] = 1f
-            } else {
-                val neighborsI = neighborMap[i].orEmpty()
-                val neighborsJ = neighborMap[j].orEmpty()
-
-                if (neighborsI.isEmpty() || neighborsJ.isEmpty()) {
-                    sim[i to j] = 0f
-                } else {
-                    val intersectionSize = neighborsI.intersect(neighborsJ).size
-                    val unionSize = neighborsI.union(neighborsJ).size
-
-                    val score = if (unionSize == 0) 0f else (intersectionSize.toFloat() / unionSize)
-                    sim[i to j] = score
-                }
-            }
-        }
-    }
-
-    return sim
-}
-
-
-
-
-
-
-
-
-

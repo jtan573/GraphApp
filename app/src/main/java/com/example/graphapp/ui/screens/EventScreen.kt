@@ -17,7 +17,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -161,7 +160,7 @@ fun EventScreen(
                                 isLoading = true
                                 activeButton = ActiveButton.EVENT
                             }
-                            viewModel.provideEventRecOnInsert(eventInputMap, false)
+                            viewModel.provideEventRecommendation(eventInputMap, false)
                             withContext(Dispatchers.Main) {
                                 isLoading = false
                                 activeButton = ActiveButton.NONE
@@ -177,7 +176,7 @@ fun EventScreen(
                                 isLoading = true
                                 activeButton = ActiveButton.EVENT
                             }
-                            viewModel.provideEventRecOnInsert(eventInputMap, true)
+                            viewModel.provideEventRecommendation(eventInputMap, true)
                             withContext(Dispatchers.Main) {
                                 isLoading = false
                                 activeButton = ActiveButton.NONE

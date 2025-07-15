@@ -132,6 +132,11 @@ class VectorRepository(private val context: Context) {
         return queries.findAllNodeFrequenciesQuery()
     }
 
+    // Get node frequencies
+    fun getNodeFrequencyOfNodeId(id: Long): Int? {
+        return queries.findNodeFrequencyOfNodeId(id)
+    }
+
     fun findAllEdgesAroundNodeId(id: Long): List<EdgeEntity> {
         return queries.findAllEdgesAroundNodeIdQuery(id)
     }
