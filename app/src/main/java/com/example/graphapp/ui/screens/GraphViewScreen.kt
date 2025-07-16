@@ -28,14 +28,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.graphapp.data.schema.ActiveButton
+import com.example.graphapp.data.schema.GraphSchema
 import com.example.graphapp.ui.components.EventForm
 import com.example.graphapp.ui.components.GraphWebView
+import com.example.graphapp.ui.navigation.NavItem
 import com.example.graphapp.ui.viewmodels.GraphViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-enum class ActiveButton { NONE, EVENT, FILL, FIND }
 
 @Composable
 fun GraphViewScreen(
@@ -47,7 +48,7 @@ fun GraphViewScreen(
 
     var showForm by remember { mutableStateOf(false) }
 
-    val fieldKeys = viewModel.getNodeTypes()
+    val fieldKeys = GraphSchema.SchemaPropertyNodes + GraphSchema.SchemaOtherNodes
     val eventInputMap = remember(fieldKeys) {
         mutableStateMapOf<String, String>().apply {
             fieldKeys.forEach { putIfAbsent(it, "") }
@@ -163,6 +164,7 @@ fun GraphViewScreen(
                             isLoading = true
                             activeButton = ActiveButton.EVENT
                         }
+                        viewModel.provideEventRecommendation(eventInputMap, false)
                         withContext(Dispatchers.Main) {
                             isLoading = false
                             activeButton = ActiveButton.NONE
@@ -170,7 +172,7 @@ fun GraphViewScreen(
                             fieldKeys.forEach { eventInputMap[it] = "" }
                             showForm = false
                         }
-                        viewModel.provideEventRecommendation(eventInputMap, false)
+                        navController.navigate(NavItem.Events.route)
                     }
                 },
                 onQuery = {
@@ -179,6 +181,7 @@ fun GraphViewScreen(
                             isLoading = true
                             activeButton = ActiveButton.EVENT
                         }
+                        viewModel.provideEventRecommendation(eventInputMap, true)
                         withContext(Dispatchers.Main) {
                             isLoading = false
                             activeButton = ActiveButton.NONE
@@ -186,8 +189,7 @@ fun GraphViewScreen(
                             fieldKeys.forEach { eventInputMap[it] = "" }
                             showForm = false
                         }
-//                        viewModel.provideEventRecOnQuery(eventInputMap)
-                        viewModel.provideEventRecommendation(eventInputMap, true)
+                        navController.navigate(NavItem.Events.route)
                     }
                 },
                 onCancel = { showForm = false }

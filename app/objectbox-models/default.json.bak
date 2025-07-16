@@ -4,28 +4,52 @@
   "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
   "entities": [
     {
-      "id": "1:888083991365062946",
-      "lastPropertyId": "4:3532490916491348741",
-      "name": "EdgeEntity",
+      "id": "3:2823843504861495848",
+      "lastPropertyId": "3:1657723659467141022",
+      "name": "ActionNodeEntity",
       "properties": [
         {
-          "id": "1:7254505691670056420",
+          "id": "1:5296926487632659359",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:8266259862293127551",
-          "name": "fromId",
+          "id": "2:6012315657466081080",
+          "name": "actionName",
+          "type": 9
+        },
+        {
+          "id": "3:1657723659467141022",
+          "name": "timestamp",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:3578103465980510678",
+      "lastPropertyId": "4:1006712711522511024",
+      "name": "EventEdgeEntity",
+      "properties": [
+        {
+          "id": "1:2672953393311554397",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1684928042167772013",
+          "name": "firstNodeId",
           "type": 6
         },
         {
-          "id": "3:1442187797777626323",
-          "name": "toId",
+          "id": "3:3487659723346596649",
+          "name": "secondNodeId",
           "type": 6
         },
         {
-          "id": "4:3532490916491348741",
+          "id": "4:1006712711522511024",
           "name": "edgeType",
           "type": 9
         }
@@ -33,56 +57,153 @@
       "relations": []
     },
     {
-      "id": "2:8226138168356977246",
-      "lastPropertyId": "6:2330197681084002894",
-      "name": "NodeEntity",
+      "id": "5:5472720358370264630",
+      "lastPropertyId": "7:750486348623510351",
+      "name": "EventNodeEntity",
       "properties": [
         {
-          "id": "1:5010198097133503454",
+          "id": "1:8656282124192888750",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:7329244438618155554",
+          "id": "2:486195886074441160",
           "name": "name",
           "type": 9
         },
         {
-          "id": "3:1670467152652377903",
+          "id": "3:4431218536098907252",
           "name": "type",
           "type": 9
         },
         {
-          "id": "4:3909014256692927459",
+          "id": "4:7412850002433479992",
           "name": "description",
           "type": 9
         },
         {
-          "id": "5:2193148011711539536",
+          "id": "5:5386520294444427714",
           "name": "frequency",
           "type": 5
         },
         {
-          "id": "6:2330197681084002894",
+          "id": "6:3981532263778543259",
           "name": "embedding",
-          "indexId": "1:2499525094058215446",
+          "indexId": "2:4573248754313531345",
           "type": 28,
           "flags": 8
+        },
+        {
+          "id": "7:750486348623510351",
+          "name": "cachedNodeIds",
+          "type": 13
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "6:7174201678830854069",
+      "lastPropertyId": "6:2126880205432101843",
+      "name": "PersonnelEdgeEntity",
+      "properties": [
+        {
+          "id": "1:6469819030901089135",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7986816970708408739",
+          "name": "fromNodeId",
+          "type": 6
+        },
+        {
+          "id": "3:4726265755841739629",
+          "name": "fromNodeType",
+          "type": 9
+        },
+        {
+          "id": "4:2706382889621961485",
+          "name": "toNodeId",
+          "type": 6
+        },
+        {
+          "id": "5:1140410827548214919",
+          "name": "toNodeType",
+          "type": 9
+        },
+        {
+          "id": "6:2126880205432101843",
+          "name": "edgeType",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "7:8417389103419390607",
+      "lastPropertyId": "5:9184047985067597245",
+      "name": "UserNodeEntity",
+      "properties": [
+        {
+          "id": "1:2530431689718773658",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2422275866672951211",
+          "name": "identifier",
+          "type": 9
+        },
+        {
+          "id": "3:4407733615674891018",
+          "name": "role",
+          "type": 9
+        },
+        {
+          "id": "4:3904924867781679545",
+          "name": "specialisation",
+          "type": 9
+        },
+        {
+          "id": "5:9184047985067597245",
+          "name": "actionsTaken",
+          "type": 9
         }
       ],
       "relations": []
     }
   ],
-  "lastEntityId": "2:8226138168356977246",
-  "lastIndexId": "1:2499525094058215446",
+  "lastEntityId": "7:8417389103419390607",
+  "lastIndexId": "2:4573248754313531345",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
-  "retiredEntityUids": [],
-  "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredEntityUids": [
+    8226138168356977246,
+    888083991365062946
+  ],
+  "retiredIndexUids": [
+    2499525094058215446
+  ],
+  "retiredPropertyUids": [
+    8266259862293127551,
+    1442187797777626323,
+    5010198097133503454,
+    7329244438618155554,
+    1670467152652377903,
+    3909014256692927459,
+    2193148011711539536,
+    2330197681084002894,
+    932391426139082172,
+    7254505691670056420,
+    3532490916491348741,
+    9154187561952619691,
+    4424182388377089787
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

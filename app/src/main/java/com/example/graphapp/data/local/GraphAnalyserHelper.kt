@@ -1,10 +1,9 @@
 package com.example.graphapp.data.local
 
 import android.util.Log
-import androidx.room.util.query
-import com.example.graphapp.data.repository.GraphRepository
-import com.example.graphapp.data.repository.VectorRepository
-import com.example.graphapp.data.schema.GraphSchema.SchemaEdgeLabels
+import com.example.graphapp.data.db.EventEdgeEntity
+import com.example.graphapp.data.db.EventNodeEntity
+import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
 import kotlin.collections.iterator
@@ -19,11 +18,11 @@ private const val ITERATIONS = 5
 fun computeWeightedSim(
     targetId: Long,
     candidateId: Long,
-    repository: VectorRepository,
+    repository: EventRepository,
     similarityMatrix: Map<Pair<Long, Long>, Float>
 ): Float {
 
-    val occurrenceCounts = repository.getAllNodeFrequencies()
+    val occurrenceCounts = repository.getAllEventNodeFrequencies()
     val rawSim = similarityMatrix.getOrDefault(targetId to candidateId, 0f)
     val freqFactor = ln(1f + (occurrenceCounts[candidateId] ?: 1)).toFloat()
     val adjustedSim = rawSim * freqFactor
@@ -36,16 +35,16 @@ fun computeWeightedSim(
 ------------------------------------------------- */
 fun getPropertyEmbeddings(
     nodeId: Long,
-    repository: VectorRepository,
-    newInputNeighbours: List<NodeEntity>? = null
+    repository: EventRepository,
+    newInputNeighbours: List<EventNodeEntity>? = null
 ): Map<String, FloatArray?> {
 
-    val neighbourNodes = mutableListOf<NodeEntity>()
+    val neighbourNodes = mutableListOf<EventNodeEntity>()
 
     if (newInputNeighbours != null) {
         neighbourNodes.addAll(newInputNeighbours)
     } else {
-        neighbourNodes.addAll(repository.getNeighborsOfNodeById(nodeId))
+        neighbourNodes.addAll(repository.getNeighborsOfEventNodeById(nodeId))
     }
 
     val embeddings = mutableMapOf<String, FloatArray?>()
@@ -62,9 +61,9 @@ fun getPropertyEmbeddings(
 fun computeSemanticSimilarity(
     nodeId1: Long,
     nodeId2: Long,
-    repository: VectorRepository,
+    repository: EventRepository,
     threshold: Float = 0.5f,
-    newInputNeighbours: List<NodeEntity>? = null
+    newInputNeighbours: List<EventNodeEntity>? = null
 ): Float {
 
     val e1 = getPropertyEmbeddings(nodeId1, repository, newInputNeighbours)
@@ -86,11 +85,11 @@ fun computeSemanticSimilarity(
 }
 
 fun initialiseSemanticSimilarityMatrix(
-    repository: VectorRepository,
+    repository: EventRepository,
     threshold: Float = 0.5f
 ): Map<Pair<Long, Long>, Float> {
 
-    val allNodes = repository.getAllNodes()
+    val allNodes = repository.getAllEventNodes()
     val nodeIds = allNodes
         .filter { it.type in SchemaKeyNodes }
         .map { it.id }
@@ -114,13 +113,13 @@ fun initialiseSemanticSimilarityMatrix(
 }
 
 fun updateSemanticSimilarityMatrix(
-    repository: VectorRepository,
+    repository: EventRepository,
     simMatrix: MutableMap<Pair<Long, Long>, Float>,
     newEventMap: Map<String, String>,
     threshold: Float = 0.5f
 ): Map<Pair<Long, Long>, Float> {
 
-    val allNodes = repository.getAllNodes()
+    val allNodes = repository.getAllEventNodes()
     val allNodeIds = allNodes
         .filter { it.type in SchemaKeyNodes }
         .map { it.id }
@@ -128,7 +127,7 @@ fun updateSemanticSimilarityMatrix(
     val newNodeIds = newEventMap.entries
         .filter{ it.key in SchemaKeyNodes }
         .mapNotNull { (type, name) ->
-        repository.getNodeByNameAndType(name, type)?.id
+        repository.getEventNodeByNameAndType(name, type)?.id
     }
 
     for (newId in newNodeIds) {
@@ -148,14 +147,14 @@ fun updateSemanticSimilarityMatrix(
 }
 
 suspend fun computeSemanticMatrixForQuery(
-    repository: VectorRepository,
+    repository: EventRepository,
     simMatrix: Map<Pair<Long, Long>, Float>,
     newEventMap: Map<String, String>,
     inputEventType: String,
     threshold: Float = 0.5f
-): Pair<Map<Pair<Long, Long>, Float>, List<NodeEntity>> {
+): Pair<Map<Pair<Long, Long>, Float>, List<EventNodeEntity>> {
 
-    val allNodes = repository.getAllNodes()
+    val allNodes = repository.getAllEventNodes()
     val allKeyNodeIds = allNodes.filter { it.type == inputEventType }.map { it.id }
 
     // Get filtered similarity matrix
@@ -166,12 +165,22 @@ suspend fun computeSemanticMatrixForQuery(
     // Get IDs of the newly added nodes
     val newKeyNode = newEventMap.entries.filter{ it.key in SchemaKeyNodes }
         .map { (type, name) ->
-            NodeEntity(id = (-1L * (1..1_000_000).random()), name = name, type = type, embedding = repository.getTextEmbeddings(name))
+            EventNodeEntity(
+                id = (-1L * (1..1_000_000).random()),
+                name = name,
+                type = type,
+                embedding = repository.getTextEmbeddings(name)
+            )
         }.single()
 
     val newPropertyNodes = newEventMap.entries.filter{ it.key in SchemaPropertyNodes }
         .map { (type, name) ->
-            NodeEntity(id = (-1L * (1..1_000_000).random()),name = name, type = type, embedding = repository.getTextEmbeddings(name))
+            EventNodeEntity(
+                id = (-1L * (1..1_000_000).random()),
+                name = name,
+                type = type,
+                embedding = repository.getTextEmbeddings(name)
+            )
         }
 
 
@@ -188,13 +197,13 @@ suspend fun computeSemanticMatrixForQuery(
 }
 
 fun computeSemanticSimilarEventsForProps(
-    repository: VectorRepository,
-    onlyPropertiesMap: Map<String, NodeEntity>,
+    repository: EventRepository,
+    onlyPropertiesMap: Map<String, EventNodeEntity>,
     queryKey: String? = null,
     threshold: Float = 0.5f
 ): Map<String, List<Pair<Long, Float>>>{
 
-    val allNodes = repository.getAllNodes()
+    val allNodes = repository.getAllEventNodes()
 
     var allKeyNodeIdsByType = mapOf<String, List<Long>>()
     if (queryKey != null) {
@@ -212,7 +221,7 @@ fun computeSemanticSimilarEventsForProps(
     for ((eventType, keyNodeIds) in allKeyNodeIdsByType) {
         for (keyNodeId in keyNodeIds) {
             val sim = computeSemanticSimilarity(-0L, keyNodeId, repository, threshold, propsInEvent)
-            val freqFactor = ln(1f + (repository.getNodeFrequencyOfNodeId(keyNodeId) ?: 1)).toFloat()
+            val freqFactor = ln(1f + (repository.getEventNodeFrequencyOfNodeId(keyNodeId) ?: 1)).toFloat()
 
             val adjustedSim = sim * freqFactor
             if (adjustedSim > threshold) {
@@ -233,30 +242,30 @@ fun computeSemanticSimilarEventsForProps(
     Helper to build graph
 ------------------------------------------------- */
 fun buildGraphContext(
-    repository: VectorRepository,
+    repository: EventRepository,
     predictedNodeIds: Collection<Long>,
-    extraNodes: Collection<NodeEntity> = emptyList(),
+    extraNodes: Collection<EventNodeEntity> = emptyList(),
     addSuggestionEdges: (
-        MutableSet<EdgeEntity>,
-        Set<NodeEntity>
+        MutableSet<EventEdgeEntity>,
+        Set<EventNodeEntity>
     ) -> Unit
-): Pair<MutableSet<NodeEntity>, MutableSet<EdgeEntity>> {
+): Pair<MutableSet<EventNodeEntity>, MutableSet<EventEdgeEntity>> {
 
-    val neighborNodes = mutableSetOf<NodeEntity>()
-    val neighborEdges = mutableSetOf<EdgeEntity>()
+    val neighborNodes = mutableSetOf<EventNodeEntity>()
+    val neighborEdges = mutableSetOf<EventEdgeEntity>()
 
     for (id in predictedNodeIds) {
-        val nodes = repository.getNeighborsOfNodeById(id)
+        val nodes = repository.getNeighborsOfEventNodeById(id)
         for (n in nodes) {
             if (id == n.id) continue
-            val edge = repository.getEdgeBetweenNodes(id, n.id)
+            val edge = repository.getEdgeBetweenEventNodes(id, n.id)
             neighborEdges.add(edge)
         }
 
         nodes.forEach { node ->
             if (neighborNodes.none { it.id == node.id }) { neighborNodes.add(node) }
         }
-        val node = repository.getNodeById(id)
+        val node = repository.getEventNodeById(id)
         if (node != null && neighborNodes.none { it.id == node.id }) {
             neighborNodes.add(node)
         }
@@ -275,11 +284,11 @@ fun buildGraphContext(
     Helper to load data from cache
 ------------------------------------------------- */
 fun loadCachedRecommendations(
-    inputKeyNode: NodeEntity,
-    repository: VectorRepository,
+    inputKeyNode: EventNodeEntity,
+    repository: EventRepository,
     queryKey: String?
-): MutableMap<String, MutableList<NodeEntity>> {
-    val result = mutableMapOf<String, MutableList<NodeEntity>>()
+): MutableMap<String, MutableList<EventNodeEntity>> {
+    val result = mutableMapOf<String, MutableList<EventNodeEntity>>()
 
     if (inputKeyNode.cachedNodeIds.isNotEmpty()) {
         if (queryKey != null) {
@@ -287,14 +296,14 @@ fun loadCachedRecommendations(
             if (cachedQueryIds != null) {
                 for (id in cachedQueryIds) {
                     result.getOrPut(queryKey) { mutableListOf() }
-                        .add(repository.getNodeById(id)!!)
+                        .add(repository.getEventNodeById(id)!!)
                 }
             }
         } else {
             for ((type, cacheIds) in inputKeyNode.cachedNodeIds) {
                 for (id in cacheIds) {
                     result.getOrPut(type) { mutableListOf() }
-                        .add(repository.getNodeById(id)!!)
+                        .add(repository.getEventNodeById(id)!!)
                 }
             }
         }
@@ -307,18 +316,18 @@ fun loadCachedRecommendations(
     Helper to calculate top recommendations
 ------------------------------------------------- */
 fun computeTopRecommendations(
-    inputKeyNode: NodeEntity,
-    repository: VectorRepository,
+    inputKeyNode: EventNodeEntity,
+    repository: EventRepository,
     simMatrix: Map<Pair<Long, Long>, Float>,
     queryKey: String? = null
-): MutableMap<String, MutableList<NodeEntity>> {
+): MutableMap<String, MutableList<EventNodeEntity>> {
 
-    val result = mutableMapOf<String, MutableList<NodeEntity>>()
+    val result = mutableMapOf<String, MutableList<EventNodeEntity>>()
 
     // 1. Find all nodes of same event type
-    val allNodesOfEventType = repository.getAllNodes().filter { it.type == inputKeyNode.type }
+    val allNodesOfEventType = repository.getAllEventNodes().filter { it.type == inputKeyNode.type }
 
-    val scores = mutableListOf<Pair<NodeEntity, Float>>()
+    val scores = mutableListOf<Pair<EventNodeEntity, Float>>()
 
     // 2. Compute similarities
     for (candidate in allNodesOfEventType) {
@@ -344,7 +353,7 @@ fun computeTopRecommendations(
             result.getOrPut(simNode.type) { mutableListOf() }.add(simNode)
         }
 
-        val neighborKeyNodes = repository.getNeighborsOfNodeById(simNode.id)
+        val neighborKeyNodes = repository.getNeighborsOfEventNodeById(simNode.id)
             .filter { it.type in SchemaKeyNodes }
 
         for (neighbor in neighborKeyNodes) {

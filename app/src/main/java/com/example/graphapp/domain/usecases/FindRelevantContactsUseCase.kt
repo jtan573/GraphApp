@@ -1,44 +1,41 @@
 package com.example.graphapp.domain.usecases
 
-import android.util.Log
-import com.example.graphapp.data.api.ApiResponse
-import com.example.graphapp.data.api.EventRecommendationResult
-import com.example.graphapp.data.api.ResponseData
-import com.example.graphapp.data.local.EdgeEntity
-import com.example.graphapp.data.local.NodeEntity
+import com.example.graphapp.data.db.EventEdgeEntity
+import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.local.computeSemanticMatrixForQuery
 import com.example.graphapp.data.local.recommendEventForEvent
 import com.example.graphapp.data.local.recommendEventsForProps
-import com.example.graphapp.data.repository.VectorRepository
+import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
-import com.example.graphapp.domain.model.ContactRecommendation
-import org.w3c.dom.Node
 
 /*
 Function to query for relevant contacts based on status.
  */
-suspend fun findRelevantContactsUseCase(
+suspend fun findRelevantIncidentsUseCase(
     statusEventMap: Map<String, String>,
-    repository: VectorRepository,
+    repository: EventRepository,
     simMatrix: Map<Pair<Long, Long>, Float>,
-    queryKey: String = "Contacts"
-): Triple<List<NodeEntity>, List<EdgeEntity>, EventRecommendationResult> {
+    queryKey: String = "Incident"
+): Triple<List<EventNodeEntity>, List<EventEdgeEntity>, Any> {
 
     val noKeyTypes = statusEventMap.keys.none { it in SchemaKeyNodes }
 
-    var nodes = listOf<NodeEntity>()
-    var edges = listOf<EdgeEntity>()
-    lateinit var result: EventRecommendationResult
+    var nodes = listOf<EventNodeEntity>()
+    var edges = listOf<EventEdgeEntity>()
+    lateinit var result: Any
 
     // For entries with no key nodes
     if (noKeyTypes) {
-        val (resultsNodes, resultsEdges, resultsRecs) = recommendEventsForProps(statusEventMap, repository)
-        nodes = resultsNodes
-        edges = resultsEdges
-        result = resultsRecs
+        val (resultsNodes, resultsEdges, resultsRecs) = recommendEventsForProps(statusEventMap, repository, queryKey)
+        if (resultsNodes != null && resultsEdges != null) {
+            nodes = resultsNodes
+            edges = resultsEdges
+        }
+
+        return Triple(nodes, edges, resultsRecs)
 
     } else {
-        val newEventNodes = mutableListOf<NodeEntity>()
+        val newEventNodes = mutableListOf<EventNodeEntity>()
         var filteredSimMatrix = mapOf<Pair<Long, Long>, Float>()
 
         val keyNodeType = statusEventMap.filter { it.key in SchemaKeyNodes }
@@ -56,7 +53,8 @@ suspend fun findRelevantContactsUseCase(
 
         nodes = resultsNodes
         edges = resultsEdges
-        result = resultsRecs
+
+        return Triple(nodes, edges, resultsRecs)
     }
 
     return Triple(nodes, edges, result)

@@ -44,6 +44,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.collections.set
+import com.example.graphapp.data.schema.ActiveButton
 
 @Composable
 fun EventScreen(
@@ -64,7 +65,7 @@ fun EventScreen(
     var selectedFilter by remember { mutableStateOf("All") }
     val filterOptions = GraphSchema.SchemaKeyNodes + GraphSchema.SchemaPropertyNodes + "All"
 
-    val events by viewModel.createdEvents.collectAsState()
+    val eventAdded by viewModel.createdEvent.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
     var activeButton by remember { mutableStateOf(ActiveButton.NONE) }
@@ -177,6 +178,7 @@ fun EventScreen(
                                 activeButton = ActiveButton.EVENT
                             }
                             viewModel.provideEventRecommendation(eventInputMap, true)
+//                            viewModel.findRelevantContacts(eventInputMap)
                             withContext(Dispatchers.Main) {
                                 isLoading = false
                                 activeButton = ActiveButton.NONE
@@ -190,16 +192,10 @@ fun EventScreen(
                 )
             }
 
-            if (events.isEmpty()) {
-                Text("No events added.", modifier = Modifier.padding(16.dp))
+            if (eventAdded == "") {
+                Text("No events added.", fontSize = 14.sp, modifier = Modifier.padding(16.dp))
             } else {
-                LazyColumn(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    items(events) { event ->
-                        Text(event, modifier = Modifier.padding(4.dp))
-                    }
-                }
+                Text(eventAdded, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
             }
 
             if (filteredGraphData != null) {

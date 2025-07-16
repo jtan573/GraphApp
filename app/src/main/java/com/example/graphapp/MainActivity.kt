@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import com.example.graphapp.data.local.VectorDatabase
+import com.example.graphapp.data.db.VectorDatabase
 import com.example.graphapp.ui.screens.MainScreen
 import com.example.graphapp.ui.theme.GraphAppTheme
 import com.example.graphapp.ui.viewmodels.GraphViewModel

@@ -4,92 +4,219 @@
   "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
   "entities": [
     {
-      "id": "1:888083991365062946",
-      "lastPropertyId": "6:4424182388377089787",
-      "name": "EdgeEntity",
+      "id": "3:2823843504861495848",
+      "lastPropertyId": "3:1657723659467141022",
+      "name": "ActionNodeEntity",
       "properties": [
         {
-          "id": "1:7254505691670056420",
+          "id": "1:5296926487632659359",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "4:3532490916491348741",
-          "name": "edgeType",
+          "id": "2:6012315657466081080",
+          "name": "actionName",
           "type": 9
         },
         {
-          "id": "5:9154187561952619691",
-          "name": "firstNodeId",
-          "type": 6
-        },
-        {
-          "id": "6:4424182388377089787",
-          "name": "secondNodeId",
-          "type": 6
+          "id": "3:1657723659467141022",
+          "name": "timestamp",
+          "type": 9
         }
       ],
       "relations": []
     },
     {
-      "id": "2:8226138168356977246",
-      "lastPropertyId": "7:932391426139082172",
-      "name": "NodeEntity",
+      "id": "4:3578103465980510678",
+      "lastPropertyId": "4:1006712711522511024",
+      "name": "EventEdgeEntity",
       "properties": [
         {
-          "id": "1:5010198097133503454",
+          "id": "1:2672953393311554397",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:7329244438618155554",
+          "id": "2:1684928042167772013",
+          "name": "firstNodeId",
+          "type": 6
+        },
+        {
+          "id": "3:3487659723346596649",
+          "name": "secondNodeId",
+          "type": 6
+        },
+        {
+          "id": "4:1006712711522511024",
+          "name": "edgeType",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "5:5472720358370264630",
+      "lastPropertyId": "7:750486348623510351",
+      "name": "EventNodeEntity",
+      "properties": [
+        {
+          "id": "1:8656282124192888750",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:486195886074441160",
           "name": "name",
           "type": 9
         },
         {
-          "id": "3:1670467152652377903",
+          "id": "3:4431218536098907252",
           "name": "type",
           "type": 9
         },
         {
-          "id": "4:3909014256692927459",
+          "id": "4:7412850002433479992",
           "name": "description",
           "type": 9
         },
         {
-          "id": "5:2193148011711539536",
+          "id": "5:5386520294444427714",
           "name": "frequency",
           "type": 5
         },
         {
-          "id": "6:2330197681084002894",
+          "id": "6:3981532263778543259",
           "name": "embedding",
-          "indexId": "1:2499525094058215446",
+          "indexId": "2:4573248754313531345",
           "type": 28,
           "flags": 8
         },
         {
-          "id": "7:932391426139082172",
+          "id": "7:750486348623510351",
           "name": "cachedNodeIds",
           "type": 13
         }
       ],
       "relations": []
+    },
+    {
+      "id": "7:8417389103419390607",
+      "lastPropertyId": "6:2502219388949948056",
+      "name": "UserNodeEntity",
+      "properties": [
+        {
+          "id": "1:2530431689718773658",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2422275866672951211",
+          "name": "identifier",
+          "type": 9
+        },
+        {
+          "id": "3:4407733615674891018",
+          "name": "role",
+          "type": 9
+        },
+        {
+          "id": "4:3904924867781679545",
+          "name": "specialisation",
+          "type": 9
+        },
+        {
+          "id": "5:9184047985067597245",
+          "name": "actionsTaken",
+          "type": 9
+        },
+        {
+          "id": "6:2502219388949948056",
+          "name": "embedding",
+          "indexId": "3:8103902868688686740",
+          "type": 28,
+          "flags": 8
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "8:7041210966750999923",
+      "lastPropertyId": "6:5113413463374473302",
+      "name": "ActionEdgeEntity",
+      "properties": [
+        {
+          "id": "1:7259279449407158628",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1240882286351044270",
+          "name": "fromNodeId",
+          "type": 6
+        },
+        {
+          "id": "3:4217401697380529158",
+          "name": "fromNodeType",
+          "type": 9
+        },
+        {
+          "id": "4:4688399894108696045",
+          "name": "toNodeId",
+          "type": 6
+        },
+        {
+          "id": "5:3801422912259937137",
+          "name": "toNodeType",
+          "type": 9
+        },
+        {
+          "id": "6:5113413463374473302",
+          "name": "edgeType",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "2:8226138168356977246",
-  "lastIndexId": "1:2499525094058215446",
+  "lastEntityId": "8:7041210966750999923",
+  "lastIndexId": "3:8103902868688686740",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
-  "retiredEntityUids": [],
-  "retiredIndexUids": [],
+  "retiredEntityUids": [
+    8226138168356977246,
+    888083991365062946,
+    7174201678830854069
+  ],
+  "retiredIndexUids": [
+    2499525094058215446
+  ],
   "retiredPropertyUids": [
     8266259862293127551,
-    1442187797777626323
+    1442187797777626323,
+    5010198097133503454,
+    7329244438618155554,
+    1670467152652377903,
+    3909014256692927459,
+    2193148011711539536,
+    2330197681084002894,
+    932391426139082172,
+    7254505691670056420,
+    3532490916491348741,
+    9154187561952619691,
+    4424182388377089787,
+    6469819030901089135,
+    7986816970708408739,
+    4726265755841739629,
+    2706382889621961485,
+    1140410827548214919,
+    2126880205432101843
   ],
   "retiredRelationUids": [],
   "version": 1

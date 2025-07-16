@@ -1,11 +1,11 @@
-package com.example.graphapp.data.local
+package com.example.graphapp.data.db
 
 import io.objectbox.kotlin.boxFor
 
-class VectorDBQueries() {
+class EventDatabaseQueries() {
 
-    private val nodesBox = VectorDatabase.store.boxFor(NodeEntity::class)
-    private val edgesBox = VectorDatabase.store.boxFor(EdgeEntity::class)
+    private val nodesBox = VectorDatabase.store.boxFor(EventNodeEntity::class)
+    private val edgesBox = VectorDatabase.store.boxFor(EventEdgeEntity::class)
 
     fun addNodeIntoDbQuery(
         name: String,
@@ -15,7 +15,7 @@ class VectorDBQueries() {
         embedding: FloatArray
     ) {
         nodesBox.put(
-            NodeEntity(
+            EventNodeEntity(
                 name = name,
                 type = type,
                 description = description,
@@ -23,57 +23,54 @@ class VectorDBQueries() {
                 embedding = embedding
             )
         )
-
-//        Log.d("ADDED NODE", "Inserted new node: $name")
         return
     }
 
     fun addEdgeIntoDbQuery(fromId: Long, toId: Long, edgeType: String){
         edgesBox.put(
-            EdgeEntity(
+            EventEdgeEntity(
                 firstNodeId = fromId, secondNodeId = toId, edgeType = edgeType
             )
         )
-//        Log.d("ADDED EDGE", "Inserted new edge")
         return
     }
 
-    fun findNodeByNameTypeQuery(name: String, type: String) : NodeEntity? {
+    fun findNodeByNameTypeQuery(name: String, type: String) : EventNodeEntity? {
         val nodeFound = nodesBox
-            .query(NodeEntity_.name.equal(name).and(NodeEntity_.type.equal(type)))
+            .query(EventNodeEntity_.name.equal(name).and(EventNodeEntity_.type.equal(type)))
             .build()
             .findFirst()
 
         return nodeFound
     }
 
-    fun findNodeByIdQuery(inputId: Long) : NodeEntity? {
+    fun findNodeByIdQuery(inputId: Long) : EventNodeEntity? {
         val nodeFound = nodesBox
-            .query(NodeEntity_.id.equal(inputId))
+            .query(EventNodeEntity_.id.equal(inputId))
             .build()
             .findFirst()
 
         return nodeFound
     }
 
-    fun incrementFreqOfNodeQuery(node: NodeEntity) {
+    fun incrementFreqOfNodeQuery(node: EventNodeEntity) {
         node.frequency = node.frequency?.plus(1)
         nodesBox.put(node)
         println("Node value incremented: $node")
     }
 
-    fun findAllNodesQuery() : List<NodeEntity> {
+    fun findAllNodesQuery() : List<EventNodeEntity> {
         return nodesBox.query().build().find()
     }
 
-    fun findAllEdgesQuery() : List<EdgeEntity> {
+    fun findAllEdgesQuery() : List<EventEdgeEntity> {
         return edgesBox.query().build().find()
     }
 
-    fun findAllNodesWithoutEmbeddingQuery() : List<NodeEntity> {
+    fun findAllNodesWithoutEmbeddingQuery() : List<EventNodeEntity> {
         return nodesBox.query().build().find()
             .map { node ->
-                NodeEntity(
+                EventNodeEntity(
                     id = node.id,
                     name = node.name,
                     type = node.type,
@@ -89,20 +86,20 @@ class VectorDBQueries() {
     }
 
     fun findNodeFrequencyOfNodeId(inputId: Long) : Int? {
-        return nodesBox.query(NodeEntity_.id.equal(inputId)).build()
+        return nodesBox.query(EventNodeEntity_.id.equal(inputId)).build()
             .findFirst()!!.frequency
     }
 
-    fun findAllEdgesAroundNodeIdQuery(id: Long): List<EdgeEntity> {
+    fun findAllEdgesAroundNodeIdQuery(id: Long): List<EventEdgeEntity> {
         return edgesBox.query(
-            EdgeEntity_.firstNodeId.equal(id).or(EdgeEntity_.secondNodeId.equal(id))
+            EventEdgeEntity_.firstNodeId.equal(id).or(EventEdgeEntity_.secondNodeId.equal(id))
         ).build().find()
     }
 
-    fun findEdgeBetweenNodeIdsQuery(first: Long, second: Long): EdgeEntity? {
+    fun findEdgeBetweenNodeIdsQuery(first: Long, second: Long): EventEdgeEntity? {
         return edgesBox.query(
-            (EdgeEntity_.firstNodeId.equal(first).and(EdgeEntity_.secondNodeId.equal(second)))
-                .or(EdgeEntity_.firstNodeId.equal(second).and(EdgeEntity_.secondNodeId.equal(first)))
+            (EventEdgeEntity_.firstNodeId.equal(first).and(EventEdgeEntity_.secondNodeId.equal(second)))
+                .or(EventEdgeEntity_.firstNodeId.equal(second).and(EventEdgeEntity_.secondNodeId.equal(first)))
         ).build().findFirst()
     }
 }

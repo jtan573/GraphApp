@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.graphapp.ui.screens.EventScreen
 import com.example.graphapp.ui.screens.GraphViewScreen
+import com.example.graphapp.ui.screens.PersonnelScreen
 import com.example.graphapp.ui.viewmodels.GraphViewModel
 
 @Composable
@@ -15,13 +16,16 @@ fun AppNavigation (
 ) {
     NavHost(
         navController = navController,
-        startDestination = NavItem.Events.route
+        startDestination = NavItem.Graph.route
     ) {
         composable(NavItem.Graph.route) {
             GraphViewScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.Events.route) {
             EventScreen(viewModel = viewModel)
+        }
+        composable(NavItem.Personnel.route) {
+            PersonnelScreen(viewModel = viewModel)
         }
     }
 }
