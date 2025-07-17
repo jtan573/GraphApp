@@ -30,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,12 +48,13 @@ fun PersonnelScreen(
 ) {
     val graphJson by viewModel.userGraphData.collectAsState()
     val contactState by viewModel.relevantContactState.collectAsState()
+    val userContactQuery by viewModel.userContactQuery.collectAsState()
     val selectedFilter = "All"
 
     val coroutineScope = rememberCoroutineScope()
     var showForm by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-    var descriptionText by remember { mutableStateOf("") }
+    var localUserQuery by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val uiEventFlow = viewModel.uiEvent
@@ -109,12 +111,12 @@ fun PersonnelScreen(
 
             AnimatedVisibility(visible = showForm) {
                 DescriptionForm(
-                    description = descriptionText,
-                    onDescriptionChange = { descriptionText = it },
+                    description = localUserQuery,
+                    onDescriptionChange = { localUserQuery = it },
                     onSubmit = {
                         coroutineScope.launch {
                             isLoading = true
-                            viewModel.findRelevantContacts(descriptionText)
+                            viewModel.findRelevantContacts(localUserQuery)
                             isLoading = false
                             showForm = false
                         }
@@ -125,20 +127,18 @@ fun PersonnelScreen(
             if (contactState.isNotEmpty()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "User Query: $descriptionText",
+                        text = "User Query: $userContactQuery",
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
                     contactState.forEach { (identifier, name) ->
                         Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                Text(text = "Active User: $identifier", style = MaterialTheme.typography.bodyLarge)
+                                Text(text = "Active User: $identifier", style = MaterialTheme.typography.bodyLarge, color = Color(0xFF2E4E8C))
                                 Text(text = name, style = MaterialTheme.typography.bodyMedium)
                             }
                         }

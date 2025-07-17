@@ -1,6 +1,7 @@
 package com.example.graphapp.ui.viewmodels
 
 import android.app.Application
+import android.location.Location
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,6 +26,7 @@ import com.example.graphapp.data.local.recommendEventsForProps
 import com.example.graphapp.data.local.updateSemanticSimilarityMatrix
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.UserActionRepository
+import com.example.graphapp.domain.usecases.findAffectedEventsByLocation
 import com.example.graphapp.domain.usecases.findRelevantIncidentsUseCase
 import com.example.graphapp.domain.usecases.findRelevantContactsUseCase
 import com.google.gson.Gson
@@ -35,6 +37,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.nio.file.attribute.AclEntryPermission
+import kotlin.Float
 import kotlin.collections.map
 import kotlin.collections.mutableListOf
 import kotlin.text.isNotBlank
@@ -46,6 +49,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     private val eventRepository = EventRepository(sentenceEmbedding)
     private val userActionRepository = UserActionRepository(sentenceEmbedding)
 
+    // ---------- Graph Data States ----------
     private val _eventGraphData = MutableStateFlow<String?>(null)
     val eventGraphData: StateFlow<String?> = _eventGraphData
 
@@ -55,18 +59,28 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     private val _userGraphData = MutableStateFlow<String?>(null)
     val userGraphData: StateFlow<String?> = _userGraphData
 
+    // ---------- Graph Logic States ----------
     private var _simMatrix: Map<Pair<Long, Long>, Float>? = null
     val simMatrix: Map<Pair<Long, Long>, Float>
         get() = _simMatrix ?: initialiseSemanticSimilarityMatrix(eventRepository, embeddingRepository).also {
             _simMatrix = it
         }
 
+    // ---------- Event Query States ----------
     private val _createdEvent = MutableStateFlow<String>("")
     val createdEvent: StateFlow<String> = _createdEvent
 
+    private val _detectedEvents = MutableStateFlow(mutableListOf<Triple<Long, String, String>>())
+    val detectedEvents: StateFlow<List<Triple<Long, String, String>>> = _detectedEvents
+
+    // ---------- Personnel Query States ----------
     private val _relevantContactState = MutableStateFlow(mutableMapOf<String, String>())
     val relevantContactState: StateFlow<Map<String, String>> = _relevantContactState
 
+    private val _userContactQuery = MutableStateFlow<String>("")
+    val userContactQuery: StateFlow<String> = _userContactQuery
+
+    // ---------- Snackbar States ----------
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
@@ -157,27 +171,17 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     // Function 1: Predict missing properties
     fun fillMissingLinks() {
-
-        // Creating updated graph
         val (newEdges, response) = predictMissingProperties(eventRepository, simMatrix)
         val nodes = eventRepository.getAllEventNodes()
         val edges = eventRepository.getAllEventEdges() + newEdges
         createFullEventGraph(nodes, edges)
 
-        // Creating API response
-        val apiRes = ApiResponse(
-            status = "success",
-            timestamp = "",
-            data = ResponseData.PredictMissingPropertiesData(response)
-        )
-        Log.d("PredictMissingLinks", "Response: $apiRes")
-
+        buildApiResponseFromResult(response)
         return
     }
 
     // Function 2/3/5: Predict Top Relationships based on Incoming Event/Detect input anomaly
     fun provideEventRecommendation(map: Map<String, String>, isQuery: Boolean, queryKey: String? = null) {
-
         viewModelScope.launch {
             val normalizedMap = map.filterValues { it.isNotBlank() }
             if (normalizedMap.isEmpty()) {
@@ -185,13 +189,9 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             // Update created event list for UI
-            var currentString = _createdEvent.value
-            currentString = (Event(normalizedMap).toString())
-            _createdEvent.value = currentString
+            _createdEvent.value = (Event(normalizedMap).toString())
 
             val noKeyTypes = normalizedMap.keys.none { it in SchemaKeyNodes }
-
-            // For entries with no key nodes
             if (noKeyTypes) {
                 val (nodes, edges, result) = recommendEventsForProps(normalizedMap, eventRepository, embeddingRepository, queryKey)
                 if (nodes == null || edges == null) {
@@ -227,15 +227,12 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
                     recommendEventForEvent(normalizedMap, eventRepository, simMatrix, newEventNodes, queryKey, false)
                 }
 
-            // Create update graph
+            // Create updated graph
             createFilteredEventGraph(nodes, edges)
-
-            // Create API response
             buildApiResponseFromResult(result)
         }
         return
     }
-
 
     // Function 4: Find Patterns/Clusters
     fun findGraphRelations() {
@@ -244,10 +241,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return
     }
 
-
     // Function 5: Detect Same Event
-    suspend fun detectDuplicateEvent(normalizedMap: Map<String, String>):
-            Pair<Boolean, EventNodeEntity?> {
+    suspend fun detectDuplicateEvent(normalizedMap: Map<String, String>): Pair<Boolean, EventNodeEntity?> {
 
         val (duplicateNode, response) = detectReplicateInput(normalizedMap, eventRepository, embeddingRepository)
         buildApiResponseFromResult(response)
@@ -272,9 +267,22 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         createFilteredEventGraph(nodes, edges)
     }
 
+    // Find relevant personnel/contacts on-demand
     suspend fun findRelevantContacts(eventDescription: String) {
+        _userContactQuery.value = eventDescription
         val contactsFound = findRelevantContactsUseCase(eventDescription, userActionRepository, embeddingRepository)
         val newMap = contactsFound.associate { (id, name, _) -> id to name }
         _relevantContactState.value = newMap.toMutableMap()
+    }
+
+    // Threat proximity alerts
+    fun detectNearbyThreats(threatLocation: Location) {
+        val affectedEventsList = findAffectedEventsByLocation(
+            eventRepository, threatLocation, 1000f
+        )
+
+        if (affectedEventsList.isNotEmpty()) {
+
+        }
     }
 }

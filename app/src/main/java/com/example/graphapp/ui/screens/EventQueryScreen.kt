@@ -12,9 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -43,33 +46,35 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.collections.set
 import com.example.graphapp.data.schema.ActiveButton
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 @Composable
 fun EventScreen(
     viewModel: GraphViewModel
 ) {
+    // Viewmodel states
     val filteredGraphData by viewModel.filteredGraphData.collectAsState()
-    var showForm by remember { mutableStateOf(false) }
+    val eventAdded by viewModel.createdEvent.collectAsState()
+    val detectedEvents by viewModel.detectedEvents.collectAsState()
+    val uiEventFlow = viewModel.uiEvent
 
+    // UI states
+    val coroutineScope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
+    var activeButton by remember { mutableStateOf(ActiveButton.NONE) }
+    var showForm by remember { mutableStateOf(false) }
+    var showFilterMenu by remember { mutableStateOf(false) }
+    var selectedFilter by remember { mutableStateOf("All") }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val filterOptions = GraphSchema.SchemaKeyNodes + GraphSchema.SchemaPropertyNodes + "All"
     val fieldKeys = GraphSchema.SchemaPropertyNodes + GraphSchema.SchemaOtherNodes
+
     val eventInputMap = remember(fieldKeys) {
         mutableStateMapOf<String, String>().apply {
             fieldKeys.forEach { putIfAbsent(it, "") }
         }
     }
-
-    // Dropdown state
-    var showFilterMenu by remember { mutableStateOf(false) }
-    var selectedFilter by remember { mutableStateOf("All") }
-    val filterOptions = GraphSchema.SchemaKeyNodes + GraphSchema.SchemaPropertyNodes + "All"
-
-    val eventAdded by viewModel.createdEvent.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
-    var isLoading by remember { mutableStateOf(false) }
-    var activeButton by remember { mutableStateOf(ActiveButton.NONE) }
-
-    val snackbarHostState = remember { SnackbarHostState() }
-    val uiEventFlow = viewModel.uiEvent
 
     LaunchedEffect(Unit) {
         uiEventFlow.collect { event ->
@@ -191,8 +196,24 @@ fun EventScreen(
 
             if (eventAdded == "") {
                 Text("No events added.", fontSize = 14.sp, modifier = Modifier.padding(16.dp))
-            } else {
-                Text(eventAdded, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
+            }
+
+            if (detectedEvents.isNotEmpty()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "User Query: $eventAdded",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    detectedEvents.forEach { (eventId, eventType, eventName) ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Text(text = "$eventType: $eventName ($eventId)", style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
             }
 
             if (filteredGraphData != null) {
