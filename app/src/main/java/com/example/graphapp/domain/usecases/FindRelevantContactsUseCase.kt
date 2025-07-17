@@ -5,6 +5,7 @@ import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.local.computeSemanticMatrixForQuery
 import com.example.graphapp.data.local.recommendEventForEvent
 import com.example.graphapp.data.local.recommendEventsForProps
+import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
 
@@ -13,7 +14,8 @@ Function to query for relevant contacts based on status.
  */
 suspend fun findRelevantIncidentsUseCase(
     statusEventMap: Map<String, String>,
-    repository: EventRepository,
+    eventRepository: EventRepository,
+    embeddingRepository: EmbeddingRepository,
     simMatrix: Map<Pair<Long, Long>, Float>,
     queryKey: String = "Incident"
 ): Triple<List<EventNodeEntity>, List<EventEdgeEntity>, Any> {
@@ -26,7 +28,7 @@ suspend fun findRelevantIncidentsUseCase(
 
     // For entries with no key nodes
     if (noKeyTypes) {
-        val (resultsNodes, resultsEdges, resultsRecs) = recommendEventsForProps(statusEventMap, repository, queryKey)
+        val (resultsNodes, resultsEdges, resultsRecs) = recommendEventsForProps(statusEventMap, eventRepository, embeddingRepository, queryKey)
         if (resultsNodes != null && resultsEdges != null) {
             nodes = resultsNodes
             edges = resultsEdges
@@ -42,13 +44,13 @@ suspend fun findRelevantIncidentsUseCase(
             .map { it.key }.single()
 
         val (filteredSemSimMatrix, eventNodesCreated) = computeSemanticMatrixForQuery(
-            repository, simMatrix, statusEventMap, keyNodeType
+            eventRepository, embeddingRepository, simMatrix, statusEventMap, keyNodeType
         )
         filteredSimMatrix = filteredSemSimMatrix
         newEventNodes.addAll(eventNodesCreated)
 
         val (resultsNodes, resultsEdges, resultsRecs) = recommendEventForEvent(
-            statusEventMap, repository, filteredSimMatrix, newEventNodes, queryKey, true
+            statusEventMap, eventRepository, filteredSimMatrix, newEventNodes, queryKey, true
         )
 
         nodes = resultsNodes

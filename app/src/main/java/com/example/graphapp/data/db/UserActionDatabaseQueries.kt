@@ -37,13 +37,17 @@ class UserActionDatabaseQueries() {
         sdf.timeZone = java.util.TimeZone.getTimeZone("GMT+08:00")
         val timestamp = sdf.format(java.util.Date())
 
-        val newActionNode = ActionNodeEntity(actionName = actionName, timestamp = timestamp)
-        actionsBox.put(newActionNode)
+        val (lastType, lastId) = findLastNodeInUserHistoryQuery(userIdentifier)
 
-        updateUserNodeHistoryQuery(userIdentifier, newActionNode.id)
+        actionsBox.put(
+            ActionNodeEntity(actionName = actionName, timestamp = timestamp)
+        )
+        val newActionNode = findActionNodeByName(actionName)
 
-        val (type, id) = findLastNodeInUserHistoryQuery(userIdentifier)
-        addActionEdgeIntoDbQuery(id, type, newActionNode.id, "Action")
+        if (newActionNode != null) {
+            updateUserNodeHistoryQuery(userIdentifier, newActionNode.id)
+            addActionEdgeIntoDbQuery(lastId, lastType, newActionNode.id, "Action")
+        }
 
         return
     }
@@ -98,6 +102,15 @@ class UserActionDatabaseQueries() {
         return nodeFound
     }
 
+    fun findActionNodeByName(actionName: String) : ActionNodeEntity? {
+        val nodeFound = actionsBox
+            .query(ActionNodeEntity_.actionName.equal(actionName))
+            .build()
+            .findFirst()
+
+        return nodeFound
+    }
+
     fun findAllUserNodesQuery() : List<UserNodeEntity> {
         return usersBox.query().build().find()
     }
@@ -109,4 +122,28 @@ class UserActionDatabaseQueries() {
     fun findAllActionEdgesQuery() : List<ActionEdgeEntity> {
         return actionsEdgesBox.query().build().find()
     }
+
+    fun findAllUserNodesWithoutEmbeddingQuery() : List<UserNodeEntity> {
+        return usersBox.query().build().find()
+            .map { node ->
+                UserNodeEntity(
+                    id = node.id,
+                    identifier = node.identifier,
+                    role = node.role,
+                    specialisation = node.specialisation
+                )
+            }
+    }
+
+    fun findAllActionNodesWithoutEmbeddingQuery() : List<ActionNodeEntity> {
+        return actionsBox.query().build().find()
+            .map { node ->
+                ActionNodeEntity(
+                    id = node.id,
+                    actionName = node.actionName,
+                    timestamp = node.timestamp
+                )
+            }
+    }
+
 }

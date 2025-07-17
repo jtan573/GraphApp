@@ -3,6 +3,7 @@ package com.example.graphapp.ui.viewmodels
 import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.local.computeSemanticMatrixForQuery
+import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.schema.GraphSchema.SchemaEdgeLabels
 import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
@@ -45,10 +46,11 @@ suspend fun prepareNewEventNodesAndMatrix(
     duplicateNode: EventNodeEntity?,
     isQuery: Boolean,
     normalizedMap: Map<String, String>,
-    vectorRepository: EventRepository,
+    eventRepository: EventRepository,
+    embeddingRepository: EmbeddingRepository,
     simMatrix: Map<Pair<Long, Long>, Float>,
     reloadGraphData: suspend () -> Unit,
-    reloadSimMatrix: suspend (EventRepository, MutableMap<Pair<Long, Long>, Float>, Map<String, String>) -> Unit
+    reloadSimMatrix: suspend (MutableMap<Pair<Long, Long>, Float>, Map<String, String>) -> Unit
 ): Pair<List<EventNodeEntity>, Map<Pair<Long, Long>, Float>> {
 
     val newEventNodes = mutableListOf<EventNodeEntity>()
@@ -57,12 +59,12 @@ suspend fun prepareNewEventNodesAndMatrix(
     if (isDuplicateEvent && duplicateNode != null) {
         newEventNodes.add(duplicateNode)
         newEventNodes.addAll(
-            vectorRepository.getNeighborsOfEventNodeById(duplicateNode.id)
+            eventRepository.getNeighborsOfEventNodeById(duplicateNode.id)
                 .filter { it.type in SchemaPropertyNodes }
         )
     } else if (!isQuery) {
         // Insert nodes
-        val eventNodesCreated = addNewEventIntoDb(normalizedMap, vectorRepository)
+        val eventNodesCreated = addNewEventIntoDb(normalizedMap, eventRepository)
         newEventNodes.addAll(eventNodesCreated)
 
         // Reload graph
@@ -72,7 +74,7 @@ suspend fun prepareNewEventNodesAndMatrix(
 
         // Reload similarity matrix
         reloadSimMatrix(
-            vectorRepository, simMatrix.toMutableMap(), normalizedMap
+            simMatrix.toMutableMap(), normalizedMap
         )
     } else {
         // Query
@@ -81,7 +83,7 @@ suspend fun prepareNewEventNodesAndMatrix(
             .single()
 
         val (filteredSemSimMatrix, eventNodesCreated) = computeSemanticMatrixForQuery(
-            vectorRepository, simMatrix, normalizedMap, keyNodeType
+            eventRepository, embeddingRepository, simMatrix, normalizedMap, keyNodeType
         )
         filteredSimMatrix = filteredSemSimMatrix
         newEventNodes.addAll(eventNodesCreated)

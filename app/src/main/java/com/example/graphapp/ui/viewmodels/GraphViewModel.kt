@@ -9,13 +9,13 @@ import com.example.graphapp.data.schema.Event
 import com.example.graphapp.data.api.ApiResponse
 import com.example.graphapp.data.api.ResponseData
 import com.example.graphapp.data.api.buildApiResponseFromResult
+import com.example.graphapp.data.db.ActionEdgeEntity
+import com.example.graphapp.data.db.ActionNodeEntity
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
-import com.example.graphapp.data.embedding.SentenceEmbedding
+import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.data.schema.UiEvent
 import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
-import com.example.graphapp.data.schema.GraphSchema.SchemaOtherNodes
-import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
 import com.example.graphapp.data.local.detectReplicateInput
 import com.example.graphapp.data.local.findPatterns
 import com.example.graphapp.data.local.initialiseSemanticSimilarityMatrix
@@ -38,24 +38,23 @@ import kotlin.text.isNotBlank
 
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val sentenceEmbedding = SentenceEmbedding()
-
     private val embeddingRepository = EmbeddingRepository(application)
+    private val sentenceEmbedding = embeddingRepository.getSentenceEmbeddingModel()
     private val eventRepository = EventRepository(sentenceEmbedding)
-    private val personnelRepository = UserActionRepository(sentenceEmbedding)
+    private val userActionRepository = UserActionRepository(sentenceEmbedding)
 
-    private val _graphData = MutableStateFlow<String?>(null)
-    val graphData: StateFlow<String?> = _graphData
+    private val _eventGraphData = MutableStateFlow<String?>(null)
+    val eventGraphData: StateFlow<String?> = _eventGraphData
 
     private val _filteredGraphData = MutableStateFlow<String?>(null)
     val filteredGraphData: StateFlow<String?> = _filteredGraphData
 
-    private val _personnelData = MutableStateFlow<String?>(null)
-    val personnelData: StateFlow<String?> = _personnelData
+    private val _userGraphData = MutableStateFlow<String?>(null)
+    val userGraphData: StateFlow<String?> = _userGraphData
 
     private var _simMatrix: Map<Pair<Long, Long>, Float>? = null
     val simMatrix: Map<Pair<Long, Long>, Float>
-        get() = _simMatrix ?: initialiseSemanticSimilarityMatrix(eventRepository).also {
+        get() = _simMatrix ?: initialiseSemanticSimilarityMatrix(eventRepository, embeddingRepository).also {
             _simMatrix = it
         }
 
@@ -67,21 +66,26 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-
             embeddingRepository.initializeEmbedding()
             eventRepository.initialiseEventRepository()
-            val nodes = eventRepository.getAllEventNodesWithoutEmbedding()
-            val edges = eventRepository.getAllEventEdges()
-            val json = convertToJsonVector(nodes, edges)
-            _graphData.value = json
+            userActionRepository.initialiseUserActionRepository()
+
+            // For event repository
+            val eventNodes = eventRepository.getAllEventNodesWithoutEmbedding()
+            val eventEdges = eventRepository.getAllEventEdges()
+            val eventJson = convertToJsonEvent(eventNodes, eventEdges)
+            _eventGraphData.value = eventJson
+
+            // For user-action repository
+            val userNodes = userActionRepository.getAllUserNodesWithoutEmbedding()
+            val actionNodes = userActionRepository.getAllActionNodesWithoutEmbedding()
+            val actionEdges = userActionRepository.getAllActionEdges()
+            val userJson = convertToJsonUser(userNodes, actionNodes, actionEdges)
+            _userGraphData.value = userJson
         }
     }
 
-    fun getNodeTypes(): List<String> {
-        return SchemaKeyNodes + SchemaPropertyNodes + SchemaOtherNodes
-    }
-
-    private fun convertToJsonVector(nodes: List<EventNodeEntity>, edges: List<EventEdgeEntity>): String {
+    private fun convertToJsonEvent(nodes: List<EventNodeEntity>, edges: List<EventEdgeEntity>): String {
         val gson = Gson()
         val nodeList = nodes.map { mapOf("id" to it.name, "type" to it.type) }
         val edgeList = edges.map { edge ->
@@ -93,28 +97,55 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return gson.toJson(json)
     }
 
-    private fun reloadGraphData() {
-        val nodes = eventRepository.getAllEventNodes()
+    private fun convertToJsonUser(userNodes: List<UserNodeEntity>, actionNodes: List<ActionNodeEntity>, edges: List<ActionEdgeEntity>): String {
+        val gson = Gson()
+        val userNodeList = userNodes.map { mapOf("id" to it.identifier, "type" to "User") }.toMutableList()
+        val actionNodeList = actionNodes.map { mapOf("id" to it.actionName, "type" to "Action") }.toMutableList()
+        val nodeList = userNodeList + actionNodeList
+
+        val edgeList = edges.map { edge ->
+            val source = if (edge.fromNodeType == "User") {
+                userNodes.find { it.id == edge.fromNodeId }?.identifier
+            } else {
+                actionNodes.find { it.id == edge.fromNodeId }?.actionName
+            }
+            val target = actionNodes.find { it.id == edge.toNodeId }?.actionName
+            mapOf("source" to source, "target" to target, "label" to "")
+        }
+
+        val json = mapOf("nodes" to nodeList, "links" to edgeList)
+        return gson.toJson(json)
+    }
+
+    private fun reloadEventGraphData() {
+        val nodes = eventRepository.getAllEventNodesWithoutEmbedding()
         val edges = eventRepository.getAllEventEdges()
-        val json = convertToJsonVector(nodes, edges)
-        _graphData.value = json
+        val json = convertToJsonEvent(nodes, edges)
+        _eventGraphData.value = json
+    }
+
+    private fun reloadUserGraphData() {
+        val userNodes = userActionRepository.getAllUserNodes()
+        val actionNodes = userActionRepository.getAllActionNodes()
+        val edges = userActionRepository.getAllActionEdges()
+        val json = convertToJsonUser(userNodes, actionNodes, edges)
+        _userGraphData.value = json
     }
 
     private fun reloadSimMatrix(
-        repository: EventRepository,
         simMatrix: MutableMap<Pair<Long, Long>, Float>,
         newEventMap: Map<String, String>,
     ) {
-        _simMatrix = updateSemanticSimilarityMatrix(repository, simMatrix, newEventMap)
+        _simMatrix = updateSemanticSimilarityMatrix(eventRepository, embeddingRepository, simMatrix, newEventMap)
     }
 
-    private fun createFullGraph(nodes: List<EventNodeEntity>, edges: List<EventEdgeEntity>) {
-        val json = convertToJsonVector(nodes, edges)
-        _graphData.value = json
+    private fun createFullEventGraph(nodes: List<EventNodeEntity>, edges: List<EventEdgeEntity>) {
+        val json = convertToJsonEvent(nodes, edges)
+        _eventGraphData.value = json
     }
 
-    private fun createFilteredGraph(nodes: List<EventNodeEntity>, edges: List<EventEdgeEntity>) {
-        val json = convertToJsonVector(nodes, edges)
+    private fun createFilteredEventGraph(nodes: List<EventNodeEntity>, edges: List<EventEdgeEntity>) {
+        val json = convertToJsonEvent(nodes, edges)
         _filteredGraphData.value = json
     }
 
@@ -125,7 +156,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         val (newEdges, response) = predictMissingProperties(eventRepository, simMatrix)
         val nodes = eventRepository.getAllEventNodes()
         val edges = eventRepository.getAllEventEdges() + newEdges
-        createFullGraph(nodes, edges)
+        createFullEventGraph(nodes, edges)
 
         // Creating API response
         val apiRes = ApiResponse(
@@ -156,11 +187,11 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
             // For entries with no key nodes
             if (noKeyTypes) {
-                val (nodes, edges, result) = recommendEventsForProps(normalizedMap, eventRepository, queryKey)
+                val (nodes, edges, result) = recommendEventsForProps(normalizedMap, eventRepository, embeddingRepository, queryKey)
                 if (nodes == null || edges == null) {
                     _uiEvent.trySend(UiEvent.ShowSnackbar("No similar events found."))
                 } else {
-                    createFilteredGraph(nodes, edges)
+                    createFilteredEventGraph(nodes, edges)
                 }
                 buildApiResponseFromResult(result)
                 return@launch
@@ -175,10 +206,11 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
                 duplicateNode = duplicateNode,
                 isQuery = isQuery,
                 normalizedMap = normalizedMap,
-                vectorRepository = eventRepository,
+                eventRepository = eventRepository,
+                embeddingRepository = embeddingRepository,
                 simMatrix = simMatrix,
-                reloadGraphData = { reloadGraphData() },
-                reloadSimMatrix = { repo, matrix, map -> reloadSimMatrix(repo, matrix, map) }
+                reloadGraphData = { reloadEventGraphData() },
+                reloadSimMatrix = { matrix, map -> reloadSimMatrix(matrix, map) }
             )
 
             // Get recommendations and results
@@ -190,7 +222,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
             // Create update graph
-            createFilteredGraph(nodes, edges)
+            createFilteredEventGraph(nodes, edges)
 
             // Create API response
             buildApiResponseFromResult(result)
@@ -218,7 +250,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     suspend fun detectDuplicateEvent(normalizedMap: Map<String, String>):
             Pair<Boolean, EventNodeEntity?> {
 
-        val (duplicateNode, response) = detectReplicateInput(normalizedMap, eventRepository)
+        val (duplicateNode, response) = detectReplicateInput(normalizedMap, eventRepository, embeddingRepository)
         val apiRes = ApiResponse(
             status = "success",
             timestamp = "",
@@ -239,10 +271,10 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         if (normalizedMap.isEmpty()) return
 
         val (nodes, edges, result) = findRelevantIncidentsUseCase(
-            normalizedMap, eventRepository, simMatrix
+            normalizedMap, eventRepository, embeddingRepository, simMatrix
         )
 
         buildApiResponseFromResult(result)
-        createFilteredGraph(nodes, edges)
+        createFilteredEventGraph(nodes, edges)
     }
 }

@@ -1,9 +1,11 @@
 package com.example.graphapp.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
 import com.example.graphapp.data.db.EventEdgeEntity
+import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.db.UserActionDatabaseQueries
 import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.data.embedding.SentenceEmbedding
@@ -52,7 +54,17 @@ class UserActionRepository (
         return queries.findAllActionEdgesQuery()
     }
 
-    suspend fun initialiseEventRepository() {
+    // Get all USER nodes without their embedding
+    fun getAllUserNodesWithoutEmbedding() : List<UserNodeEntity> {
+        return queries.findAllUserNodesWithoutEmbeddingQuery()
+    }
+
+    // Get all ACTION nodes without their embedding
+    fun getAllActionNodesWithoutEmbedding() : List<ActionNodeEntity> {
+        return queries.findAllActionNodesWithoutEmbeddingQuery()
+    }
+
+    suspend fun initialiseUserActionRepository() {
 
         // Users for Tasks
         insertUserNodeIntoDb(
@@ -61,17 +73,32 @@ class UserActionRepository (
             inputSpecialisation = "Leads reconnaissance and patrol missions in hostile environments."
         )
 
+        insertActionNodeIntoDb("SGT-001", "Planned Recon Route in Sector Bravo")
+        insertActionNodeIntoDb("SGT-001", "Deployed Surveillance Drone for Area Scan")
+        insertActionNodeIntoDb("SGT-001", "Identified Hostile Activity Near Checkpoint Delta")
+        insertActionNodeIntoDb("SGT-001", "Radioed HQ with Updated Intel")
+        insertActionNodeIntoDb("SGT-001", "Led Extraction of Team Under Fire")
+
         insertUserNodeIntoDb(
             inputIdentifier = "CPL-002",
             inputRole = "Convoy Commander",
             inputSpecialisation = "Responsible for planning and executing secure convoy escorts through contested routes."
         )
 
+        insertActionNodeIntoDb("CPL-002", "Planned Convoy Route Through Sector Echo")
+        insertActionNodeIntoDb("CPL-002", "Inspected Vehicles for Deployment Readiness")
+        insertActionNodeIntoDb("CPL-002", "Briefed Troopers on Ambush Protocols")
+        insertActionNodeIntoDb("CPL-002", "Led Convoy Movement at 0600 Hours")
+
         insertUserNodeIntoDb(
             inputIdentifier = "LT-003",
             inputRole = "Forward Observer",
             inputSpecialisation = "Coordinates artillery support and provides real-time intelligence from observation posts."
         )
+
+        insertActionNodeIntoDb("LT-003", "Deployed to Observation Post Sierra")
+        insertActionNodeIntoDb("LT-003", "Confirmed Visuals of Enemy Movement")
+        insertActionNodeIntoDb("LT-003", "Relayed Coordinates to Artillery Battery")
 
         insertUserNodeIntoDb(
             inputIdentifier = "SPC-004",
@@ -97,8 +124,6 @@ class UserActionRepository (
             inputSpecialisation = "Provides protection for supply convoys and high-value logistical operations."
         )
 
-
+        Log.d("INITIALISE USER DATABASE", "User data initialised.")
     }
-
-
 }

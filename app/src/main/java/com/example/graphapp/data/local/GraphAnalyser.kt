@@ -254,7 +254,7 @@ suspend fun recommendEventsForProps (
     }
 
     // For each key node type, compute top 3
-    val topRecommendationsByType = computeSemanticSimilarEventsForProps(eventRepository, eventPropNodesByType, queryKey)
+    val topRecommendationsByType = computeSemanticSimilarEventsForProps(eventRepository, embeddingRepository, eventPropNodesByType, queryKey)
 
     val eventsByType = mutableListOf<PredictedEventByType>()
 

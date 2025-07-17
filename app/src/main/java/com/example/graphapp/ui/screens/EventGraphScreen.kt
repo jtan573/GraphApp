@@ -43,7 +43,7 @@ fun GraphViewScreen(
     viewModel: GraphViewModel,
     navController: NavHostController
 ) {
-    val graphJson by viewModel.graphData.collectAsState()
+    val graphJson by viewModel.eventGraphData.collectAsState()
     val selectedFilter = "All"
 
     var showForm by remember { mutableStateOf(false) }
@@ -197,9 +197,11 @@ fun GraphViewScreen(
         }
 
         if (graphJson != null) {
-            GraphWebView(graphJson = graphJson,
+            GraphWebView(
+                graphJson = graphJson,
                 selectedFilter = selectedFilter,
-                modifier = Modifier.fillMaxWidth().wrapContentHeight()
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                htmlFileName = "eventGraph.html"
             )
         } else {
             Text(

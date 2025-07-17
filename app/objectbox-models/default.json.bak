@@ -103,47 +103,8 @@
       "relations": []
     },
     {
-      "id": "6:7174201678830854069",
-      "lastPropertyId": "6:2126880205432101843",
-      "name": "PersonnelEdgeEntity",
-      "properties": [
-        {
-          "id": "1:6469819030901089135",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:7986816970708408739",
-          "name": "fromNodeId",
-          "type": 6
-        },
-        {
-          "id": "3:4726265755841739629",
-          "name": "fromNodeType",
-          "type": 9
-        },
-        {
-          "id": "4:2706382889621961485",
-          "name": "toNodeId",
-          "type": 6
-        },
-        {
-          "id": "5:1140410827548214919",
-          "name": "toNodeType",
-          "type": 9
-        },
-        {
-          "id": "6:2126880205432101843",
-          "name": "edgeType",
-          "type": 9
-        }
-      ],
-      "relations": []
-    },
-    {
       "id": "7:8417389103419390607",
-      "lastPropertyId": "5:9184047985067597245",
+      "lastPropertyId": "6:2502219388949948056",
       "name": "UserNodeEntity",
       "properties": [
         {
@@ -171,20 +132,67 @@
           "id": "5:9184047985067597245",
           "name": "actionsTaken",
           "type": 9
+        },
+        {
+          "id": "6:2502219388949948056",
+          "name": "embedding",
+          "indexId": "3:8103902868688686740",
+          "type": 28,
+          "flags": 8
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "8:7041210966750999923",
+      "lastPropertyId": "6:5113413463374473302",
+      "name": "ActionEdgeEntity",
+      "properties": [
+        {
+          "id": "1:7259279449407158628",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1240882286351044270",
+          "name": "fromNodeId",
+          "type": 6
+        },
+        {
+          "id": "3:4217401697380529158",
+          "name": "fromNodeType",
+          "type": 9
+        },
+        {
+          "id": "4:4688399894108696045",
+          "name": "toNodeId",
+          "type": 6
+        },
+        {
+          "id": "5:3801422912259937137",
+          "name": "toNodeType",
+          "type": 9
+        },
+        {
+          "id": "6:5113413463374473302",
+          "name": "edgeType",
+          "type": 9
         }
       ],
       "relations": []
     }
   ],
-  "lastEntityId": "7:8417389103419390607",
-  "lastIndexId": "2:4573248754313531345",
+  "lastEntityId": "8:7041210966750999923",
+  "lastIndexId": "3:8103902868688686740",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [
     8226138168356977246,
-    888083991365062946
+    888083991365062946,
+    7174201678830854069
   ],
   "retiredIndexUids": [
     2499525094058215446
@@ -202,7 +210,13 @@
     7254505691670056420,
     3532490916491348741,
     9154187561952619691,
-    4424182388377089787
+    4424182388377089787,
+    6469819030901089135,
+    7986816970708408739,
+    4726265755841739629,
+    2706382889621961485,
+    1140410827548214919,
+    2126880205432101843
   ],
   "retiredRelationUids": [],
   "version": 1

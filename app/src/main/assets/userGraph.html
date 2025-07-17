@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Graph View</title>
+    <script src="js/d3.v7.min.js"></script>
+    <style>
+        html, body {
+          width: 100%;
+          height: 100%;
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+        }
+        svg {
+          width: 100%;
+          height: 100%;
+          background-color: #bddbb8;
+        }
+        #legend {
+          position: absolute;
+          top: 10px;
+          left: 10px;
+          background-color: rgba(255, 255, 255, 0.8);
+          padding: 10px;
+          border-radius: 6px;
+          font-family: sans-serif;
+          font-size: 12px;
+          box-shadow: 0 0 4px rgba(0,0,0,0.3);
+        }
+        .legend-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 4px;
+        }
+        .legend-color {
+          width: 12px;
+          height: 12px;
+          margin-right: 6px;
+          border-radius: 2px;
+        }
+        .link-label {
+            pointer-events: none;
+            font-family: sans-serif;
+            text-anchor: middle;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div id="legend"></div>
+
+<svg>
+    <g id="graph"></g>
+</svg>
+
+<script>
+    // Define Graph Labels
+
+    const nodeTypes = ["User", "Action"]
+    const colorNodes = ["#d62728", "#9467bd"]
+
+    function loadGraph(data, filter) {
+      const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      const nodes = parsed.nodes;
+      const links = parsed.links;
+
+<!--      const highlightedLabels = filterToEdgeLabels[filter] || [];-->
+
+      const svg = d3.select("svg");
+      const g = svg.select("#graph");
+
+      svg.selectAll("*").remove();
+      svg.append("g").attr("id", "graph");
+
+      const gNode = svg.select("#graph");
+
+      const width = svg.node().clientWidth;
+      const height = svg.node().clientHeight;
+
+      const zoom = d3.zoom()
+        .scaleExtent([0.1, 10])
+        .on("zoom", (event) => {
+          gNode.attr("transform", event.transform);
+        });
+
+      svg.call(zoom);
+
+      const colorScale = d3.scaleOrdinal()
+        .domain(nodeTypes)
+        .range(colorNodes);
+
+      const simulation = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id(d => d.id).distance(300))
+        .force("charge", d3.forceManyBody().strength(-1500))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .alphaDecay(0.1);
+
+      const link = gNode.selectAll("line")
+        .data(links)
+        .enter().append("line")
+        .attr("stroke", "#999")
+          .attr("stroke-width", 1.5)
+          .attr("stroke-dasharray", "0");
+
+      const node = gNode.selectAll("circle")
+        .data(nodes)
+        .enter().append("circle")
+        .attr("r", d => d.type === "Description" ? 8 : 10)
+        .attr("fill", d => d.type === "Description" ? "#898989" : colorScale(d.type || "unknown"));
+
+      node.append("title")
+        .text(d => d.type === "Description" ? d.id : "");
+
+      const label = gNode.selectAll("text")
+        .data(nodes)
+        .enter().append("text")
+        .text(d => d.type === "Description" ? "Description" : d.id)
+        .attr("font-size", 13)
+        .attr("dy", -12)
+        .attr("fill", d => d.type === "Description" ? "#999" : "#000");
+
+      const linkLabel = gNode.selectAll(".link-label")
+        .data(links)
+        .enter()
+        .append("text")
+        .attr("class", "link-label")
+        .attr("font-size", "10px")
+        .attr("fill", "#999")
+        .text(d => d.label);
+
+      simulation.on("tick", () => {
+        link
+          .attr("x1", d => d.source.x)
+          .attr("y1", d => d.source.y)
+          .attr("x2", d => d.target.x)
+          .attr("y2", d => d.target.y);
+
+        node
+          .attr("cx", d => d.x)
+          .attr("cy", d => d.y);
+
+        label
+          .attr("x", d => d.x)
+          .attr("y", d => d.y);
+
+        linkLabel
+          .attr("x", d => (d.source.x + d.target.x) / 2)
+          .attr("y", d => (d.source.y + d.target.y) / 2);
+      });
+
+      simulation.on("end", () => {
+        const xExtent = d3.extent(nodes, d => d.x);
+        const yExtent = d3.extent(nodes, d => d.y);
+
+        const padding = 100;
+        const graphWidth = xExtent[1] - xExtent[0] + padding * 2;
+        const graphHeight = yExtent[1] - yExtent[0] + padding * 2;
+
+        const scale = Math.min(width / graphWidth, height / graphHeight);
+
+        const translateX = width / 2 - scale * (xExtent[0] + xExtent[1]) / 2;
+        const translateY = height / 2 - scale * (yExtent[0] + yExtent[1]) / 2;
+
+        svg.transition()
+          .duration(500)
+          .call(
+            zoom.transform,
+            d3.zoomIdentity
+              .translate(translateX, translateY)
+              .scale(scale)
+          );
+      });
+
+      const legend = d3.select("#legend");
+      legend.html(""); // clear old content
+
+      colorScale.domain().forEach(type => {
+        const item = legend.append("div").attr("class", "legend-item");
+        item.append("div")
+          .attr("class", "legend-color")
+          .style("background-color", colorScale(type));
+        item.append("div").text(type);
+      });
+    }
+</script>
+
+</body>
+</html>

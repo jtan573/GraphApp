@@ -1,5 +1,6 @@
 package com.example.graphapp.ui.components
 
+import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -13,7 +14,8 @@ import org.json.JSONObject
 fun GraphWebView(
     graphJson: String?,
     selectedFilter: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    htmlFileName: String = "eventGraph.html",
 ) {
     AndroidView(
         factory = {
@@ -34,7 +36,7 @@ fun GraphWebView(
                         }
                     }
                 }
-                loadUrl("file:///android_asset/graph.html")
+                loadUrl("file:///android_asset/$htmlFileName")
             }
         },
         modifier = modifier,
