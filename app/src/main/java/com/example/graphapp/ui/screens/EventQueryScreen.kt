@@ -176,7 +176,6 @@ fun EventScreen(
                                 activeButton = ActiveButton.EVENT
                             }
                             viewModel.provideEventRecommendation(eventInputMap, true)
-//                            viewModel.findRelevantContacts(eventInputMap)
                             withContext(Dispatchers.Main) {
                                 isLoading = false
                                 activeButton = ActiveButton.NONE

@@ -10,9 +10,6 @@ import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
 import kotlin.collections.iterator
 import kotlin.math.ln
 
-private const val DECAY_FACTOR = 0.8f
-private const val ITERATIONS = 5
-
 /* -------------------------------------------------
   Helper to compute Weighted Similarity between nodes
 ------------------------------------------------- */

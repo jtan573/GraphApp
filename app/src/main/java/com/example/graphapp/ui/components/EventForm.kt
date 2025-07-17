@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.graphapp.data.schema.GraphSchema
+import com.example.graphapp.ui.navigation.NavItem
 
 @Composable
 fun EventForm(
@@ -31,7 +32,7 @@ fun EventForm(
     onCancel: () -> Unit
 ) {
 
-    val eventTypes = listOf("Task", "Incident", "Outcome", "Impact")
+    val eventTypes = GraphSchema.SchemaKeyNodes
     val selectedTab = remember { mutableStateOf(0) }
 
     // Keep event type in input map

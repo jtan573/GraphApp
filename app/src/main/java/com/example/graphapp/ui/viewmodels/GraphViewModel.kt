@@ -26,6 +26,7 @@ import com.example.graphapp.data.local.updateSemanticSimilarityMatrix
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.UserActionRepository
 import com.example.graphapp.domain.usecases.findRelevantIncidentsUseCase
+import com.example.graphapp.domain.usecases.findRelevantContactsUseCase
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -33,7 +34,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.nio.file.attribute.AclEntryPermission
 import kotlin.collections.map
+import kotlin.collections.mutableListOf
 import kotlin.text.isNotBlank
 
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
@@ -60,6 +63,9 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _createdEvent = MutableStateFlow<String>("")
     val createdEvent: StateFlow<String> = _createdEvent
+
+    private val _relevantContactState = MutableStateFlow(mutableMapOf<String, String>())
+    val relevantContactState: StateFlow<Map<String, String>> = _relevantContactState
 
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
@@ -234,14 +240,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     // Function 4: Find Patterns/Clusters
     fun findGraphRelations() {
         val response = findPatterns(eventRepository, simMatrix)
-
-        val apiRes = ApiResponse(
-            status = "success",
-            timestamp = "",
-            data = ResponseData.PatternFindingData(response)
-        )
-        Log.d("GraphPatterns", "Response: $apiRes")
-
+        buildApiResponseFromResult(response)
         return
     }
 
@@ -251,12 +250,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             Pair<Boolean, EventNodeEntity?> {
 
         val (duplicateNode, response) = detectReplicateInput(normalizedMap, eventRepository, embeddingRepository)
-        val apiRes = ApiResponse(
-            status = "success",
-            timestamp = "",
-            data = ResponseData.DetectReplicaEventData(response)
-        )
-        Log.d("DetectReplicaEvent", "Output: $apiRes")
+        buildApiResponseFromResult(response)
 
         if (response.isLikelyDuplicate == true) {
             _uiEvent.trySend(UiEvent.ShowSnackbar("Very similar event(s) found."))
@@ -266,7 +260,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Use Case Function
-    suspend fun findRelevantContacts(map: Map<String, String>) {
+    suspend fun findRelevantIncidents(map: Map<String, String>) {
         val normalizedMap = map.filterValues { it.isNotBlank() }
         if (normalizedMap.isEmpty()) return
 
@@ -276,5 +270,11 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
         buildApiResponseFromResult(result)
         createFilteredEventGraph(nodes, edges)
+    }
+
+    suspend fun findRelevantContacts(eventDescription: String) {
+        val contactsFound = findRelevantContactsUseCase(eventDescription, userActionRepository, embeddingRepository)
+        val newMap = contactsFound.associate { (id, name, _) -> id to name }
+        _relevantContactState.value = newMap.toMutableMap()
     }
 }

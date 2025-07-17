@@ -28,7 +28,9 @@ suspend fun findRelevantIncidentsUseCase(
 
     // For entries with no key nodes
     if (noKeyTypes) {
-        val (resultsNodes, resultsEdges, resultsRecs) = recommendEventsForProps(statusEventMap, eventRepository, embeddingRepository, queryKey)
+        val (resultsNodes, resultsEdges, resultsRecs) = recommendEventsForProps(
+            statusEventMap, eventRepository, embeddingRepository, queryKey
+        )
         if (resultsNodes != null && resultsEdges != null) {
             nodes = resultsNodes
             edges = resultsEdges
