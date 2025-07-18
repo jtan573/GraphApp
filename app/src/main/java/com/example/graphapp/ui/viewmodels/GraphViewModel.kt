@@ -1,14 +1,11 @@
 package com.example.graphapp.ui.viewmodels
 
 import android.app.Application
-import android.location.Location
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.graphapp.data.api.ProvideRecommendationsResponse
 import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.schema.Event
-import com.example.graphapp.data.api.ApiResponse
-import com.example.graphapp.data.api.ResponseData
 import com.example.graphapp.data.api.buildApiResponseFromResult
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
@@ -26,8 +23,10 @@ import com.example.graphapp.data.local.recommendEventsForProps
 import com.example.graphapp.data.local.updateSemanticSimilarityMatrix
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.UserActionRepository
-import com.example.graphapp.domain.usecases.findAffectedEventsByLocation
-import com.example.graphapp.domain.usecases.findRelevantIncidentsUseCase
+import com.example.graphapp.data.schema.QueryResult
+import com.example.graphapp.data.schema.QueryResult.IncidentResponse
+import com.example.graphapp.domain.usecases.findNearbyPersonnelByLocationUseCase
+import com.example.graphapp.domain.usecases.findRelevantEventsUseCase
 import com.example.graphapp.domain.usecases.findRelevantContactsUseCase
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -36,10 +35,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import java.nio.file.attribute.AclEntryPermission
 import kotlin.Float
 import kotlin.collections.map
-import kotlin.collections.mutableListOf
 import kotlin.text.isNotBlank
 
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
@@ -70,8 +67,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     private val _createdEvent = MutableStateFlow<String>("")
     val createdEvent: StateFlow<String> = _createdEvent
 
-    private val _detectedEvents = MutableStateFlow(mutableListOf<Triple<Long, String, String>>())
-    val detectedEvents: StateFlow<List<Triple<Long, String, String>>> = _detectedEvents
+    private val _queryResults = MutableStateFlow<QueryResult?>(null)
+    val queryResults: StateFlow<QueryResult?> = _queryResults
 
     // ---------- Personnel Query States ----------
     private val _relevantContactState = MutableStateFlow(mutableMapOf<String, String>())
@@ -259,7 +256,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         val normalizedMap = map.filterValues { it.isNotBlank() }
         if (normalizedMap.isEmpty()) return
 
-        val (nodes, edges, result) = findRelevantIncidentsUseCase(
+        val (nodes, edges, result) = findRelevantEventsUseCase(
             normalizedMap, eventRepository, embeddingRepository, simMatrix
         )
 
@@ -275,14 +272,61 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _relevantContactState.value = newMap.toMutableMap()
     }
 
+    // App response to INCIDENTS
+    fun respondToIncidents(map: Map<String, String>) {
+        viewModelScope.launch {
+
+            val normalizedMap = map.filterValues { it.isNotBlank() }
+            if (normalizedMap.isEmpty()) {
+                return@launch
+            }
+
+            // Response 1: Active personnel with related specialisation
+            val threatLocation = normalizedMap["Location"]
+            val threatDescription = normalizedMap["Description"]
+            if (threatLocation != null) {
+                findNearbyPersonnelByLocation(threatLocation, threatDescription)
+            }
+
+            // Response 2: Similar Incidents -> What are the possible impacts?
+
+            val (_, _ ,impactResults) = findRelevantEventsUseCase(
+                statusEventMap = normalizedMap,
+                eventRepository = eventRepository,
+                embeddingRepository = embeddingRepository,
+                simMatrix = simMatrix,
+                queryKey = "Impact"
+            )
+            buildApiResponseFromResult(impactResults)
+            if (impactResults is ProvideRecommendationsResponse) {
+                _queryResults.value = IncidentResponse(potentialImpacts = impactResults.recommendations )
+            }
+            // TODO()
+
+            // Response 3: Similar Incidents -> What are the response measures?
+//            val (_, _ ,responseResults) = findRelevantEventsUseCase(
+//                statusEventMap = map,
+//                eventRepository = eventRepository,
+//                embeddingRepository = embeddingRepository,
+//                simMatrix = simMatrix,
+//                queryKey = "Response"
+//            )
+        }
+    }
+
     // Threat proximity alerts
-    fun detectNearbyThreats(threatLocation: Location) {
-        val affectedEventsList = findAffectedEventsByLocation(
-            eventRepository, threatLocation, 1000f
+    suspend fun findNearbyPersonnelByLocation(threatLocation: String, threatDescription: String?) {
+        val affectedEventsMap = findNearbyPersonnelByLocationUseCase(
+            userActionRepository = userActionRepository,
+            embeddingRepository = embeddingRepository,
+            threatLocation = threatLocation,
+            threatDescription = threatDescription,
+            radiusInMeters = 3000f
         )
-
-        if (affectedEventsList.isNotEmpty()) {
-
+        if (affectedEventsMap.isNotEmpty()) {
+            _queryResults.value = IncidentResponse(affectedEventsMap)
+            _createdEvent.value = "Threat Detected at: $threatLocation" +
+                    "\nDescription: $threatDescription"
         }
     }
 }

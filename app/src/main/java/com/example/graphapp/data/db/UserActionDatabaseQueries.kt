@@ -14,6 +14,7 @@ class UserActionDatabaseQueries() {
         identifier: String,
         role: String,
         specialisation: String,
+        currentLocation: String,
         embedding: FloatArray,
         actionsTaken: MutableList<Long> = mutableListOf()
     ) {
@@ -22,6 +23,7 @@ class UserActionDatabaseQueries() {
                 identifier = identifier,
                 role = role,
                 specialisation = specialisation,
+                currentLocation = currentLocation,
                 embedding = embedding,
                 actionsTaken = actionsTaken
             )
@@ -130,7 +132,8 @@ class UserActionDatabaseQueries() {
                     id = node.id,
                     identifier = node.identifier,
                     role = node.role,
-                    specialisation = node.specialisation
+                    specialisation = node.specialisation,
+                    currentLocation = node.currentLocation
                 )
             }
     }

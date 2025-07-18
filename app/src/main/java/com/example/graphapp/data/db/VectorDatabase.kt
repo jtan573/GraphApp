@@ -72,6 +72,7 @@ data class UserNodeEntity(
     var identifier: String = "",
     var role: String = "",
     var specialisation: String = "",
+    var currentLocation: String = "",
     @HnswIndex(dimensions=384, distanceType = VectorDistanceType.COSINE)
     var embedding: FloatArray? = null,
     @Convert(converter = LongListConverter::class, dbType = String::class)

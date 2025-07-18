@@ -104,7 +104,7 @@
     },
     {
       "id": "7:8417389103419390607",
-      "lastPropertyId": "6:2502219388949948056",
+      "lastPropertyId": "7:4450871250560969449",
       "name": "UserNodeEntity",
       "properties": [
         {
@@ -139,6 +139,11 @@
           "indexId": "3:8103902868688686740",
           "type": 28,
           "flags": 8
+        },
+        {
+          "id": "7:4450871250560969449",
+          "name": "currentLocation",
+          "type": 9
         }
       ],
       "relations": []

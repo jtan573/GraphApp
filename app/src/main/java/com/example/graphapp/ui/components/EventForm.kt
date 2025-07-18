@@ -41,8 +41,6 @@ fun EventForm(
     }
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Text("Insert Event:")
-
         // Tabs
         TabRow(selectedTabIndex = selectedTab.value) {
             eventTypes.forEachIndexed { index, type ->

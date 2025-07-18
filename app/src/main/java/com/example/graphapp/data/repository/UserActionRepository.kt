@@ -21,6 +21,7 @@ class UserActionRepository (
         inputIdentifier: String,
         inputRole: String,
         inputSpecialisation: String,
+        inputLocation: String,
         inputActionsTaken: MutableList<Long> = mutableListOf()
     ) {
         val nodeFound = queries.findUserNodeByIdentifierQuery(inputIdentifier)
@@ -30,6 +31,7 @@ class UserActionRepository (
                 identifier = inputIdentifier,
                 role = inputRole,
                 specialisation = inputSpecialisation,
+                currentLocation = inputLocation,
                 embedding = sentenceEmbedding.encode(inputSpecialisation),
                 actionsTaken = inputActionsTaken
             )
@@ -70,7 +72,8 @@ class UserActionRepository (
         insertUserNodeIntoDb(
             inputIdentifier = "SGT-001",
             inputRole = "Squad Leader",
-            inputSpecialisation = "Leads reconnaissance and patrol missions in hostile environments."
+            inputSpecialisation = "Leads reconnaissance and patrol missions in hostile environments.",
+            inputLocation = "1.3521,103.8198"
         )
 
         insertActionNodeIntoDb("SGT-001", "Planned Recon Route in Sector Bravo")
@@ -82,7 +85,8 @@ class UserActionRepository (
         insertUserNodeIntoDb(
             inputIdentifier = "CPL-002",
             inputRole = "Convoy Commander",
-            inputSpecialisation = "Responsible for planning and executing secure convoy escorts through contested routes."
+            inputSpecialisation = "Responsible for planning and executing secure convoy escorts through contested routes.",
+            inputLocation = "1.3554,103.8677"
         )
 
         insertActionNodeIntoDb("CPL-002", "Planned Convoy Route Through Sector Echo")
@@ -93,7 +97,8 @@ class UserActionRepository (
         insertUserNodeIntoDb(
             inputIdentifier = "LT-003",
             inputRole = "Forward Observer",
-            inputSpecialisation = "Coordinates artillery support and provides real-time intelligence from observation posts."
+            inputSpecialisation = "Coordinates artillery support and provides real-time intelligence from observation posts.",
+            inputLocation = "1.3600,103.7500"
         )
 
         insertActionNodeIntoDb("LT-003", "Deployed to Observation Post Sierra")
@@ -103,25 +108,29 @@ class UserActionRepository (
         insertUserNodeIntoDb(
             inputIdentifier = "SPC-004",
             inputRole = "Logistics Specialist",
-            inputSpecialisation = "Oversees resupply missions and ensures timely delivery of critical supplies to forward units."
+            inputSpecialisation = "Oversees resupply missions and ensures timely delivery of critical supplies to forward units.",
+            inputLocation = "1.3300,103.9200"
         )
 
         insertUserNodeIntoDb(
             inputIdentifier = "SGT-005",
             inputRole = "Rapid Response Leader",
-            inputSpecialisation = "Leads quick reaction forces for immediate deployment during emerging threats."
+            inputSpecialisation = "Leads quick reaction forces for immediate deployment during emerging threats.",
+            inputLocation = "1.4100,103.7600"
         )
 
         insertUserNodeIntoDb(
             inputIdentifier = "CPT-006",
             inputRole = "Operations Officer",
-            inputSpecialisation = "Manages area surveillance operations using integrated aerial and ground assets."
+            inputSpecialisation = "Manages area surveillance operations using integrated aerial and ground assets.",
+            inputLocation = "1.3400,103.6900"
         )
 
         insertUserNodeIntoDb(
             inputIdentifier = "SSG-007",
             inputRole = "Security Team Leader",
-            inputSpecialisation = "Provides protection for supply convoys and high-value logistical operations."
+            inputSpecialisation = "Provides protection for supply convoys and high-value logistical operations.",
+            inputLocation = "1.3705,103.7100"
         )
 
         Log.d("INITIALISE USER DATABASE", "User data initialised.")

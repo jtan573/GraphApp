@@ -12,7 +12,7 @@ import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
 /*
 Function to query for relevant contacts based on status.
  */
-suspend fun findRelevantIncidentsUseCase(
+suspend fun findRelevantEventsUseCase(
     statusEventMap: Map<String, String>,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
