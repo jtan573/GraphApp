@@ -52,7 +52,7 @@ data class PredictedProperty(
 
 data class ProvideRecommendationsResponse(
     val inputEvent: Map<String, String>,
-    val recommendations: List<Recommendation>
+    val recommendations: Map<String, List<String>>
 )
 
 data class Recommendation(
@@ -63,15 +63,11 @@ data class Recommendation(
 // Function 3
 data class DiscoverEventsResponse(
     val inputInformation: Map<String, String>,
-    val predictedEvents: List<PredictedEventByType>
-)
-
-data class PredictedEventByType(
-    val eventType: String,
-    val eventList: List<EventDetails>,
+    val predictedEvents: Map<String, List<EventDetails>>
 )
 
 data class EventDetails(
+    val eventId: Long,
     val eventName: String,
     val eventProperties: Map<String, String>,
     val simScore: Float

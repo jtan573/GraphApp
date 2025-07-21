@@ -5,8 +5,11 @@ import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
+import com.example.graphapp.data.schema.GraphSchema.SchemaComputedPropertyNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
+import com.example.graphapp.data.schema.GraphSchema.SchemaSemanticPropertyNodes
+import com.example.graphapp.domain.usecases.restoreLocationFromString
 import kotlin.collections.iterator
 import kotlin.math.ln
 
@@ -35,7 +38,7 @@ fun getPropertyEmbeddings(
     nodeId: Long,
     repository: EventRepository,
     newInputNeighbours: List<EventNodeEntity>? = null
-): Map<String, FloatArray?> {
+): Pair<Map<String, FloatArray?>, Map<String, String?>> {
 
     val neighbourNodes = mutableListOf<EventNodeEntity>()
 
@@ -45,15 +48,19 @@ fun getPropertyEmbeddings(
         neighbourNodes.addAll(repository.getNeighborsOfEventNodeById(nodeId))
     }
 
-    val embeddings = mutableMapOf<String, FloatArray?>()
+    val semanticPropEmbeddings = mutableMapOf<String, FloatArray?>()
+    val computedPropStrings = mutableMapOf<String, String?>()
 
     for (node in neighbourNodes) {
-        if (node.type in SchemaPropertyNodes) {
-            embeddings[node.type] = node.embedding
+        if (node.type in SchemaSemanticPropertyNodes) {
+            semanticPropEmbeddings[node.type] = node.embedding
+        }
+        if (node.type in SchemaComputedPropertyNodes) {
+            computedPropStrings[node.type] = node.name
         }
     }
 
-    return embeddings
+    return semanticPropEmbeddings to computedPropStrings
 }
 
 fun computeSemanticSimilarity(
@@ -62,20 +69,34 @@ fun computeSemanticSimilarity(
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
     threshold: Float = 0.5f,
-    newInputNeighbours: List<EventNodeEntity>? = null
+    newInputNeighbours: List<EventNodeEntity>? = null,
+    thresholdDistance: Float? = 5000f
 ): Float {
 
     val e1 = getPropertyEmbeddings(nodeId1, eventRepository, newInputNeighbours)
     val e2 = getPropertyEmbeddings(nodeId2, eventRepository)
 
     val similarities = mutableListOf<Float>()
-    for (prop in SchemaPropertyNodes) {
-        val v1 = e1[prop]
-        val v2 = e2[prop]
+    for (prop in SchemaSemanticPropertyNodes) {
+        val v1 = e1.first[prop]
+        val v2 = e2.first[prop]
         if (v1 == null || v2 == null) continue
 
         val similarity = embeddingRepository.cosineDistance(v1, v2)
         similarities.add(similarity)
+    }
+
+    for (prop in SchemaComputedPropertyNodes) {
+        val v1 = e1.second[prop]
+        val v2 = e2.second[prop]
+        if (v1 == null || v2 == null) continue
+
+        val distance = restoreLocationFromString(v1).distanceTo(restoreLocationFromString(v2))
+        if (distance < 5000f) {
+            similarities.add(1f - (distance / thresholdDistance!!))
+        } else {
+            similarities.add(0f)
+        }
     }
 
     if (similarities.isEmpty()) return 0f
@@ -204,7 +225,7 @@ fun computeSemanticSimilarEventsForProps(
     embeddingRepository: EmbeddingRepository,
     onlyPropertiesMap: Map<String, EventNodeEntity>,
     queryKey: String? = null,
-    threshold: Float = 0.5f
+    threshold: Float = 0.4f
 ): Map<String, List<Pair<Long, Float>>>{
 
     val allNodes = eventRepository.getAllEventNodes()
@@ -226,7 +247,6 @@ fun computeSemanticSimilarEventsForProps(
         for (keyNodeId in keyNodeIds) {
             val sim = computeSemanticSimilarity(-0L, keyNodeId, eventRepository, embeddingRepository, threshold, propsInEvent)
             val freqFactor = ln(1f + (eventRepository.getEventNodeFrequencyOfNodeId(keyNodeId) ?: 1)).toFloat()
-
             val adjustedSim = sim * freqFactor
             if (adjustedSim > threshold) {
                 simMatrix.getOrPut(eventType) { mutableListOf() }.add(keyNodeId to adjustedSim)

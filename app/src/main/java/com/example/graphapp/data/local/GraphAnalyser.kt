@@ -9,7 +9,6 @@ import com.example.graphapp.data.api.NodeDetails
 import com.example.graphapp.data.api.PatternFindingResponse
 import com.example.graphapp.data.api.PredictMissingProperties
 import com.example.graphapp.data.api.PredictMissingPropertiesResponse
-import com.example.graphapp.data.api.PredictedEventByType
 import com.example.graphapp.data.api.PredictedProperty
 import com.example.graphapp.data.api.ProvideRecommendationsResponse
 import com.example.graphapp.data.api.Recommendation
@@ -176,12 +175,12 @@ fun recommendEventForEvent(
     }
 
     // Create API response format
-    val recList = mutableListOf<Recommendation>()
+    val recList = mutableMapOf<String, List<String>>()
 
     for ((type, recs) in topRecommendationsByType) {
         val recsByTypeList = mutableListOf<String>()
         for (rec in recs) { recsByTypeList.add(rec.name) }
-        recList.add(Recommendation(recType = type, recItems = recsByTypeList))
+        recList.put(type, recsByTypeList)
     }
 
     val allPredictedNodeIds = topRecommendationsByType.values.flatten().map { it.id }
@@ -256,7 +255,8 @@ suspend fun recommendEventsForProps (
     // For each key node type, compute top 3
     val topRecommendationsByType = computeSemanticSimilarEventsForProps(eventRepository, embeddingRepository, eventPropNodesByType, queryKey)
 
-    val eventsByType = mutableListOf<PredictedEventByType>()
+    Log.d("topRecommendationsByType","$topRecommendationsByType")
+    val eventsByType = mutableMapOf<String, List<EventDetails>>()
 
     for ((type, recs) in topRecommendationsByType) {
         val predictedEventsList = mutableListOf<EventDetails>()
@@ -268,18 +268,14 @@ suspend fun recommendEventsForProps (
             val recNode = eventRepository.getEventNodeById(rec.first)!!
             predictedEventsList.add(
                 EventDetails(
+                    eventId = recNode.id,
                     eventName = recNode.name,
                     eventProperties = neighbourProps,
                     simScore = rec.second
                 )
             )
         }
-        eventsByType.add(
-            PredictedEventByType(
-                eventType = type,
-                eventList = predictedEventsList
-            )
-        )
+        eventsByType.put(type, predictedEventsList.toList())
     }
 
     if (topRecommendationsByType.isEmpty()) {
