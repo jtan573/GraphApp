@@ -225,17 +225,18 @@ fun computeSemanticSimilarEventsForProps(
     embeddingRepository: EmbeddingRepository,
     onlyPropertiesMap: Map<String, EventNodeEntity>,
     queryKey: String? = null,
-    threshold: Float = 0.4f
+    getTopThreeResultsOnly: Boolean = true,
+    threshold: Float = 0.4f,
 ): Map<String, List<Pair<Long, Float>>>{
 
     val allNodes = eventRepository.getAllEventNodes()
 
     var allKeyNodeIdsByType = mapOf<String, List<Long>>()
-    if (queryKey != null) {
-        allKeyNodeIdsByType = allNodes.filter { it.type == queryKey }.groupBy { it.type }
+    allKeyNodeIdsByType = if (queryKey != null) {
+        allNodes.filter { it.type == queryKey }.groupBy { it.type }
             .mapValues { (_, nodes) -> nodes.map { it.id } }
     } else {
-        allKeyNodeIdsByType = allNodes.filter { it.type in SchemaKeyNodes }.groupBy { it.type }
+        allNodes.filter { it.type in SchemaKeyNodes }.groupBy { it.type }
             .mapValues { (_, nodes) -> nodes.map { it.id } }
     }
 
@@ -254,11 +255,15 @@ fun computeSemanticSimilarEventsForProps(
         }
     }
 
-    val topEventsByType = simMatrix.mapValues { (_, pairs) ->
-        pairs.sortedByDescending { it.second }.take(3)
+    return if (getTopThreeResultsOnly) {
+        simMatrix.mapValues { (_, pairs) ->
+            pairs.sortedByDescending { it.second }.take(3)
+        }
+    } else {
+        simMatrix.mapValues { (_, pairs) ->
+            pairs.sortedByDescending { it.second }
+        }
     }
-
-    return topEventsByType
 }
 
 

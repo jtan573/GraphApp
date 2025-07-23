@@ -19,6 +19,7 @@ import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.schema.GraphSchema.SchemaEdgeLabels
 import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
+import com.example.graphapp.data.schema.GraphSchema.SchemaOtherNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
 //import com.example.graphdb.Edge
 //import com.example.graphdb.Node
@@ -238,7 +239,8 @@ suspend fun recommendEventsForProps (
     newEventMap: Map<String, String>,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
-    queryKey: String? = null
+    queryKey: String? = null,
+    getTopThreeResultsOnly: Boolean = true
 ) : Triple<List<EventNodeEntity>?, List<EventEdgeEntity>?, DiscoverEventsResponse> {
 
     // Compute similarity of each candidate to event nodes
@@ -253,7 +255,9 @@ suspend fun recommendEventsForProps (
     }
 
     // For each key node type, compute top 3
-    val topRecommendationsByType = computeSemanticSimilarEventsForProps(eventRepository, embeddingRepository, eventPropNodesByType, queryKey)
+    val topRecommendationsByType = computeSemanticSimilarEventsForProps(
+        eventRepository, embeddingRepository, eventPropNodesByType, queryKey, getTopThreeResultsOnly
+    )
 
     Log.d("topRecommendationsByType","$topRecommendationsByType")
     val eventsByType = mutableMapOf<String, List<EventDetails>>()
@@ -262,7 +266,7 @@ suspend fun recommendEventsForProps (
         val predictedEventsList = mutableListOf<EventDetails>()
         for (rec in recs) {
             val neighbourProps = eventRepository.getNeighborsOfEventNodeById(rec.first)
-                .filter { it.type in SchemaPropertyNodes }
+                .filter { it.type in (SchemaPropertyNodes + SchemaOtherNodes) }
                 .associate { it.type to it.name }
 
             val recNode = eventRepository.getEventNodeById(rec.first)!!

@@ -40,7 +40,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlin.Float
+import kotlin.collections.associate
 import kotlin.collections.map
+import kotlin.io.path.Path
 import kotlin.text.isNotBlank
 
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
@@ -75,11 +77,11 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     val queryResults: StateFlow<QueryResult?> = _queryResults
 
     // ---------- Personnel Query States ----------
-    private val _relevantContactState = MutableStateFlow(mutableMapOf<String, String>())
-    val relevantContactState: StateFlow<Map<String, String>> = _relevantContactState
+    private val _relevantContactState = MutableStateFlow<Map<UserNodeEntity, Int>?>(null)
+    val relevantContactState: StateFlow<Map<UserNodeEntity, Int>?> = _relevantContactState
 
-    private val _userContactQuery = MutableStateFlow<String>("")
-    val userContactQuery: StateFlow<String> = _userContactQuery
+    private val _allActiveUsers = MutableStateFlow(listOf<UserNodeEntity>())
+    val allActiveUsers: StateFlow<List<UserNodeEntity>> = _allActiveUsers
 
     // ---------- Snackbar States ----------
     private val _uiEvent = Channel<UiEvent>()
@@ -103,6 +105,9 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             val actionEdges = userActionRepository.getAllActionEdges()
             val userJson = convertToJsonUser(userNodes, actionNodes, actionEdges)
             _userGraphData.value = userJson
+
+            // Users
+            _allActiveUsers.value = userActionRepository.getAllUserNodesWithoutEmbedding()
         }
     }
 
@@ -254,14 +259,6 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return response.isLikelyDuplicate to duplicateNode
     }
 
-    // Find relevant personnel/contacts on-demand
-    suspend fun findRelevantContacts(eventDescription: String) {
-        _userContactQuery.value = eventDescription
-        val contactsFound = findRelevantContactsUseCase(eventDescription, userActionRepository, embeddingRepository)
-        val newMap = contactsFound.associate { (id, name, _) -> id to name }
-        _relevantContactState.value = newMap.toMutableMap()
-    }
-
     // App response to INCIDENTS
     fun respondToIncidents(map: Map<String, String>) {
         viewModelScope.launch {
@@ -273,6 +270,20 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             )
             _queryResults.value = incidentResponse
             _createdEvent.value = normalizedMap
+        }
+    }
+
+    // Functions for Use Case 1: Find relevant personnel
+    fun findRelevantPersonnelOnDemand(eventLocation: String, eventDescription: String) {
+        viewModelScope.launch {
+            val contactsFound = findNearbyPersonnelByLocationUseCase(
+                userActionRepository = userActionRepository,
+                embeddingRepository = embeddingRepository,
+                threatLocation = eventLocation,
+                threatDescription = eventDescription,
+                radiusInMeters = 3000f
+            )
+            _relevantContactState.value = contactsFound
         }
     }
 
