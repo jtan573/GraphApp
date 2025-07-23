@@ -66,6 +66,11 @@ class UserActionRepository (
         return queries.findAllActionNodesWithoutEmbeddingQuery()
     }
 
+    // Get users by their identifiers (unique)
+    fun getUserNodeByIdentifier(identifier: String): UserNodeEntity? {
+        return queries.findUserNodeByIdentifierQuery(identifier)
+    }
+
     suspend fun initialiseUserActionRepository() {
 
         // Users for Tasks

@@ -1,4 +1,4 @@
-package com.example.graphapp.ui.components
+package com.example.graphapp.ui.components.eventForms
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -23,40 +24,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.graphapp.data.schema.GraphSchema
-import com.example.graphapp.ui.navigation.NavItem
+import kotlin.collections.set
 
 @Composable
-fun EventForm(
+fun IncidentForm(
     fieldKeys: List<String>,
     eventInputMap: SnapshotStateMap<String, String>,
-    onSubmit: () -> Unit,
+//    onSubmit: () -> Unit,
     onQuery: () -> Unit,
     onCancel: () -> Unit
 ) {
+    Column(
+        modifier = Modifier.fillMaxWidth().background(Color(0xFFcce4eb)).padding(horizontal = 16.dp)
+    ) {
 
-    val eventTypes = GraphSchema.SchemaKeyNodes
-    val selectedTab = remember { mutableStateOf(0) }
+        val inputKeys = listOf<String>("Incident") + fieldKeys
 
-    // Keep event type in input map
-    LaunchedEffect(selectedTab.value) {
-        eventInputMap[eventTypes[selectedTab.value]] = ""
-    }
-
-    Column(modifier = Modifier.padding(horizontal = 16.dp).background(Color(0xFFcce4eb))) {
-        // Tabs
-        TabRow(selectedTabIndex = selectedTab.value) {
-            eventTypes.forEachIndexed { index, type ->
-                Tab(
-                    selected = selectedTab.value == index,
-                    onClick = { selectedTab.value = index },
-                    text = { Text(type) }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        val inputKeys = arrayOf(eventTypes[selectedTab.value]) + fieldKeys
+        Text(
+            text = "Insert an Incident:",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
 
         // All base fields
         inputKeys.forEach { key ->
@@ -74,9 +62,9 @@ fun EventForm(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.padding(vertical = 6.dp)
         ) {
-            Button(onClick = onSubmit) {
-                Text("Insert Event", fontSize = 12.sp)
-            }
+//            Button(onClick = onSubmit) {
+//                Text("Insert Event", fontSize = 12.sp)
+//            }
             Button(onClick = onQuery) {
                 Text("Query Event", fontSize = 12.sp)
             }

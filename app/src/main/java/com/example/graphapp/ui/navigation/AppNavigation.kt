@@ -8,6 +8,7 @@ import com.example.graphapp.ui.screens.GraphViewScreen
 import com.example.graphapp.ui.screens.PersonnelScreen
 import com.example.graphapp.ui.screens.EventQueryScreen
 import com.example.graphapp.ui.screens.UseCaseScreen
+import com.example.graphapp.ui.useCaseScreens.ThreatDetectionUseCaseScreen
 import com.example.graphapp.ui.viewmodels.GraphViewModel
 
 @Composable
@@ -31,5 +32,9 @@ fun AppNavigation (
         composable(NavItem.UseCase.route) {
             UseCaseScreen(viewModel = viewModel, navController = navController)
         }
+        composable(NavItem.ThreatDetectionUseCase.route) {
+            ThreatDetectionUseCaseScreen(viewModel = viewModel)
+        }
+
     }
 }

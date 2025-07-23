@@ -287,6 +287,13 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Detect Suspicious Events
+    // Helper for Threat Detection Use Case
+    fun getDataForThreatDetectionUseCase(identifiers: List<String>): List<UserNodeEntity> {
+        val listOfUsers = mutableListOf<UserNodeEntity>()
+        for (id in identifiers) {
+            listOfUsers.add(userActionRepository.getUserNodeByIdentifier(id)!!)
+        }
+        return listOfUsers
+    }
 
 }

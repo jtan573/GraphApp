@@ -31,7 +31,7 @@ fun UseCaseScreen(
 ) {
     val useCasesList = mapOf<String, () -> Unit>(
         "Find Relevant Personnel" to { navController.navigate(NavItem.Personnel.route) },
-        "Threat Detections and Response" to { navController.navigate(NavItem.Events.route) },
+        "Threat Detections and Response" to { navController.navigate(NavItem.ThreatDetectionUseCase.route) },
 //        "Suspicious Behaviour Prediction",
 //        "Smart Patrol Routing",
 //        "Threat Intelligence Correlation",

@@ -108,8 +108,6 @@ fun EventQueryScreen(viewModel: GraphViewModel) {
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-
-
                 // Show form only if visible
                 AnimatedVisibility(visible = showForm) {
                     EventForm(
