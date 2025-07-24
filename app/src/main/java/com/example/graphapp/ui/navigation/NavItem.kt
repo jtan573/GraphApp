@@ -14,6 +14,8 @@ sealed class NavItem(val route: String, val label: String, val icon: ImageVector
     object UseCase : NavItem("useCase", "UseCase", Icons.Default.Build)
 
     object ThreatDetectionUseCase : NavItem("threatDetection", "ThreatDetection", null)
+    object SuspiciousPatternUseCase : NavItem("suspiciousPattern", "SuspiciousPattern", null)
+    object RouteIntegrityUseCase : NavItem("routeIntegrity", "RouteIntegrity", null)
 
     companion object {
         val items = listOf(Personnel, Graph, Events, UseCase)

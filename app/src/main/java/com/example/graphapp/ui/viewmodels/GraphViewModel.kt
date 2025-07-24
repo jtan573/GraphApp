@@ -1,14 +1,10 @@
 package com.example.graphapp.ui.viewmodels
 
 import android.app.Application
-import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.graphapp.data.api.ProvideRecommendationsResponse
-import com.example.graphapp.data.api.Recommendation
+import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.data.repository.EventRepository
-import com.example.graphapp.data.schema.Event
 import com.example.graphapp.data.api.buildApiResponseFromResult
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
@@ -26,11 +22,13 @@ import com.example.graphapp.data.local.recommendEventsForProps
 import com.example.graphapp.data.local.updateSemanticSimilarityMatrix
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.UserActionRepository
+import com.example.graphapp.data.schema.Event
 import com.example.graphapp.data.schema.QueryResult
 import com.example.graphapp.data.schema.QueryResult.IncidentResponse
-import com.example.graphapp.domain.usecases.findNearbyPersonnelByLocationUseCase
-import com.example.graphapp.domain.usecases.findRelevantEventsUseCase
-import com.example.graphapp.domain.usecases.findRelevantContactsUseCase
+import com.example.graphapp.domain.usecases.findAffectedRouteStationsByLocUseCase
+import com.example.graphapp.domain.usecases.findRelevantPersonnelByLocationUseCase
+import com.example.graphapp.domain.usecases.findSimilarEventByLoc
+import com.example.graphapp.domain.usecases.findSimilarEventByMethod
 import com.example.graphapp.domain.viewmodellogic.createIncidentsResponse
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -40,9 +38,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlin.Float
-import kotlin.collections.associate
 import kotlin.collections.map
-import kotlin.io.path.Path
 import kotlin.text.isNotBlank
 
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
@@ -276,7 +272,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     // Functions for Use Case 1: Find relevant personnel
     fun findRelevantPersonnelOnDemand(eventLocation: String, eventDescription: String) {
         viewModelScope.launch {
-            val contactsFound = findNearbyPersonnelByLocationUseCase(
+            val contactsFound = findRelevantPersonnelByLocationUseCase(
                 userActionRepository = userActionRepository,
                 embeddingRepository = embeddingRepository,
                 threatLocation = eventLocation,
@@ -287,7 +283,12 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Helper for Threat Detection Use Case
+    // Function for Use Case 2: Threat Detection and Response
+    fun findRelevantDataForThreatResponse() {
+        // TODO
+    }
+
+    // Function for Use Case 2: Helper to get Sample Data for Threat Detection
     fun getDataForThreatDetectionUseCase(identifiers: List<String>): List<UserNodeEntity> {
         val listOfUsers = mutableListOf<UserNodeEntity>()
         for (id in identifiers) {
@@ -296,4 +297,68 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return listOfUsers
     }
 
+    // Function for Use Case 3: Suspicious Behaviour Detection
+    suspend fun findDataIndicatingSuspiciousBehaviour(map: Map<String, String>): QueryResult {
+        val normalizedMap = map.filterValues { it.isNotBlank() }
+        if (normalizedMap.isEmpty()) { return IncidentResponse() }
+
+        val similarIncidentsFound = mutableMapOf<String, List<EventDetails>>()
+        val similarIncidentsFoundByMethod = findSimilarEventByMethod(
+            statusEventMap = normalizedMap,
+            eventRepository = eventRepository,
+            embeddingRepository = embeddingRepository,
+            queryKey = "Incident"
+        )
+        if (similarIncidentsFoundByMethod != null) {
+            similarIncidentsFound.put("Method", similarIncidentsFoundByMethod)
+        }
+        val similarIncidentsFoundByLocation = findSimilarEventByLoc(
+            statusEventMap = normalizedMap,
+            eventRepository = eventRepository,
+            embeddingRepository = embeddingRepository,
+            queryKey = "Incident"
+        )
+        if (similarIncidentsFoundByLocation != null) {
+            similarIncidentsFound.put("Location", similarIncidentsFoundByLocation)
+        }
+
+        val incidentResponse = IncidentResponse(
+            similarIncidents = if (similarIncidentsFound.isNotEmpty()) {
+                similarIncidentsFound
+            } else { null }
+        )
+
+        _queryResults.value = incidentResponse
+        _createdEvent.value = normalizedMap
+        return incidentResponse
+    }
+
+    // Function for Use Case 3: Helper to get Sample Data for Suspicious Behaviour Detection
+    fun getDataForSuspiciousBehaviourUseCase(events: List<String>): List<Map<String, String>> {
+        val listOfEvents = mutableListOf<Map<String, String>>()
+        for (eventName in events) {
+            val eventMap = mutableMapOf<String, String>()
+            val eventNode = eventRepository.getEventNodeByNameAndType(eventName, "Incident")
+            if (eventNode != null) {
+                eventMap.put(eventNode.type, eventNode.name)
+                val neighbours = eventRepository.getNeighborsOfEventNodeById(eventNode.id)
+                neighbours.forEach { neighbour ->
+                    eventMap.put(neighbour.type, neighbour.name)
+                }
+            }
+            listOfEvents.add(eventMap)
+        }
+        return listOfEvents
+    }
+
+    // Function for Use Case 4: Route Integrity Check
+    suspend fun findAffectedRouteStationsByLocation(locations: List<String>) {
+        val results = findAffectedRouteStationsByLocUseCase(
+            eventRepository = eventRepository,
+            embeddingRepository = embeddingRepository,
+            routeStations = locations,
+        )
+
+        _queryResults.value =  IncidentResponse(incidentsAffectingStations = results)
+    }
 }

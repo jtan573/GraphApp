@@ -18,7 +18,7 @@ sealed class QueryResult {
     data class IncidentResponse(
         val nearbyActiveUsersMap: Map<UserNodeEntity, Int>? = null,
         val potentialImpacts: List<String>? = null,
-        val possibleResponses: List<String>? = null,
-        val similarIncidents: Map<String, List<EventDetails>>? = null
+        val similarIncidents: Map<String, List<EventDetails>>? = null,
+        val incidentsAffectingStations: Map<Int, List<EventDetails>>? = null
     ) : QueryResult()
 }

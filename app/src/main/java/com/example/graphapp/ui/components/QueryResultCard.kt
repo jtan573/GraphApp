@@ -2,9 +2,11 @@ package com.example.graphapp.ui.components
 
 import android.R
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,7 +27,8 @@ fun QueryResultCard(
 ) {
     Column(modifier = Modifier
         .padding(top = 16.dp)
-        .padding(horizontal = 16.dp)) {
+        .padding(horizontal = 16.dp)
+    ) {
         eventAdded.forEach { (inputType, inputString) ->
             Text(
                 text = "$inputType: $inputString",
@@ -37,8 +40,12 @@ fun QueryResultCard(
     }
 
     when (queryResults) {
-        is QueryResult.IncidentResponse ->
-            Column(modifier = Modifier.padding(16.dp)) {
+        is QueryResult.IncidentResponse -> {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF95b0db))
+                .padding(16.dp)
+            ) {
 
                 if (queryResults.nearbyActiveUsersMap != null) {
                     Text(
@@ -113,13 +120,31 @@ fun QueryResultCard(
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Text(
-                                text = "${event.eventName}: ${event.eventProperties[type]}",
-                                style = MaterialTheme.typography.bodyMedium,
+                                text = "Incident: ${event.eventName}",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
                                 modifier = Modifier.padding(horizontal = 10.dp).padding(top = 8.dp)
                             )
                             Text(
+                                text = "Location: ${event.eventProperties["Location"]}",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontStyle = FontStyle.Italic
+                                ),
+                                color = Color.DarkGray,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
+                            )
+                            Text(
                                 text = "Observed on: ${event.eventProperties["Date"]}",
-                                style = MaterialTheme.typography.labelMedium.copy(
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontStyle = FontStyle.Italic
+                                ),
+                                color = Color.DarkGray,
+                                modifier = Modifier.padding(horizontal = 10.dp).padding(bottom = 2.dp)
+                            )
+                            Text(
+                                text = "How: ${event.eventProperties["Method"]}",
+                                style = MaterialTheme.typography.bodyMedium.copy(
                                     fontStyle = FontStyle.Italic
                                 ),
                                 color = Color.DarkGray,
@@ -127,8 +152,67 @@ fun QueryResultCard(
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.padding(vertical = 10.dp))
                 }
 
+                if (queryResults.incidentsAffectingStations != null) {
+                    Text(
+                        text = "Incidents potentially affecting route:",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 5.dp)
+                    )
+
+                    queryResults.incidentsAffectingStations.forEach { (index, recList) ->
+                        Text(
+                            text = "Incidents near Stop $index:",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(bottom = 5.dp),
+                        )
+                        recList.forEach { event ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                Text(
+                                    text = "Incident: ${event.eventName}",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 10.dp).padding(top = 8.dp)
+                                )
+                                Text(
+                                    text = "Location: ${event.eventProperties["Location"]}",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontStyle = FontStyle.Italic
+                                    ),
+                                    color = Color.DarkGray,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
+                                )
+                                Text(
+                                    text = "Observed on: ${event.eventProperties["Date"]}",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontStyle = FontStyle.Italic
+                                    ),
+                                    color = Color.DarkGray,
+                                    modifier = Modifier.padding(horizontal = 10.dp).padding(bottom = 2.dp)
+                                )
+                                Text(
+                                    text = "How: ${event.eventProperties["Method"]}",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontStyle = FontStyle.Italic
+                                    ),
+                                    color = Color.DarkGray,
+                                    modifier = Modifier.padding(horizontal = 10.dp).padding(bottom = 8.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.padding(vertical = 10.dp))
+                    }
+                }
             }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
     }
 }

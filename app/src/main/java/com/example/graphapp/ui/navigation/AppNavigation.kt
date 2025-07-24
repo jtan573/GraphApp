@@ -8,6 +8,8 @@ import com.example.graphapp.ui.screens.GraphViewScreen
 import com.example.graphapp.ui.screens.PersonnelScreen
 import com.example.graphapp.ui.screens.EventQueryScreen
 import com.example.graphapp.ui.screens.UseCaseScreen
+import com.example.graphapp.ui.useCaseScreens.RouteIntegrityUseCaseScreen
+import com.example.graphapp.ui.useCaseScreens.SuspiciousBehaviourUseCaseScreen
 import com.example.graphapp.ui.useCaseScreens.ThreatDetectionUseCaseScreen
 import com.example.graphapp.ui.viewmodels.GraphViewModel
 
@@ -34,6 +36,12 @@ fun AppNavigation (
         }
         composable(NavItem.ThreatDetectionUseCase.route) {
             ThreatDetectionUseCaseScreen(viewModel = viewModel)
+        }
+        composable(NavItem.SuspiciousPatternUseCase.route) {
+            SuspiciousBehaviourUseCaseScreen(viewModel = viewModel)
+        }
+        composable(NavItem.RouteIntegrityUseCase.route) {
+            RouteIntegrityUseCaseScreen(viewModel = viewModel)
         }
 
     }

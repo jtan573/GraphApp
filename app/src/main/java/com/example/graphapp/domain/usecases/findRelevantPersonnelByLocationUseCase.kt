@@ -5,7 +5,7 @@ import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.UserActionRepository
 
-suspend fun findNearbyPersonnelByLocationUseCase(
+suspend fun findRelevantPersonnelByLocationUseCase(
    userActionRepository: UserActionRepository,
    embeddingRepository: EmbeddingRepository,
    threatLocation: String? = null,

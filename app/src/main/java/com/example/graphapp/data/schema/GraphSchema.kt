@@ -38,16 +38,11 @@ object GraphSchema {
     )
 
     val SchemaPropertyNodes = listOf(
-        "Entity",
-        "Method",
-        "Location",
-        "Motive"
+        "Entity", "Method", "Location", "Motive"
     )
 
     val SchemaSemanticPropertyNodes = listOf(
-        "Entity",
-        "Method",
-        "Motive"
+        "Entity", "Method", "Motive"
     )
 
     val SchemaComputedPropertyNodes = listOf(
@@ -55,7 +50,10 @@ object GraphSchema {
     )
 
     val SchemaOtherNodes = listOf(
-        "Date",
-        "Description"
+        "Date", "Description"
+    )
+
+    val SchemaRoutingKeyNodes = listOf(
+        "PatrolStation", ""
     )
 }

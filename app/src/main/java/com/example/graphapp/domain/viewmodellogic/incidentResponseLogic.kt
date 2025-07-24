@@ -6,7 +6,7 @@ import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.repository.UserActionRepository
 import com.example.graphapp.data.schema.QueryResult.IncidentResponse
-import com.example.graphapp.domain.usecases.findNearbyPersonnelByLocationUseCase
+import com.example.graphapp.domain.usecases.findRelevantPersonnelByLocationUseCase
 import com.example.graphapp.domain.usecases.findRelevantEventsUseCase
 import com.example.graphapp.domain.usecases.findSimilarEventByLoc
 import com.example.graphapp.domain.usecases.findSimilarEventByMethod
@@ -23,7 +23,7 @@ suspend fun createIncidentsResponse(
     // Response 1: Active personnel with related specialisation
     val threatLocation = normalizedMap["Location"]
     val threatDescription = normalizedMap["Description"]
-    val nearbyPersonnelMap = findNearbyPersonnelByLocationUseCase(
+    val nearbyPersonnelMap = findRelevantPersonnelByLocationUseCase(
         userActionRepository = userActionRepository,
         embeddingRepository = embeddingRepository,
         threatLocation = threatLocation,

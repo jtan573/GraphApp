@@ -1,10 +1,9 @@
 package com.example.graphapp.domain.usecases
 
-import android.util.Log
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.UserActionRepository
 
-suspend fun findRelevantContactsUseCase(
+suspend fun findPersonnelByDescriptionUseCase(
     eventDescription: String,
     userActionRepository: UserActionRepository,
     embeddingRepository: EmbeddingRepository
@@ -22,7 +21,6 @@ suspend fun findRelevantContactsUseCase(
     }
 
     val sortedUsers = topRelevantUsers.sortedByDescending { it.third }.take(3)
-    Log.d("TOP-RELEVANT-USERS", "top relevant users: $sortedUsers")
 
     return sortedUsers
 }

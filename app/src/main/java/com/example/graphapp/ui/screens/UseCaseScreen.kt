@@ -30,10 +30,39 @@ fun UseCaseScreen(
     navController: NavHostController,
 ) {
     val useCasesList = mapOf<String, () -> Unit>(
-        "Find Relevant Personnel" to { navController.navigate(NavItem.Personnel.route) },
-        "Threat Detections and Response" to { navController.navigate(NavItem.ThreatDetectionUseCase.route) },
-//        "Suspicious Behaviour Prediction",
-//        "Smart Patrol Routing",
+        "Find Relevant Personnel" to {
+            navController.navigate(NavItem.Personnel.route) {
+                launchSingleTop = true
+                restoreState = true
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+            }
+        },
+        "Threat Detections and Response" to {
+            navController.navigate(NavItem.ThreatDetectionUseCase.route) {
+                launchSingleTop = true
+                restoreState = true
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+            } },
+        "Suspicious Behaviour Prediction" to {
+            navController.navigate(NavItem.SuspiciousPatternUseCase.route) {
+                launchSingleTop = true
+                restoreState = true
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+            } },
+        "Route Integrity Check" to {
+            navController.navigate(NavItem.RouteIntegrityUseCase.route) {
+                    launchSingleTop = true
+                    restoreState = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+            } },
 //        "Threat Intelligence Correlation",
 //        "Personnel Coordination"
     )
@@ -47,7 +76,7 @@ fun UseCaseScreen(
                 .padding(horizontal = 16.dp),
         )
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2), // 2 columns
+            columns = GridCells.Fixed(2),
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),

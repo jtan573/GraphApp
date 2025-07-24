@@ -32,7 +32,7 @@ suspend fun findSimilarEventByLoc(
     if (locationRecs.predictedEvents.isEmpty()) {
         return null
     } else {
-        val similarEventsByLocation = locationRecs.predictedEvents["Incident"]
+        val similarEventsByLocation = locationRecs.predictedEvents[queryKey]
         if (similarEventsByLocation != null) {
             val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mmX", Locale.US)
             formatter.timeZone = TimeZone.getTimeZone("UTC+8")
