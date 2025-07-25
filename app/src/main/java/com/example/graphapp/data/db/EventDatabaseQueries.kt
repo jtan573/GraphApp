@@ -80,6 +80,13 @@ class EventDatabaseQueries() {
             }
     }
 
+    fun findNodesByTypeQuery(type: String) : List<EventNodeEntity> {
+        return nodesBox
+            .query(EventNodeEntity_.type.equal(type))
+            .build()
+            .find()
+    }
+
     fun findAllNodeFrequenciesQuery() : Map<Long, Int> {
         return nodesBox.query().build().find()
             .associate { node -> node.id to (node.frequency ?: 0) }

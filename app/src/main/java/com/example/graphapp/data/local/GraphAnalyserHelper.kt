@@ -1,6 +1,7 @@
 package com.example.graphapp.data.local
 
 import android.util.Log
+import androidx.compose.runtime.key
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
@@ -92,7 +93,7 @@ fun computeSemanticSimilarity(
         if (v1 == null || v2 == null) continue
 
         val distance = restoreLocationFromString(v1).distanceTo(restoreLocationFromString(v2))
-        if (distance < 5000f) {
+        if (distance < 3000f) {
             similarities.add(1f - (distance / thresholdDistance!!))
         } else {
             similarities.add(0f)

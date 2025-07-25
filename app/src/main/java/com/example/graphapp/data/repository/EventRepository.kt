@@ -76,6 +76,10 @@ class EventRepository(
         return nodeFound
     }
 
+    fun getEventNodesByType(type: String): List<EventNodeEntity>? {
+        return queries.findNodesByTypeQuery(type)
+    }
+
     // Get all nodes without their embedding
     fun getAllEventNodesWithoutEmbedding() : List<EventNodeEntity> {
         return queries.findAllNodesWithoutEmbeddingQuery()
@@ -153,15 +157,16 @@ class EventRepository(
 
 
 // --- Locations ---
-        insertEventNodeIntoDb("1.3521,103.8198", "Location") // Singapore central
-        insertEventNodeIntoDb("1.3554,103.8677", "Location") // Tampines
-        insertEventNodeIntoDb("1.3000,103.8000", "Location") // Queenstown
-        insertEventNodeIntoDb("1.4250,103.8500", "Location") // Yishun
-        insertEventNodeIntoDb("1.3600,103.7500", "Location") // Bukit Batok
-        insertEventNodeIntoDb("1.3300,103.9200", "Location") // East Coast
-        insertEventNodeIntoDb("1.4100,103.7600", "Location") // Woodlands
-        insertEventNodeIntoDb("1.3400,103.6900", "Location") // Jurong West
-        insertEventNodeIntoDb("1.3000,103.9000", "Location") // Marine Parade
+        insertEventNodeIntoDb("1.3521,103.8198", "Location")
+        insertEventNodeIntoDb("1.1344,104.0495", "Location")
+        insertEventNodeIntoDb("1.4765,103.7636", "Location")
+        insertEventNodeIntoDb("1.4250,103.8500", "Location")
+        insertEventNodeIntoDb("1.3600,103.7500", "Location")
+        insertEventNodeIntoDb("1.3300,103.9200", "Location")
+        insertEventNodeIntoDb("1.4100,103.7600", "Location")
+        insertEventNodeIntoDb("1.1155,104.0421", "Location")
+        insertEventNodeIntoDb("1.3000,103.9000", "Location")
+        insertEventNodeIntoDb("1.3530,103.7200", "Location")
 
 // --- Methods ---
         insertEventNodeIntoDb("Foot patrol with UAV support", "Method")
@@ -259,7 +264,7 @@ class EventRepository(
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Bravo Company", "Entity"), getEventNodeByNameAndType("Convoy Escort", "Task"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Secure supply route", "Motive"), getEventNodeByNameAndType("Convoy Escort", "Task"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-16T10:45Z", "Date"), getEventNodeByNameAndType("Convoy Escort", "Task"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3400,103.6900", "Location"), getEventNodeByNameAndType("Convoy Escort", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.1155,104.0421", "Location"), getEventNodeByNameAndType("Convoy Escort", "Task"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Armored convoy", "Method"), getEventNodeByNameAndType("Convoy Escort", "Task"))
 
         insertEventNodeIntoDb("Defend transport route", "Motive")
@@ -267,14 +272,14 @@ class EventRepository(
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Bravo Company", "Entity"), getEventNodeByNameAndType("Supply Convoy Security", "Task"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Defend transport route", "Motive"), getEventNodeByNameAndType("Supply Convoy Security", "Task"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-16T10:45Z", "Date"), getEventNodeByNameAndType("Supply Convoy Security", "Task"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3400,103.6900", "Location"), getEventNodeByNameAndType("Supply Convoy Security", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.1155,104.0421", "Location"), getEventNodeByNameAndType("Supply Convoy Security", "Task"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Protected convoy", "Method"), getEventNodeByNameAndType("Supply Convoy Security", "Task"))
 
 
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Charlie Squadron", "Entity"), getEventNodeByNameAndType("Forward Observation", "Task"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Secure high-value target", "Motive"), getEventNodeByNameAndType("Forward Observation", "Task"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-17T05:10Z", "Date"), getEventNodeByNameAndType("Forward Observation", "Task"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3000,103.8000", "Location"), getEventNodeByNameAndType("Forward Observation", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.4765,103.7636", "Location"), getEventNodeByNameAndType("Forward Observation", "Task"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Helicopter insertion", "Method"), getEventNodeByNameAndType("Forward Observation", "Task"))
 
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Delta Platoon", "Entity"), getEventNodeByNameAndType("Resupply Mission", "Task"))
@@ -294,7 +299,7 @@ class EventRepository(
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemy Forces", "Entity"), getEventNodeByNameAndType("Ambush", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Retaliate against attack", "Motive"), getEventNodeByNameAndType("Ambush", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-15T08:30Z", "Date"), getEventNodeByNameAndType("Ambush", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3554,103.8677", "Location"), getEventNodeByNameAndType("Ambush", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.1344,104.0495", "Location"), getEventNodeByNameAndType("Ambush", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("IED detonation", "Method"), getEventNodeByNameAndType("Ambush", "Incident"))
 
         insertEventNodeIntoDb("Enemies", "Entity")
@@ -303,14 +308,14 @@ class EventRepository(
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemies", "Entity"), getEventNodeByNameAndType("Surprise Attack", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Counterattack", "Motive"), getEventNodeByNameAndType("Surprise Attack", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-15T10:50Z", "Date"), getEventNodeByNameAndType("Surprise Attack", "Incident"))
-//        insertEdgeIntoDB(getNodeByNameAndType("1.3554,103.8677", "Location"), getNodeByNameAndType("Surprise Attack", "Incident"))
+//        insertEdgeIntoDB(getNodeByNameAndType("1.1344,104.0495", "Location"), getNodeByNameAndType("Surprise Attack", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("IED detonation", "Method"), getEventNodeByNameAndType("Surprise Attack", "Incident"))
 
 
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemy Group", "Entity"), getEventNodeByNameAndType("Roadside Bombing", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Disrupt enemy logistics", "Motive"), getEventNodeByNameAndType("Roadside Bombing", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-16T14:20Z", "Date"), getEventNodeByNameAndType("Roadside Bombing", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3400,103.6900", "Location"), getEventNodeByNameAndType("Roadside Bombing", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.1155,104.0421", "Location"), getEventNodeByNameAndType("Roadside Bombing", "Incident"))
 //        insertEdgeIntoDB(getNodeByNameAndType("IED explosion", "Method"), getNodeByNameAndType("Roadside Bombing", "Incident"))
 
         insertEventNodeIntoDb("Interfere with enemy supply lines", "Motive")
@@ -319,14 +324,14 @@ class EventRepository(
 //        insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemy Group", "Entity"), getEventNodeByNameAndType("Improvised Explosive Strike", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Interfere with enemy supply lines", "Motive"), getEventNodeByNameAndType("Improvised Explosive Strike", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-16T15:42Z", "Date"), getEventNodeByNameAndType("Improvised Explosive Strike", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3400,103.6900", "Location"), getEventNodeByNameAndType("Improvised Explosive Strike", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3530,103.7200", "Location"), getEventNodeByNameAndType("Improvised Explosive Strike", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Explosion of IED", "Method"), getEventNodeByNameAndType("Improvised Explosive Strike", "Incident"))
 
 
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemy Anonymous", "Entity"), getEventNodeByNameAndType("Sniper Attack", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Secure high-value target", "Motive"), getEventNodeByNameAndType("Sniper Attack", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-17T18:00Z", "Date"), getEventNodeByNameAndType("Sniper Attack", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3000,103.8000", "Location"), getEventNodeByNameAndType("Sniper Attack", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.4765,103.7636", "Location"), getEventNodeByNameAndType("Sniper Attack", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Sniper overwatch", "Method"), getEventNodeByNameAndType("Sniper Attack", "Incident"))
 
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Hostile Militia", "Entity"), getEventNodeByNameAndType("Vehicle Breakdown", "Incident"))
@@ -383,7 +388,7 @@ class EventRepository(
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Delta Platoon", "Entity"), getEventNodeByNameAndType("Mission Delay", "Outcome"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Disrupt enemy logistics", "Motive"), getEventNodeByNameAndType("Mission Delay", "Outcome"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-26T08:00Z", "Date"), getEventNodeByNameAndType("Mission Delay", "Outcome"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3000,103.8000", "Location"), getEventNodeByNameAndType("Mission Delay", "Outcome"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.4765,103.7636", "Location"), getEventNodeByNameAndType("Mission Delay", "Outcome"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Drone surveillance", "Method"), getEventNodeByNameAndType("Mission Delay", "Outcome"))
 
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Support Platoon", "Entity"), getEventNodeByNameAndType("Equipment Loss", "Outcome"))
@@ -422,13 +427,13 @@ class EventRepository(
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemy Anonymous", "Entity"), getEventNodeByNameAndType("Increased Hostilities", "Impact"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Retaliate against attack", "Motive"), getEventNodeByNameAndType("Increased Hostilities", "Impact"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-18T12:00Z", "Date"), getEventNodeByNameAndType("Increased Hostilities", "Impact"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3400,103.6900", "Location"), getEventNodeByNameAndType("Increased Hostilities", "Impact"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.1155,104.0421", "Location"), getEventNodeByNameAndType("Increased Hostilities", "Impact"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Small arms engagement", "Method"), getEventNodeByNameAndType("Increased Hostilities", "Impact"))
 
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Joint Task Force Command", "Entity"), getEventNodeByNameAndType("Strategic Advantage Lost", "Impact"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Establish forward base", "Motive"), getEventNodeByNameAndType("Strategic Advantage Lost", "Impact"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-17T05:10Z", "Date"), getEventNodeByNameAndType("Strategic Advantage Lost", "Impact"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3000,103.8000", "Location"), getEventNodeByNameAndType("Strategic Advantage Lost", "Impact"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.4765,103.7636", "Location"), getEventNodeByNameAndType("Strategic Advantage Lost", "Impact"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Night operations", "Method"), getEventNodeByNameAndType("Strategic Advantage Lost", "Impact"))
 
         // --- Edges between Events ---
@@ -449,56 +454,56 @@ class EventRepository(
         insertEventNodeIntoDb("Individual Observes Entry Point", "Incident")
         insertEventNodeIntoDb("Unidentified Male", "Entity")
         insertEventNodeIntoDb("2023-09-10T08:45Z", "Date")
-        insertEventNodeIntoDb("1.3401,103.6899", "Location")
+        insertEventNodeIntoDb("1.3589,103.6999", "Location")
         insertEventNodeIntoDb("Loitering with camera", "Method")
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Unidentified Male", "Entity"), getEventNodeByNameAndType("Individual Observes Entry Point", "Incident"))
 //        insertEventEdgeIntoDb(getEventNodeByNameAndType("Observe access patterns", "Motive"), getEventNodeByNameAndType("Individual Observes Entry Point", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-10T08:45Z", "Date"), getEventNodeByNameAndType("Individual Observes Entry Point", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3401,103.6899", "Location"), getEventNodeByNameAndType("Individual Observes Entry Point", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3589,103.6999", "Location"), getEventNodeByNameAndType("Individual Observes Entry Point", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Loitering with camera", "Method"), getEventNodeByNameAndType("Individual Observes Entry Point", "Incident"))
 
         insertEventNodeIntoDb("Repeated Walk-By Near Security Fence", "Incident")
         insertEventNodeIntoDb("Middle-aged Woman", "Entity")
         insertEventNodeIntoDb("2023-09-11T10:12Z", "Date")
-        insertEventNodeIntoDb("1.3403,103.6900", "Location")
+        insertEventNodeIntoDb("1.3453,103.5300", "Location")
         insertEventNodeIntoDb("Walking in circles", "Method")
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Middle-aged Woman", "Entity"), getEventNodeByNameAndType("Repeated Walk-By Near Security Fence", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Test patrol timing", "Motive"), getEventNodeByNameAndType("Repeated Walk-By Near Security Fence", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-11T10:12Z", "Date"), getEventNodeByNameAndType("Repeated Walk-By Near Security Fence", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3403,103.6900", "Location"), getEventNodeByNameAndType("Repeated Walk-By Near Security Fence", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3453,103.5300", "Location"), getEventNodeByNameAndType("Repeated Walk-By Near Security Fence", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Walking in circles", "Method"), getEventNodeByNameAndType("Repeated Walk-By Near Security Fence", "Incident"))
 
         insertEventNodeIntoDb("Note-taking by Bus Stop Near Gate", "Incident")
         insertEventNodeIntoDb("Unidentified Youth", "Entity")
         insertEventNodeIntoDb("2023-09-12T07:05Z", "Date")
-        insertEventNodeIntoDb("1.3404,103.6897", "Location")
+        insertEventNodeIntoDb("1.3425,103.6897", "Location")
         insertEventNodeIntoDb("Taking notes discreetly", "Method")
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Unidentified Youth", "Entity"), getEventNodeByNameAndType("Note-taking by Bus Stop Near Gate", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Record shift changes", "Motive"), getEventNodeByNameAndType("Note-taking by Bus Stop Near Gate", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-12T07:05Z", "Date"), getEventNodeByNameAndType("Note-taking by Bus Stop Near Gate", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3404,103.6897", "Location"), getEventNodeByNameAndType("Note-taking by Bus Stop Near Gate", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3425,103.6897", "Location"), getEventNodeByNameAndType("Note-taking by Bus Stop Near Gate", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Taking notes discreetly", "Method"), getEventNodeByNameAndType("Note-taking by Bus Stop Near Gate", "Incident"))
 
         insertEventNodeIntoDb("Object Handover at Park Bench", "Incident")
         insertEventNodeIntoDb("Two Individuals", "Entity")
         insertEventNodeIntoDb("2023-09-13T13:37Z", "Date")
-        insertEventNodeIntoDb("1.3402,103.6902", "Location")
+        insertEventNodeIntoDb("1.3802,103.6902", "Location")
         insertEventNodeIntoDb("Briefcase handover", "Method")
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Two Individuals", "Entity"), getEventNodeByNameAndType("Object Handover at Park Bench", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Pass instructions or items", "Motive"), getEventNodeByNameAndType("Object Handover at Park Bench", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-13T13:37Z", "Date"), getEventNodeByNameAndType("Object Handover at Park Bench", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3402,103.6902", "Location"), getEventNodeByNameAndType("Object Handover at Park Bench", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3802,103.6902", "Location"), getEventNodeByNameAndType("Object Handover at Park Bench", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Briefcase handover", "Method"), getEventNodeByNameAndType("Object Handover at Park Bench", "Incident"))
 
         insertEventNodeIntoDb("Group Seen Marking Utility Pole", "Incident")
         insertEventNodeIntoDb("Small Group", "Entity")
         insertEventNodeIntoDb("2023-09-14T09:55Z", "Date")
-        insertEventNodeIntoDb("1.3400,103.6901", "Location")
+        insertEventNodeIntoDb("1.4100,103.8801", "Location")
         insertEventNodeIntoDb("Use of chalk/paint marking", "Method")
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Small Group", "Entity"), getEventNodeByNameAndType("Group Seen Marking Utility Pole", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Signal specific location", "Motive"), getEventNodeByNameAndType("Group Seen Marking Utility Pole", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-14T09:55Z", "Date"), getEventNodeByNameAndType("Group Seen Marking Utility Pole", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3400,103.6901", "Location"), getEventNodeByNameAndType("Group Seen Marking Utility Pole", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.4100,103.8801", "Location"), getEventNodeByNameAndType("Group Seen Marking Utility Pole", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Use of chalk/paint marking", "Method"), getEventNodeByNameAndType("Group Seen Marking Utility Pole", "Incident"))
 
 
@@ -509,59 +514,65 @@ class EventRepository(
         insertEventNodeIntoDb("Unknown Individual", "Entity")
         insertEventNodeIntoDb("Surveillance", "Motive")
         insertEventNodeIntoDb("2023-09-13T07:30Z", "Date")
-        insertEventNodeIntoDb("1.3401,103.6899", "Location")
+        insertEventNodeIntoDb("1.3001,104.6899", "Location")
         insertEventNodeIntoDb("Extended Loitering", "Method")
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown Individual", "Entity"), getEventNodeByNameAndType("Suspicious Activity Near Forest Entry", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Surveillance", "Motive"), getEventNodeByNameAndType("Suspicious Activity Near Forest Entry", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-13T07:30Z", "Date"), getEventNodeByNameAndType("Suspicious Activity Near Forest Entry", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3401,103.6899", "Location"), getEventNodeByNameAndType("Suspicious Activity Near Forest Entry", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3001,104.6899", "Location"), getEventNodeByNameAndType("Suspicious Activity Near Forest Entry", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Extended Loitering", "Method"), getEventNodeByNameAndType("Suspicious Activity Near Forest Entry", "Incident"))
 
         insertEventNodeIntoDb("Tampered Sensors at Checkpoint Beta", "Incident")
         insertEventNodeIntoDb("Insider Suspect", "Entity")
         insertEventNodeIntoDb("Disrupt surveillance", "Motive")
         insertEventNodeIntoDb("2023-09-13T07:30Z", "Date")
-        insertEventNodeIntoDb("1.3400,103.6900", "Location")
+        insertEventNodeIntoDb("1.1155,104.0421", "Location")
         insertEventNodeIntoDb("Device Interference", "Method")
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Insider Suspect", "Entity"), getEventNodeByNameAndType("Tampered Sensors at Checkpoint Beta", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Disrupt surveillance", "Motive"), getEventNodeByNameAndType("Tampered Sensors at Checkpoint Beta", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-13T07:30Z", "Date"), getEventNodeByNameAndType("Tampered Sensors at Checkpoint Beta", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3400,103.6900", "Location"), getEventNodeByNameAndType("Tampered Sensors at Checkpoint Beta", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.1155,104.0421", "Location"), getEventNodeByNameAndType("Tampered Sensors at Checkpoint Beta", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Device Interference", "Method"), getEventNodeByNameAndType("Tampered Sensors at Checkpoint Beta", "Incident"))
 
         insertEventNodeIntoDb("Unmarked Vehicle Near River Bend", "Incident")
         insertEventNodeIntoDb("Unregistered Vehicle", "Entity")
         insertEventNodeIntoDb("Recon mission", "Motive")
         insertEventNodeIntoDb("2023-09-13T07:33Z", "Date")
-        insertEventNodeIntoDb("1.3403,103.6902", "Location")
+        insertEventNodeIntoDb("1.8403,102.6902", "Location")
         insertEventNodeIntoDb("Slow circling with lights off", "Method")
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Unregistered Vehicle", "Entity"), getEventNodeByNameAndType("Unmarked Vehicle Near River Bend", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Recon mission", "Motive"), getEventNodeByNameAndType("Unmarked Vehicle Near River Bend", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-13T07:33Z", "Date"), getEventNodeByNameAndType("Unmarked Vehicle Near River Bend", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3403,103.6902", "Location"), getEventNodeByNameAndType("Unmarked Vehicle Near River Bend", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.8403,102.6902", "Location"), getEventNodeByNameAndType("Unmarked Vehicle Near River Bend", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Slow circling with lights off", "Method"), getEventNodeByNameAndType("Unmarked Vehicle Near River Bend", "Incident"))
 
         insertEventNodeIntoDb("Unauthorized Drone Over Observation Post", "Incident")
         insertEventNodeIntoDb("Unknown Operator", "Entity")
         insertEventNodeIntoDb("Visual reconnaissance", "Motive")
         insertEventNodeIntoDb("2023-09-13T07:33Z", "Date")
-        insertEventNodeIntoDb("1.3421,103.6927", "Location")
+        insertEventNodeIntoDb("1.3731,103.9927", "Location")
         insertEventNodeIntoDb("Aerial flyover", "Method")
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown Operator", "Entity"), getEventNodeByNameAndType("Unauthorized Drone Over Observation Post", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Visual reconnaissance", "Motive"), getEventNodeByNameAndType("Unauthorized Drone Over Observation Post", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-13T07:33Z", "Date"), getEventNodeByNameAndType("Unauthorized Drone Over Observation Post", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3421,103.6927", "Location"), getEventNodeByNameAndType("Unauthorized Drone Over Observation Post", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3731,103.9927", "Location"), getEventNodeByNameAndType("Unauthorized Drone Over Observation Post", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Aerial flyover", "Method"), getEventNodeByNameAndType("Unauthorized Drone Over Observation Post", "Incident"))
 
-//        insertEventNodeIntoDb("Explosion Heard Near South Ridge", "Incident")
-//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown Source", "Entity"), getEventNodeByNameAndType("Explosion Heard Near South Ridge", "Incident"))
-//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown intent", "Motive"), getEventNodeByNameAndType("Explosion Heard Near South Ridge", "Incident"))
-//        insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-11T22:15Z", "Date"), getEventNodeByNameAndType("Explosion Heard Near South Ridge", "Incident"))
-//        insertEventEdgeIntoDb(getEventNodeByNameAndType("South Ridge", "Location"), getEventNodeByNameAndType("Explosion Heard Near South Ridge", "Incident"))
-//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Loud explosive sound", "Method"), getEventNodeByNameAndType("Explosion Heard Near South Ridge", "Incident"))
+        // Testing direction of airflow thing
+        insertEventNodeIntoDb("Chemical Release Into Air", "Incident")
+        insertEventNodeIntoDb("Malicious intent", "Motive")
+        insertEventNodeIntoDb("2023-09-23T22:15Z", "Date")
+        insertEventNodeIntoDb("1.3521,103.7927", "Location")
+        insertEventNodeIntoDb("Release of toxic materials from factory", "Method")
+//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown Source", "Entity"), getEventNodeByNameAndType("Chemical Release Into Air", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Malicious intent", "Motive"), getEventNodeByNameAndType("Chemical Release Into Air", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-23T22:15Z", "Date"), getEventNodeByNameAndType("Chemical Release Into Air", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3521,103.7927", "Location"), getEventNodeByNameAndType("Chemical Release Into Air", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Release of toxic materials from factory", "Method"), getEventNodeByNameAndType("Chemical Release Into Air", "Incident"))
+
+        insertEventNodeIntoDb("SE", "Wind")
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-23T22:15Z", "Date"), getEventNodeByNameAndType("SE", "Wind"))
 
         Log.d("INITIALISE DATABASE", "Data initialised.")
 }
-
-
 }

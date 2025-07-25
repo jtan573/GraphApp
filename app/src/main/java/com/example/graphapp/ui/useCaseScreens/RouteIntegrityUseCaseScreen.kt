@@ -59,10 +59,10 @@ fun RouteIntegrityUseCaseScreen(viewModel: GraphViewModel) {
     ))
     val locationList = remember { mutableStateListOf(
         "1.3400,103.6900",
-        "1.3412,103.6915",
-        "1.3398,103.6893",
+        "1.3582,103.6615",
+        "1.4128,103.6893",
         "1.3421,103.6927",
-        "1.3409,103.6908"
+        "1.3321,103.8027"
     ) }
 
     Column(

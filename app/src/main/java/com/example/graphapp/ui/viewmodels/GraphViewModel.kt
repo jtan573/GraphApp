@@ -358,7 +358,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             embeddingRepository = embeddingRepository,
             routeStations = locations,
         )
-
         _queryResults.value =  IncidentResponse(incidentsAffectingStations = results)
     }
+
+    // Function for Use Case 5:
 }

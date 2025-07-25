@@ -46,7 +46,6 @@ fun QueryResultCard(
                 .background(Color(0xFF95b0db))
                 .padding(16.dp)
             ) {
-
                 if (queryResults.nearbyActiveUsersMap != null) {
                     Text(
                         text = "Nearby Active Troopers:",
@@ -162,13 +161,13 @@ fun QueryResultCard(
                         modifier = Modifier.padding(bottom = 5.dp)
                     )
 
-                    queryResults.incidentsAffectingStations.forEach { (index, recList) ->
+                    queryResults.incidentsAffectingStations.forEach { (stationDetails, incidentsList) ->
                         Text(
-                            text = "Incidents near Stop $index:",
+                            text = "Incidents near Stop ${stationDetails.first+1}: ${stationDetails.second}:",
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(bottom = 5.dp),
                         )
-                        recList.forEach { event ->
+                        incidentsList.forEach { incident ->
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -176,36 +175,43 @@ fun QueryResultCard(
                                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                             ) {
                                 Text(
-                                    text = "Incident: ${event.eventName}",
+                                    text = "Incident: ${incident.eventName}",
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold
                                     ),
-                                    modifier = Modifier.padding(horizontal = 10.dp).padding(top = 8.dp)
+                                    modifier = Modifier.padding(horizontal = 10.dp)
+                                        .padding(top = 8.dp)
                                 )
                                 Text(
-                                    text = "Location: ${event.eventProperties["Location"]}",
+                                    text = "Location: ${incident.eventProperties["Location"]}",
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         fontStyle = FontStyle.Italic
                                     ),
                                     color = Color.DarkGray,
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
                                 )
-                                Text(
-                                    text = "Observed on: ${event.eventProperties["Date"]}",
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontStyle = FontStyle.Italic
-                                    ),
-                                    color = Color.DarkGray,
-                                    modifier = Modifier.padding(horizontal = 10.dp).padding(bottom = 2.dp)
-                                )
-                                Text(
-                                    text = "How: ${event.eventProperties["Method"]}",
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontStyle = FontStyle.Italic
-                                    ),
-                                    color = Color.DarkGray,
-                                    modifier = Modifier.padding(horizontal = 10.dp).padding(bottom = 8.dp)
-                                )
+                                incident.eventProperties["Date"]?.let {
+                                    Text(
+                                        text = "Observed on: $it",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontStyle = FontStyle.Italic
+                                        ),
+                                        color = Color.DarkGray,
+                                        modifier = Modifier.padding(horizontal = 10.dp)
+                                            .padding(bottom = 2.dp)
+                                    )
+                                }
+                                incident.eventProperties["Method"]?.let {
+                                    Text(
+                                        text = "How: $it",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontStyle = FontStyle.Italic
+                                        ),
+                                        color = Color.DarkGray,
+                                        modifier = Modifier.padding(horizontal = 10.dp)
+                                            .padding(bottom = 8.dp)
+                                    )
+                                }
                             }
                         }
                         Spacer(modifier = Modifier.padding(vertical = 10.dp))

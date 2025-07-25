@@ -26,11 +26,14 @@ object GraphSchema {
         "Location-Impact" to "Where",
         "Motive-Impact" to "Why",
 
-        "Incident-Task" to "Linked",
-        "Outcome-Incident" to "Linked",
-        "Impact-Incident" to "Linked",
+        "Incident-Task" to "Resolved_By",
+        "Outcome-Incident" to "Outcome_Of",
+        "Impact-Incident" to "Impact_Of",
 //        "Description-Entity" to "Description",
 //        "Description-Method" to "Description",
+
+        "Location-Wind" to "Where",
+        "Date-Wind" to "When",
     )
 
     val SchemaKeyNodes = listOf(
@@ -53,7 +56,7 @@ object GraphSchema {
         "Date", "Description"
     )
 
-    val SchemaRoutingKeyNodes = listOf(
-        "PatrolStation", ""
+    val SchemaConditionsNodes = listOf(
+        "Wind"
     )
 }
