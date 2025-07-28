@@ -34,7 +34,6 @@ import kotlin.collections.set
 @Composable
 fun RouteForm(
     locationList: SnapshotStateList<String>,
-//    onSubmit: () -> Unit,
     onQuery: () -> Unit,
     onCancel: () -> Unit
 ) {
@@ -42,12 +41,25 @@ fun RouteForm(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFFcce4eb))
-            .padding(horizontal = 16.dp).padding(bottom = 10.dp)
+            .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(onClick = onQuery) {
+                Text("Check Route", fontSize = 12.sp)
+            }
+            Button(onClick = onCancel) {
+                Text("Cancel", fontSize = 12.sp)
+            }
+        }
+
         Text(
             text = "Insert Route Stations:",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(vertical = 8.dp)
+            modifier = Modifier.padding(vertical = 6.dp)
         )
 
         // Location input fields
@@ -73,21 +85,9 @@ fun RouteForm(
                 contentColor = Color.Gray
             ),
             border = BorderStroke(1.dp, Color.LightGray)
-
         ) {
             Text("Add Another Patrol Stop", fontSize = 12.sp)
         }
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.padding(vertical = 6.dp)
-        ) {
-            Button(onClick = onQuery) {
-                Text("Query Event", fontSize = 12.sp)
-            }
-            Button(onClick = onCancel) {
-                Text("Cancel", fontSize = 12.sp)
-            }
-        }
     }
 }

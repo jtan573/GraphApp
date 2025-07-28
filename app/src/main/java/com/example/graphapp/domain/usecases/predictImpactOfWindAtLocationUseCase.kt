@@ -1,41 +1,62 @@
 package com.example.graphapp.domain.usecases
 
 import android.util.Log
+import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
+import com.example.graphapp.data.schema.Event
+import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
 suspend fun predictImpactOfWindAtLocationUseCase(
-    stationCoordinates: String,
-    incidentMap: Map<String, String>,
+    stationCoordinates: List<String>,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository
-): Pair<Boolean?, EventNodeEntity?> {
+): List<EventDetails>? {
 
-    val inputIncident = incidentMap["Incident"]
-    val inputLocation = incidentMap["Location"]
-    if (inputIncident == null || inputLocation == null) {
-        return null to null
-    }
+    val windNode = eventRepository.getEventNodesByType("Wind")?.first()
+    if (windNode == null) return null
 
-    val (incidentLat, incidentLon) = inputLocation.split(",")
-    val (targetLat, targetLon) = stationCoordinates.split((","))
+    val incidentNodes = eventRepository.getEventNodesByType("Incident")
 
-    if (shouldCheckWind(inputIncident, embeddingRepository)) {
-        val windNode = eventRepository.getEventNodesByType("Wind")?.first()
-        if (windNode != null) {
+    val incidentsList = mutableListOf<EventDetails>()
+    incidentNodes?.forEach { incident ->
+        val incidentLoc = eventRepository.getNeighborsOfEventNodeById(incident.id)
+            .firstOrNull { it.type == "Location" }?.name
+        if (incidentLoc == null) return@forEach
+
+        val checkWind = shouldCheckWind(incident.name, embeddingRepository)
+        if (!checkWind) return@forEach
+
+        val (incidentLat, incidentLon) = incidentLoc.split(",")
+        stationCoordinates.forEach { station ->
+            val (targetLat, targetLon) = station.split((","))
+
             val affected = isLocationDownwind(
                 incidentLat.toDouble(), incidentLon.toDouble(),
                 targetLat.toDouble(), targetLon.toDouble(),
                 windNode.name)
-            return affected to windNode
+
+            if (affected) {
+                val alreadyAdded = incidentsList.any { it.eventId == incident.id }
+                if (!alreadyAdded) {
+                    incidentsList.add(EventDetails(
+                        eventId = incident.id,
+                        eventName = incident.name,
+                        eventProperties = eventRepository.getNeighborsOfEventNodeById(incident.id)
+                            .filter { it.type in SchemaPropertyNodes }
+                            .associate { it.type to it.name },
+                        simScore = 1f
+                    ))
+                }
+            }
         }
     }
-    return false to null
+    return incidentsList
 }
 
 suspend fun shouldCheckWind(

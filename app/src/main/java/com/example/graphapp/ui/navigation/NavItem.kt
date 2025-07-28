@@ -8,14 +8,22 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class NavItem(val route: String, val label: String, val icon: ImageVector?) {
+
+    // Main Components
     object Graph : NavItem("graph", "Graph", Icons.Default.Share)
     object Events : NavItem("events", "Events", Icons.Default.Star)
     object Personnel : NavItem("personnel", "Personnel", Icons.Default.Person)
     object UseCase : NavItem("useCase", "UseCase", Icons.Default.Build)
 
+    // Use Cases
     object ThreatDetectionUseCase : NavItem("threatDetection", "ThreatDetection", null)
     object SuspiciousPatternUseCase : NavItem("suspiciousPattern", "SuspiciousPattern", null)
     object RouteIntegrityUseCase : NavItem("routeIntegrity", "RouteIntegrity", null)
+
+    // Demo Purposes
+    object RouteIntegrityImage : NavItem("routeIntegrityImage", "RouteIntegrityImage", null)
+    object ReRouteIntegrityImage : NavItem("reRouteIntegrityImage", "ReRouteIntegrityImage", null)
+
 
     companion object {
         val items = listOf(Personnel, Graph, Events, UseCase)

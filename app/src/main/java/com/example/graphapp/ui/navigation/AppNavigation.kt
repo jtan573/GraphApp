@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import com.example.graphapp.ui.imageScreens.ReRouteIntegrityAnnotatedMapScreen
+import com.example.graphapp.ui.imageScreens.RouteIntegrityAnnotatedMapScreen
 import com.example.graphapp.ui.screens.GraphViewScreen
 import com.example.graphapp.ui.screens.PersonnelScreen
 import com.example.graphapp.ui.screens.EventQueryScreen
@@ -41,8 +43,17 @@ fun AppNavigation (
             SuspiciousBehaviourUseCaseScreen(viewModel = viewModel)
         }
         composable(NavItem.RouteIntegrityUseCase.route) {
-            RouteIntegrityUseCaseScreen(viewModel = viewModel)
+            RouteIntegrityUseCaseScreen(viewModel = viewModel, navController = navController)
         }
+
+        // Demo Purposes
+        composable(NavItem.RouteIntegrityImage.route) {
+            RouteIntegrityAnnotatedMapScreen(navController)
+        }
+        composable(NavItem.ReRouteIntegrityImage.route) {
+            ReRouteIntegrityAnnotatedMapScreen(navController)
+        }
+
 
     }
 }

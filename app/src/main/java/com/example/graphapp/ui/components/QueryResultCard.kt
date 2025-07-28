@@ -26,7 +26,7 @@ fun QueryResultCard(
     queryResults: QueryResult,
 ) {
     Column(modifier = Modifier
-        .padding(top = 16.dp)
+        .padding(top = 10.dp)
         .padding(horizontal = 16.dp)
     ) {
         eventAdded.forEach { (inputType, inputString) ->
@@ -161,12 +161,20 @@ fun QueryResultCard(
                         modifier = Modifier.padding(bottom = 5.dp)
                     )
 
-                    queryResults.incidentsAffectingStations.forEach { (stationDetails, incidentsList) ->
-                        Text(
-                            text = "Incidents near Stop ${stationDetails.first+1}: ${stationDetails.second}:",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(bottom = 5.dp),
-                        )
+                    queryResults.incidentsAffectingStations.forEach { (type, incidentsList) ->
+                        if (type == "Proximity") {
+                            Text(
+                                text = "Incidents occurring within 3km radius of route:",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(bottom = 5.dp),
+                            )
+                        } else {
+                            Text(
+                                text = "Incidents further away that may disrupt route due to Wind",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(bottom = 5.dp),
+                            )
+                        }
                         incidentsList.forEach { incident ->
                             Card(
                                 modifier = Modifier
@@ -188,7 +196,10 @@ fun QueryResultCard(
                                         fontStyle = FontStyle.Italic
                                     ),
                                     color = Color.DarkGray,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
+                                    modifier = Modifier.padding(
+                                        horizontal = 10.dp,
+                                        vertical = 2.dp
+                                    )
                                 )
                                 incident.eventProperties["Date"]?.let {
                                     Text(
