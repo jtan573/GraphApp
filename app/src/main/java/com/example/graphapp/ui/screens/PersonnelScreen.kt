@@ -45,15 +45,18 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.graphapp.data.schema.UiEvent
 import com.example.graphapp.ui.components.PersonnelSearchForm
 import com.example.graphapp.ui.components.GraphWebView
+import com.example.graphapp.ui.navigation.NavItem
 import com.example.graphapp.ui.viewmodels.GraphViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun PersonnelScreen(
-    viewModel: GraphViewModel
+    viewModel: GraphViewModel,
+    navController: NavController
 ) {
     val graphJson by viewModel.userGraphData.collectAsState()
     val contactState by viewModel.relevantContactState.collectAsState()
@@ -200,6 +203,17 @@ fun PersonnelScreen(
                                     color = Color.DarkGray,
                                 )
                             }
+                        }
+                    }
+                    Row (
+                        modifier = Modifier.padding(vertical = 6.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Button(
+                            onClick = { navController.navigate(NavItem.PersonnelMapImage.route) },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Text("Show Map")
                         }
                     }
                 }

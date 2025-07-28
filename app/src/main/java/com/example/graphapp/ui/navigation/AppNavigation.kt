@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import com.example.graphapp.ui.imageScreens.ContactPersonnelMapScreen
 import com.example.graphapp.ui.imageScreens.ReRouteIntegrityAnnotatedMapScreen
 import com.example.graphapp.ui.imageScreens.RouteIntegrityAnnotatedMapScreen
 import com.example.graphapp.ui.screens.GraphViewScreen
@@ -25,7 +26,7 @@ fun AppNavigation (
         startDestination = NavItem.Graph.route
     ) {
         composable(NavItem.Personnel.route) {
-            PersonnelScreen(viewModel = viewModel)
+            PersonnelScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.Graph.route) {
             GraphViewScreen(viewModel = viewModel, navController = navController)
@@ -47,12 +48,16 @@ fun AppNavigation (
         }
 
         // Demo Purposes
+        composable(NavItem.PersonnelMapImage.route) {
+            ContactPersonnelMapScreen()
+        }
         composable(NavItem.RouteIntegrityImage.route) {
             RouteIntegrityAnnotatedMapScreen(navController)
         }
         composable(NavItem.ReRouteIntegrityImage.route) {
             ReRouteIntegrityAnnotatedMapScreen(navController)
         }
+
 
 
     }

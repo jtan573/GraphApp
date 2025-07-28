@@ -23,7 +23,7 @@ sealed class NavItem(val route: String, val label: String, val icon: ImageVector
     // Demo Purposes
     object RouteIntegrityImage : NavItem("routeIntegrityImage", "RouteIntegrityImage", null)
     object ReRouteIntegrityImage : NavItem("reRouteIntegrityImage", "ReRouteIntegrityImage", null)
-
+    object PersonnelMapImage : NavItem("personnelMapImage", "PersonnelMapImage", null)
 
     companion object {
         val items = listOf(Personnel, Graph, Events, UseCase)
