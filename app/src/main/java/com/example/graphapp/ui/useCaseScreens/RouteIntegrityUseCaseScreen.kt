@@ -169,7 +169,7 @@ fun RouteIntegrityUseCaseScreen(
                         onCancel = { showForm = false }
                     )
                 }
-                queryResults?.let { QueryResultCard(eventAdded, it) }
+                queryResults?.let { QueryResultCard(eventAdded, it, navController) }
                 queryResults?.let { showPlanRoute = true }
 
                 Text(

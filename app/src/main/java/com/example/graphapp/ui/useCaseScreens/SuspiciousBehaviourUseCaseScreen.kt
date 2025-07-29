@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.graphapp.ui.components.QueryResultCard
 import com.example.graphapp.ui.components.eventForms.IncidentForm
 import com.example.graphapp.ui.viewmodels.GraphViewModel
@@ -41,7 +42,7 @@ import kotlinx.coroutines.withContext
 import kotlin.collections.set
 
 @Composable
-fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel) {
+fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: NavController) {
 
     val queryResults by viewModel.queryResults.collectAsState()
     val eventAdded by viewModel.createdEvent.collectAsState()
@@ -111,7 +112,7 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel) {
                         onCancel = { showForm = false }
                     )
                 }
-                queryResults?.let { QueryResultCard(eventAdded, it) }
+                queryResults?.let { QueryResultCard(eventAdded, it, navController) }
 
                 Text(
                     text = "List Of Incidents Reported:",

@@ -30,7 +30,6 @@ import kotlin.collections.set
 fun IncidentForm(
     fieldKeys: List<String>,
     eventInputMap: SnapshotStateMap<String, String>,
-//    onSubmit: () -> Unit,
     onQuery: () -> Unit,
     onCancel: () -> Unit
 ) {

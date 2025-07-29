@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.graphapp.data.schema.UiEvent
 import com.example.graphapp.data.schema.GraphSchema
 import com.example.graphapp.ui.components.EventForm
@@ -48,7 +49,7 @@ import com.example.graphapp.data.schema.ActiveButton
 import com.example.graphapp.ui.components.QueryResultCard
 
 @Composable
-fun EventQueryScreen(viewModel: GraphViewModel) {
+fun EventQueryScreen(viewModel: GraphViewModel, navController: NavController) {
     val filteredGraphData by viewModel.filteredGraphData.collectAsState()
     val eventAdded by viewModel.createdEvent.collectAsState()
     val queryResults by viewModel.queryResults.collectAsState()
@@ -150,7 +151,7 @@ fun EventQueryScreen(viewModel: GraphViewModel) {
                     )
                 }
 
-                queryResults?.let { QueryResultCard(eventAdded, it) }
+                queryResults?.let { QueryResultCard(eventAdded, it, navController) }
 
                 if (filteredGraphData != null) {
                     GraphWebView(

@@ -26,7 +26,7 @@ object GraphSchema {
         "Location-Impact" to "Where",
         "Motive-Impact" to "Why",
 
-        "Incident-Task" to "Resolved_By",
+        "Task-Incident" to "Resolves",
         "Outcome-Incident" to "Outcome_Of",
         "Impact-Incident" to "Impact_Of",
 //        "Description-Entity" to "Description",

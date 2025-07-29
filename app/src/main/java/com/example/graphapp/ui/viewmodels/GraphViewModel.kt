@@ -22,14 +22,13 @@ import com.example.graphapp.data.local.recommendEventsForProps
 import com.example.graphapp.data.local.updateSemanticSimilarityMatrix
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.UserActionRepository
-import com.example.graphapp.data.schema.Event
 import com.example.graphapp.data.schema.QueryResult
 import com.example.graphapp.data.schema.QueryResult.IncidentResponse
 import com.example.graphapp.domain.usecases.findAffectedRouteStationsByLocUseCase
 import com.example.graphapp.domain.usecases.findRelevantPersonnelByLocationUseCase
 import com.example.graphapp.domain.usecases.findSimilarEventByLoc
 import com.example.graphapp.domain.usecases.findSimilarEventByMethod
-import com.example.graphapp.domain.viewmodellogic.createIncidentsResponse
+import com.example.graphapp.domain.usecases.findThreatResponses
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -261,7 +260,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             val normalizedMap = map.filterValues { it.isNotBlank() }
             if (normalizedMap.isEmpty()) { return@launch }
 
-            val incidentResponse = createIncidentsResponse(
+            val incidentResponse = findThreatResponses(
                 normalizedMap, userActionRepository, embeddingRepository, eventRepository, simMatrix
             )
             _queryResults.value = incidentResponse

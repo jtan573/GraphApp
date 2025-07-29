@@ -19,6 +19,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.graphapp.ui.components.QueryResultCard
 import com.example.graphapp.ui.components.eventForms.IncidentForm
 import com.example.graphapp.ui.viewmodels.GraphViewModel
@@ -41,7 +43,7 @@ import kotlinx.coroutines.withContext
 import kotlin.collections.set
 
 @Composable
-fun ThreatDetectionUseCaseScreen(viewModel: GraphViewModel) {
+fun ThreatDetectionUseCaseScreen(viewModel: GraphViewModel, navController: NavController) {
 
     val queryResults by viewModel.queryResults.collectAsState()
     val eventAdded by viewModel.createdEvent.collectAsState()
@@ -57,8 +59,17 @@ fun ThreatDetectionUseCaseScreen(viewModel: GraphViewModel) {
         }
     }
 
+    LaunchedEffect(Unit) {
+        eventInputMap["Incident"] = "Mid-flight drone propeller failure"
+        eventInputMap["Date"] = "2024-08-17T11:20Z"
+        eventInputMap["Location"] = "1.3901,103.8072"
+        eventInputMap["Method"] = "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent"
+    }
+
     // Data for showcase purposes
-    val testData = viewModel.getDataForThreatDetectionUseCase(listOf<String>("SSG-007", "CPT-006", "SGT-001"))
+    val testData = viewModel.getDataForThreatDetectionUseCase(
+        listOf<String>("SSG-007", "CPT-006", "SGT-001")
+    )
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -70,7 +81,7 @@ fun ThreatDetectionUseCaseScreen(viewModel: GraphViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Threat Detection & Response",
+                text = "Threat Alert & Response",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 64.dp, bottom = 8.dp)
@@ -105,7 +116,7 @@ fun ThreatDetectionUseCaseScreen(viewModel: GraphViewModel) {
                         onCancel = { showForm = false }
                     )
                 }
-                queryResults?.let { QueryResultCard(eventAdded, it) }
+                queryResults?.let { QueryResultCard(eventAdded, it, navController) }
 
                 Text(
                     text = "List Of Active Users:",

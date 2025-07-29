@@ -138,6 +138,69 @@ class UserActionRepository (
             inputLocation = "1.3705,103.7100"
         )
 
+        /*-----------------------------------------
+        |    FOR THREAT DETECTION USE CASE        |
+        -----------------------------------------*/
+        // isolate crash zone
+        insertUserNodeIntoDb(
+            inputIdentifier = "SEC-118",
+            inputRole = "Field Perimeter Controller",
+            inputSpecialisation = "Manages exclusion zones and issues loudspeaker evacuation instructions during ordinance incidents.",
+            inputLocation = "1.3928,103.7962"
+        )
+        insertUserNodeIntoDb(
+            inputIdentifier = "FRS-021",
+            inputRole = "Foam Suppression Technician",
+            inputSpecialisation = "Deploys aerial foam blankets and maintains ember perimeter safety protocols around crash zones.",
+            inputLocation = "1.3875,103.8029"
+        )
+        // retrieve drone wreck
+        insertUserNodeIntoDb(
+            inputIdentifier = "DRN-047",
+            inputRole = "Drone Recovery Specialist",
+            inputSpecialisation = "Locates and retrieves downed UAVs and handles data uplink reinitialisation post-crash.",
+            inputLocation = "1.3937,103.8125"
+        )
+        insertUserNodeIntoDb(
+            inputIdentifier = "SIG-033",
+            inputRole = "Signal Systems Engineer",
+            inputSpecialisation = "Restores drone communication by configuring repeater systems and analyzing interference logs.",
+            inputLocation = "1.3889,103.8142"
+        )
+        // initiate fuel truck quarantine
+        insertUserNodeIntoDb(
+            inputIdentifier = "OPS-062",
+            inputRole = "UAV Maintenance Crew Lead",
+            inputSpecialisation = "Oversees launch pad readiness and executes pre-flight mechanical integrity checks on UAV fleets.",
+            inputLocation = "1.3863,103.8004"
+        )
+        insertUserNodeIntoDb(
+            inputIdentifier = "ENG-074",
+            inputRole = "Rotor Diagnostics Technician",
+            inputSpecialisation = "Performs debris removal and conducts fine-grain diagnostics on rotor assemblies before lift-off.",
+            inputLocation = "1.3950,103.8041"
+        )
+
+        // random close troopers
+        insertUserNodeIntoDb(
+            inputIdentifier = "INF-564",
+            inputRole = "Infantry Trooper",
+            inputSpecialisation = "Standard ground unit trained in patrol, search, and perimeter defense.",
+            inputLocation = "1.3915,103.8048"
+        )
+        insertUserNodeIntoDb(
+            inputIdentifier = "SUP-276",
+            inputRole = "Combat Support Specialist",
+            inputSpecialisation = "Assists with equipment handling and short-range tactical mobility during field deployments.",
+            inputLocation = "1.3882,103.8087"
+        )
+        insertUserNodeIntoDb(
+            inputIdentifier = "MED-143",
+            inputRole = "Field Medic",
+            inputSpecialisation = "Provides on-site trauma care and casualty evacuation for forward units.",
+            inputLocation = "1.3894,103.8105"
+        )
+
         Log.d("INITIALISE USER DATABASE", "User data initialised.")
     }
 }

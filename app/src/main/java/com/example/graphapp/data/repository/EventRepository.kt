@@ -355,7 +355,7 @@ class EventRepository(
         insertEventEdgeIntoDb(getEventNodeByNameAndType("MEDEVAC extraction", "Method"), getEventNodeByNameAndType("Extraction Completed", "Outcome"))
 
         insertEventNodeIntoDb("Guard general public", "Motive")
-        insertEventNodeIntoDb("2023-09-23T04:30Z", "Date")
+//        insertEventNodeIntoDb("2023-09-23T04:30Z", "Date")
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Echo Unit", "Entity"), getEventNodeByNameAndType("Evacuation Finalized", "Outcome"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Guard general public", "Motive"), getEventNodeByNameAndType("Evacuation Finalized", "Outcome"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-23T04:30Z", "Date"), getEventNodeByNameAndType("Evacuation Finalized", "Outcome"))
@@ -437,10 +437,10 @@ class EventRepository(
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Night operations", "Method"), getEventNodeByNameAndType("Strategic Advantage Lost", "Impact"))
 
         // --- Edges between Events ---
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("Ambush", "Incident"), getEventNodeByNameAndType("Reconnaissance Patrol", "Task"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("Roadside Bombing", "Incident"), getEventNodeByNameAndType("Convoy Escort", "Task"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("Sniper Attack", "Incident"), getEventNodeByNameAndType("Forward Observation", "Task"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("Vehicle Breakdown", "Incident"), getEventNodeByNameAndType("Resupply Mission", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Reconnaissance Patrol", "Task"), getEventNodeByNameAndType("Ambush", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Convoy Escort", "Task"), getEventNodeByNameAndType("Roadside Bombing", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Forward Observation", "Task"), getEventNodeByNameAndType("Sniper Attack", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Resupply Mission", "Task"), getEventNodeByNameAndType("Vehicle Breakdown", "Incident"))
 
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Reconnaissance Patrol", "Outcome"), getEventNodeByNameAndType("Extraction Completed", "Task"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Convoy Escort", "Outcome"), getEventNodeByNameAndType("Objective Secured", "Task"))
@@ -450,7 +450,125 @@ class EventRepository(
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Resource Shortage", "Impact"), getEventNodeByNameAndType("Roadside Bombing", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Increased Hostilities", "Impact"), getEventNodeByNameAndType("Sniper Attack", "Incident"))
 
-        // Incidents for Suspicious Behaviour Detection
+        /*-----------------------------------------
+        |    FOR THREAT DETECTION USE CASE        |
+        -----------------------------------------*/
+        insertEventNodeIntoDb("Drone Battery Ignition During Patrol", "Incident")
+        insertEventNodeIntoDb("Aerial Perimeter Recon", "Motive")
+        insertEventNodeIntoDb("Battery thermal runaway mid-air caused fireball and crash in vegetation zone", "Method")
+        insertEventNodeIntoDb("2025-01-18T08:00Z", "Date")
+        insertEventNodeIntoDb("1.3331,103.8198", "Location")
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Aerial Perimeter Recon", "Motive"), getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Battery thermal runaway mid-air caused fireball and crash in vegetation zone", "Method"), getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("2025-01-18T08:00Z", "Date"), getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3331,103.8198", "Location"), getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident"))
+
+        insertEventNodeIntoDb("Drone Communication Loss Over Fire Zone", "Incident")
+        insertEventNodeIntoDb("Fire Perimeter Scouting", "Motive")
+        insertEventNodeIntoDb("Thermal interference disrupted uplink, causing drone to hover erratically before crash-landing near treeline", "Method")
+        insertEventNodeIntoDb("2025-01-18T10:45Z", "Date")
+        insertEventNodeIntoDb("1.3683,103.8454", "Location")
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Fire Perimeter Scouting", "Motive"), getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Thermal interference disrupted uplink, causing drone to hover erratically before crash-landing near treeline", "Method"), getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("2025-01-18T10:45Z", "Date"), getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3683,103.8454", "Location"), getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident"))
+
+        insertEventNodeIntoDb("Drone Rotor Jammed During Lift-Off", "Incident")
+        insertEventNodeIntoDb("Pre-Deployment Check", "Motive")
+        insertEventNodeIntoDb("Dust ingress in rotor hub stalled motor mid-ascent, causing drone to crash near fire truck", "Method")
+        insertEventNodeIntoDb("2025-01-18T13:20Z", "Date")
+        insertEventNodeIntoDb("1.3012,103.7880", "Location")
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Pre-Deployment Check", "Motive"), getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Dust ingress in rotor hub stalled motor mid-ascent, causing drone to crash near fire truck", "Method"), getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("2025-01-18T13:20Z", "Date"), getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3012,103.7880", "Location"), getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident"))
+
+        insertEventNodeIntoDb("Isolate Crash Zone and Suppress Ember Spread", "Task")
+        insertEventNodeIntoDb("Prevent vegetation ignition from battery combustion debris", "Motive")
+        insertEventNodeIntoDb("Deploy foam suppressant around crash area and establish ember watch perimeter", "Method")
+        insertEventNodeIntoDb("2025-01-18T08:05Z", "Date")
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Prevent vegetation ignition from battery combustion debris", "Motive"), getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Deploy foam suppressant around crash area and establish ember watch perimeter", "Method"), getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("2025-01-18T08:05Z", "Date"), getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3331,103.8198", "Location"), getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task"))
+
+        insertEventNodeIntoDb("Retrieve Drone Wreck and Reset Uplink Protocols", "Task")
+        insertEventNodeIntoDb("Resume safe flight control over surveillance drones", "Motive")
+        insertEventNodeIntoDb("Track last known GPS path, recover wreckage, and reconfigure thermal-resistant signal repeater", "Method")
+        insertEventNodeIntoDb("2025-01-18T10:50Z", "Date")
+        insertEventNodeIntoDb("1.3684,103.8454", "Location")
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Resume safe flight control over surveillance drones", "Motive"), getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Track last known GPS path, recover wreckage, and reconfigure thermal-resistant signal repeater", "Method"), getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("2025-01-18T10:50Z", "Date"), getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3684,103.8454", "Location"), getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task"))
+
+        insertEventNodeIntoDb("Clear Launch Pad and Inspect Fleet", "Task")
+        insertEventNodeIntoDb("Prevent launch delays and rule out drone batch-wide mechanical faults", "Motive")
+        insertEventNodeIntoDb("Clear debris from lift pad and conduct rotor health scan across nearby UAVs", "Method")
+        insertEventNodeIntoDb("2025-01-18T13:21Z", "Date")
+        insertEventNodeIntoDb("1.3013,103.7880", "Location")
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Prevent launch delays and rule out drone batch-wide mechanical faults", "Motive"), getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Clear debris from lift pad and conduct rotor health scan across nearby UAVs", "Method"), getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("2025-01-18T13:21Z", "Date"), getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3013,103.7880", "Location"), getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task"))
+
+        insertEventNodeIntoDb("Unmanned Zone Lost Visual Coverage", "Impact")
+        insertEventNodeIntoDb("Fire Line Command Unit", "Entity")
+        insertEventNodeIntoDb("Uplink loss triggered blackout over 400m stretch of fire line, delaying spread estimation", "Method")
+        insertEventNodeIntoDb("2025-01-18T13:25Z", "Date")
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Fire Line Command Unit", "Entity"), getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Uplink loss triggered blackout over 400m stretch of fire line, delaying spread estimation", "Method"), getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("2025-01-18T13:25Z", "Date"), getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3012,103.7880", "Location"), getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact"))
+
+        insertEventNodeIntoDb("Small-Scale Fire Ignited in Crash Radius", "Impact")
+        insertEventNodeIntoDb("Drone Patrol Zone Crew", "Entity")
+        insertEventNodeIntoDb("Battery fragments landed in brush, igniting localized ground fire before suppression team arrived", "Method")
+        insertEventNodeIntoDb("2025-01-18T08:01Z", "Date")
+        insertEventNodeIntoDb("1.3531,103.8178", "Location")
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Drone Patrol Zone Crew", "Entity"), getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Battery fragments landed in brush, igniting localized ground fire before suppression team arrived", "Method"), getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("2025-01-18T08:01Z", "Date"), getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3531,103.8178", "Location"), getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact"))
+
+        insertEventNodeIntoDb("Launch Operations Temporarily Suspended", "Impact")
+        insertEventNodeIntoDb("UAV Ground Control Team", "Entity")
+        insertEventNodeIntoDb("Pad debris and rotor jam caused a 30-minute hold on drone launch queue", "Method")
+        insertEventNodeIntoDb("2025-01-18T10:46Z", "Date")
+        insertEventNodeIntoDb("1.3685,103.8454", "Location")
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("UAV Ground Control Team", "Entity"), getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("Pad debris and rotor jam caused a 30-minute hold on drone launch queue", "Method"), getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("2025-01-18T10:46Z", "Date"), getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.3685,103.8454", "Location"), getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact"))
+
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task"),
+            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident")
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task"),
+            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident")
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task"),
+            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident")
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact"),
+            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident")
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact"),
+            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident")
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact"),
+            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident")
+        )
+
+        /*-----------------------------------------
+        |    FOR SUSPICIOUS BEHAVIOUR USE CASE    |
+        -----------------------------------------*/
         insertEventNodeIntoDb("Individual Observes Entry Point", "Incident")
         insertEventNodeIntoDb("Unidentified Male", "Entity")
         insertEventNodeIntoDb("2023-09-10T08:45Z", "Date")
@@ -554,12 +672,12 @@ class EventRepository(
         insertEventNodeIntoDb("Militant Group Foxtrot", "Entity")
         insertEventNodeIntoDb("Staging ground for ambush", "Motive")
         insertEventNodeIntoDb("2023-09-13T07:53Z", "Date")
-        insertEventNodeIntoDb("1.2948,103.7521", "Location")
+        insertEventNodeIntoDb("1.2948,103.0221", "Location")
         insertEventNodeIntoDb("Camouflaged Tent Setup", "Method")
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Militant Group Foxtrot", "Entity"), getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Staging ground for ambush", "Motive"), getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("2023-09-13T07:53Z", "Date"), getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident"))
-        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.2948,103.7521", "Location"), getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident"))
+        insertEventEdgeIntoDb(getEventNodeByNameAndType("1.2948,103.0221", "Location"), getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident"))
         insertEventEdgeIntoDb(getEventNodeByNameAndType("Camouflaged Tent Setup", "Method"), getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident"))
 
         // Testing direction of airflow thing

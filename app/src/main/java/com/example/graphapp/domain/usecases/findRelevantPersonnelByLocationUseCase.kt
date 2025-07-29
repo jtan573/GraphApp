@@ -1,6 +1,7 @@
 package com.example.graphapp.domain.usecases
 
 import android.location.Location
+import android.util.Log
 import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.UserActionRepository
@@ -37,7 +38,6 @@ suspend fun findRelevantPersonnelByLocationUseCase(
             } else {
                 nearbyPersonnel.add(Triple(user, distance.toInt(), 0f))
             }
-
         }
     }
 

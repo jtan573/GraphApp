@@ -4,8 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import com.example.graphapp.ui.imageScreens.AlertNearbyTroopersScreen
+import com.example.graphapp.ui.imageScreens.AssignTaskToTroopersScreen
 import com.example.graphapp.ui.imageScreens.ContactPersonnelMapScreen
 import com.example.graphapp.ui.imageScreens.ReRouteIntegrityAnnotatedMapScreen
+import com.example.graphapp.ui.imageScreens.ReceivedTaskScreen
 import com.example.graphapp.ui.imageScreens.RouteIntegrityAnnotatedMapScreen
 import com.example.graphapp.ui.screens.GraphViewScreen
 import com.example.graphapp.ui.screens.PersonnelScreen
@@ -32,16 +35,16 @@ fun AppNavigation (
             GraphViewScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.Events.route) {
-            EventQueryScreen(viewModel = viewModel)
+            EventQueryScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.UseCase.route) {
             UseCaseScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.ThreatDetectionUseCase.route) {
-            ThreatDetectionUseCaseScreen(viewModel = viewModel)
+            ThreatDetectionUseCaseScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.SuspiciousPatternUseCase.route) {
-            SuspiciousBehaviourUseCaseScreen(viewModel = viewModel)
+            SuspiciousBehaviourUseCaseScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.RouteIntegrityUseCase.route) {
             RouteIntegrityUseCaseScreen(viewModel = viewModel, navController = navController)
@@ -57,8 +60,14 @@ fun AppNavigation (
         composable(NavItem.ReRouteIntegrityImage.route) {
             ReRouteIntegrityAnnotatedMapScreen(navController)
         }
-
-
-
+        composable(NavItem.AlertTroopersScreen.route) {
+            AlertNearbyTroopersScreen(navController)
+        }
+        composable(NavItem.AssignTaskScreen.route) {
+            AssignTaskToTroopersScreen(navController = navController)
+        }
+        composable(NavItem.ReceivedTaskScreen.route) {
+            ReceivedTaskScreen()
+        }
     }
 }

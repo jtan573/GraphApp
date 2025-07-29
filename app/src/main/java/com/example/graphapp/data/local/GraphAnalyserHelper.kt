@@ -371,10 +371,15 @@ fun computeTopRecommendations(
         ).toFloat()
 
         scores.add(candidate to simScore)
+
+        Log.d("TOPFORTYPE", "${candidate.name}: $simScore")
     }
 
     // 3. Sort & take top 3
     val topForType = scores.sortedByDescending { it.second }.take(3)
+    topForType.forEach { (top, score) ->
+        Log.d("TOPFORTYPE", "${top.name}: $score")
+    }
 
     // 4. Populate recommendations
     for ((simNode, _) in topForType) {

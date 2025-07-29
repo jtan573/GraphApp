@@ -39,7 +39,7 @@ fun UseCaseScreen(
                 }
             }
         },
-        "Threat Detections and Response" to {
+        "Threat Alert and Response" to {
             navController.navigate(NavItem.ThreatDetectionUseCase.route) {
                 launchSingleTop = true
                 restoreState = true

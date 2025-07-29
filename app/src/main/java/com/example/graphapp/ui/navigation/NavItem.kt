@@ -24,6 +24,9 @@ sealed class NavItem(val route: String, val label: String, val icon: ImageVector
     object RouteIntegrityImage : NavItem("routeIntegrityImage", "RouteIntegrityImage", null)
     object ReRouteIntegrityImage : NavItem("reRouteIntegrityImage", "ReRouteIntegrityImage", null)
     object PersonnelMapImage : NavItem("personnelMapImage", "PersonnelMapImage", null)
+    object AlertTroopersScreen : NavItem("alertTroopersScreen", "AlertTroopersScreen", null)
+    object AssignTaskScreen : NavItem("assignTaskScreen", "AssignTaskScreen", null)
+    object ReceivedTaskScreen : NavItem("receivedTaskScreen", "ReceivedTaskScreen", null)
 
     companion object {
         val items = listOf(Personnel, Graph, Events, UseCase)

@@ -1,18 +1,15 @@
-package com.example.graphapp.domain.viewmodellogic
+package com.example.graphapp.domain.usecases
 
-import com.example.graphapp.data.api.EventDetails
+import android.util.Log
 import com.example.graphapp.data.api.ProvideRecommendationsResponse
+import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.repository.UserActionRepository
 import com.example.graphapp.data.schema.QueryResult.IncidentResponse
-import com.example.graphapp.domain.usecases.findRelevantPersonnelByLocationUseCase
-import com.example.graphapp.domain.usecases.findRelevantEventsUseCase
-import com.example.graphapp.domain.usecases.findSimilarEventByLoc
-import com.example.graphapp.domain.usecases.findSimilarEventByMethod
 
 // App response to INCIDENTS
-suspend fun createIncidentsResponse(
+suspend fun findThreatResponses(
     normalizedMap: Map<String, String>,
     userActionRepository: UserActionRepository,
     embeddingRepository: EmbeddingRepository,
@@ -22,18 +19,17 @@ suspend fun createIncidentsResponse(
 
     // Response 1: Active personnel with related specialisation
     val threatLocation = normalizedMap["Location"]
-    val threatDescription = normalizedMap["Description"]
     val nearbyPersonnelMap = findRelevantPersonnelByLocationUseCase(
         userActionRepository = userActionRepository,
         embeddingRepository = embeddingRepository,
         threatLocation = threatLocation,
-        threatDescription = threatDescription,
         radiusInMeters = 3000f
     )
 
     // Response 2: Similar Incidents -> What are the possible impacts?
+    val relevantProperties = listOf<String>("Incident", "Method", "Motive")
     val (_, _ ,impactResults) = findRelevantEventsUseCase(
-        statusEventMap = normalizedMap,
+        statusEventMap = normalizedMap.filter { it.key in relevantProperties },
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
         simMatrix = simMatrix,
@@ -44,34 +40,48 @@ suspend fun createIncidentsResponse(
         impactResults.recommendations["Impact"]
     } else { null }
 
-    // Response 3: Similar Incidents by Method/Location -> Suspicious?
-    val similarIncidentsFound = mutableMapOf<String, List<EventDetails>>()
-    val similarIncidentsFoundByMethod = findSimilarEventByMethod(
+    // Response 3: Similar incidents -> Tasks
+    val (_, _ ,taskResults) = findRelevantEventsUseCase(
         statusEventMap = normalizedMap,
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
-        queryKey = "Incident"
+        simMatrix = simMatrix,
+        queryKey = "Task"
     )
-    if (similarIncidentsFoundByMethod != null) {
-        similarIncidentsFound.put("Method", similarIncidentsFoundByMethod)
-    }
-    val similarIncidentsFoundByLocation = findSimilarEventByLoc(
-        statusEventMap = normalizedMap,
-        eventRepository = eventRepository,
-        embeddingRepository = embeddingRepository,
-        queryKey = "Incident"
-    )
-    if (similarIncidentsFoundByLocation != null) {
-        similarIncidentsFound.put("Location", similarIncidentsFoundByLocation)
+    val potentialTasks = if (taskResults is ProvideRecommendationsResponse
+        && taskResults.recommendations.isNotEmpty()) {
+        taskResults.recommendations["Task"]
+    } else { null }
+
+    // Response 4: Relevant personnel
+    val taskingMap = mutableMapOf<String, List<UserNodeEntity>>()
+    potentialTasks?.forEach { task ->
+        val taskNode = eventRepository.getEventNodeByNameAndType(task, "Task")
+        if (taskNode != null) {
+            val method = eventRepository.getNeighborsOfEventNodeById(taskNode.id)
+                .first { it.type == "Method" }.name
+
+            val taskDescription = taskNode.name + method
+            val nearbyPersonnelMap = findRelevantPersonnelByLocationUseCase(
+                userActionRepository = userActionRepository,
+                embeddingRepository = embeddingRepository,
+                threatLocation = threatLocation,
+                threatDescription = taskDescription,
+                radiusInMeters = 5000f,
+            )
+            if (nearbyPersonnelMap != null) {
+                val top3 = nearbyPersonnelMap.entries.take(3).associate { it.key to it.value }
+                taskingMap.put("$task: $method", top3.keys.toList())
+            }
+        }
     }
 
     // Create function response
     val incidentResponse = IncidentResponse(
         nearbyActiveUsersMap = nearbyPersonnelMap,
         potentialImpacts = potentialImpacts,
-        similarIncidents = if (similarIncidentsFound.isNotEmpty()) {
-            similarIncidentsFound
-        } else { null }
+        potentialTasks = potentialTasks,
+        taskAssignment = taskingMap
     )
 
     return incidentResponse

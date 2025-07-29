@@ -153,8 +153,8 @@ fun recommendEventForEvent(
     simMatrix: Map<Pair<Long, Long>, Float>,
     newEventNodes: List<EventNodeEntity>,
     queryKey: String? = null,
-    isQuery: Boolean,
-    ) : Triple<List<EventNodeEntity>, List<EventEdgeEntity>, ProvideRecommendationsResponse> {
+    isQuery: Boolean
+) : Triple<List<EventNodeEntity>, List<EventEdgeEntity>, ProvideRecommendationsResponse> {
 
     val inputKeyNode = newEventNodes.single { it.type in SchemaKeyNodes }
 
