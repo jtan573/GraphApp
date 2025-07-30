@@ -241,7 +241,7 @@ suspend fun recommendEventsForProps (
     embeddingRepository: EmbeddingRepository,
     queryKey: String? = null,
     getTopThreeResultsOnly: Boolean = true,
-    customThreshold: Float = 0.5f
+    customThreshold: Float = 0.0f
 ) : Triple<List<EventNodeEntity>?, List<EventEdgeEntity>?, DiscoverEventsResponse> {
 
     // Compute similarity of each candidate to event nodes
@@ -254,6 +254,8 @@ suspend fun recommendEventsForProps (
             eventPropNodesByType[type] = eventRepository.getTemporaryEventNode(value, type, embeddingRepository)
         }
     }
+
+    Log.d("EVENTPROPS", "eventprops: ${eventPropNodesByType.map { it.key }}")
 
     // For each key node type, compute top 3
     val topRecommendationsByType = computeSemanticSimilarEventsForProps(

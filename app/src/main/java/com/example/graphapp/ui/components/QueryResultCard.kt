@@ -183,7 +183,7 @@ fun QueryResultCard(
                                 Text(
                                     text = "${trooper.identifier}: ${trooper.role}",
                                     modifier = Modifier
-                                        .padding(bottom = 4.dp)
+                                        .padding(bottom = 3.dp)
                                         .padding(horizontal = 10.dp),
                                     style = MaterialTheme.typography.labelLarge,
                                     color = Color.DarkGray,
@@ -191,6 +191,7 @@ fun QueryResultCard(
                                 Text(
                                     text = trooper.specialisation,
                                     modifier = Modifier
+                                        .padding(bottom = 8.dp)
                                         .padding(horizontal = 10.dp),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = Color.DarkGray,
@@ -214,11 +215,23 @@ fun QueryResultCard(
 
 
                 queryResults.similarIncidents?.forEach { (type, recList) ->
-                    Text(
-                        text = "Similar Events (by $type)",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 5.dp),
-                    )
+                    Row (
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Similar Events (by $type)",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(bottom = 5.dp),
+                        )
+                        Button(
+                            onClick = { navController.navigate(NavItem.AssignTaskScreen.route) },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Text("Assign Task")
+                        }
+                    }
                     recList.forEach { event ->
                         Card(
                             modifier = Modifier

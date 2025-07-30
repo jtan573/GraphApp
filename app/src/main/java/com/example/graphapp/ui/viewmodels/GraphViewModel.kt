@@ -25,9 +25,8 @@ import com.example.graphapp.data.repository.UserActionRepository
 import com.example.graphapp.data.schema.QueryResult
 import com.example.graphapp.data.schema.QueryResult.IncidentResponse
 import com.example.graphapp.domain.usecases.findAffectedRouteStationsByLocUseCase
+import com.example.graphapp.domain.usecases.findRelatedSuspiciousEventsUseCase
 import com.example.graphapp.domain.usecases.findRelevantPersonnelByLocationUseCase
-import com.example.graphapp.domain.usecases.findSimilarEventByLoc
-import com.example.graphapp.domain.usecases.findSimilarEventByMethod
 import com.example.graphapp.domain.usecases.findThreatResponses
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -282,11 +281,6 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Function for Use Case 2: Threat Detection and Response
-    fun findRelevantDataForThreatResponse() {
-        // TODO
-    }
-
     // Function for Use Case 2: Helper to get Sample Data for Threat Detection
     fun getDataForThreatDetectionUseCase(identifiers: List<String>): List<UserNodeEntity> {
         val listOfUsers = mutableListOf<UserNodeEntity>()
@@ -301,30 +295,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         val normalizedMap = map.filterValues { it.isNotBlank() }
         if (normalizedMap.isEmpty()) { return IncidentResponse() }
 
-        val similarIncidentsFound = mutableMapOf<String, List<EventDetails>>()
-        val similarIncidentsFoundByMethod = findSimilarEventByMethod(
-            statusEventMap = normalizedMap,
-            eventRepository = eventRepository,
-            embeddingRepository = embeddingRepository,
-            queryKey = "Incident"
-        )
-        if (similarIncidentsFoundByMethod != null) {
-            similarIncidentsFound.put("Method", similarIncidentsFoundByMethod)
-        }
-        val similarIncidentsFoundByLocation = findSimilarEventByLoc(
-            statusEventMap = normalizedMap,
-            eventRepository = eventRepository,
-            embeddingRepository = embeddingRepository,
-            queryKey = "Incident"
-        )
-        if (similarIncidentsFoundByLocation != null) {
-            similarIncidentsFound.put("Location", similarIncidentsFoundByLocation)
-        }
-
-        val incidentResponse = IncidentResponse(
-            similarIncidents = if (similarIncidentsFound.isNotEmpty()) {
-                similarIncidentsFound
-            } else { null }
+        val incidentResponse = findRelatedSuspiciousEventsUseCase(
+            normalizedMap, eventRepository, embeddingRepository
         )
 
         _queryResults.value = incidentResponse

@@ -47,13 +47,14 @@ fun getPropertyEmbeddings(
         neighbourNodes.addAll(newInputNeighbours)
     } else {
         neighbourNodes.addAll(repository.getNeighborsOfEventNodeById(nodeId))
+        neighbourNodes.add(repository.getEventNodeById(nodeId)!!)
     }
 
     val semanticPropEmbeddings = mutableMapOf<String, FloatArray?>()
     val computedPropStrings = mutableMapOf<String, String?>()
 
     for (node in neighbourNodes) {
-        if (node.type in SchemaSemanticPropertyNodes) {
+        if (node.type in (SchemaSemanticPropertyNodes + SchemaKeyNodes)) {
             semanticPropEmbeddings[node.type] = node.embedding
         }
         if (node.type in SchemaComputedPropertyNodes) {
@@ -78,7 +79,7 @@ fun computeSemanticSimilarity(
     val e2 = getPropertyEmbeddings(nodeId2, eventRepository)
 
     val similarities = mutableListOf<Float>()
-    for (prop in SchemaSemanticPropertyNodes) {
+    for (prop in (SchemaSemanticPropertyNodes + SchemaKeyNodes)) {
         val v1 = e1.first[prop]
         val v2 = e2.first[prop]
         if (v1 == null || v2 == null) continue
@@ -227,7 +228,7 @@ fun computeSemanticSimilarEventsForProps(
     onlyPropertiesMap: Map<String, EventNodeEntity>,
     queryKey: String? = null,
     getTopThreeResultsOnly: Boolean = true,
-    threshold: Float = 0.4f,
+    threshold: Float = 0.0f,
 ): Map<String, List<Pair<Long, Float>>>{
 
     val allNodes = eventRepository.getAllEventNodes()
@@ -242,14 +243,24 @@ fun computeSemanticSimilarEventsForProps(
     }
 
     val propsInEvent = onlyPropertiesMap.values.toList()
+    Log.d("CHECK PROPS", "PROPS: ${propsInEvent.map { it.name }}")
 
     val simMatrix = mutableMapOf<String, MutableList<Pair<Long, Float>>>()
 
     for ((eventType, keyNodeIds) in allKeyNodeIdsByType) {
         for (keyNodeId in keyNodeIds) {
-            val sim = computeSemanticSimilarity(-0L, keyNodeId, eventRepository, embeddingRepository, threshold, propsInEvent)
+            val sim = computeSemanticSimilarity(
+                nodeId1 = -0L,
+                nodeId2 = keyNodeId,
+                eventRepository = eventRepository,
+                embeddingRepository = embeddingRepository,
+                threshold = threshold,
+                newInputNeighbours = propsInEvent
+            )
             val freqFactor = ln(1f + (eventRepository.getEventNodeFrequencyOfNodeId(keyNodeId) ?: 1)).toFloat()
+
             val adjustedSim = sim * freqFactor
+            Log.d("CHECK SIMILARITY SCORE", "SIMSCORE: $adjustedSim")
             if (adjustedSim > threshold) {
                 simMatrix.getOrPut(eventType) { mutableListOf() }.add(keyNodeId to adjustedSim)
             }

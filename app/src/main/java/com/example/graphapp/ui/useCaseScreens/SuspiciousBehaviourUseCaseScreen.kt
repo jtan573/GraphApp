@@ -60,11 +60,11 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: N
 
     // Data for showcase purposes
     val testData = viewModel.getDataForSuspiciousBehaviourUseCase(listOf<String>(
-        "Individual Observes Entry Point",
-        "Repeated Walk-By Near Security Fence",
-        "Note-taking by Bus Stop Near Gate",
-        "Object Handover at Park Bench",
-        "Group Seen Marking Utility Pole"
+        "Subject loiters near restricted zone appearing to scan the area",
+        "Subject spotted wandering aimlessly along perimeter fencing",
+        "Person discreetly writing or sketching near checkpoint structure",
+        "Unusual handoff of item occurs at public bench with minimal interaction",
+        "Small group appears to annotate or inspect public utility fixture"
     ))
 
     Column(
@@ -77,7 +77,7 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: N
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Threat Detection & Response",
+                text = "Suspicious Behaviour Detection",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 64.dp, bottom = 8.dp)
