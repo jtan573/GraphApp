@@ -12,7 +12,8 @@ class EventDatabaseQueries() {
         type: String,
         description: String? = null,
         frequency: Int? = 1,
-        embedding: FloatArray
+        embedding: FloatArray,
+        tags: MutableList<String> = mutableListOf<String>()
     ) {
         nodesBox.put(
             EventNodeEntity(
@@ -20,7 +21,8 @@ class EventDatabaseQueries() {
                 type = type,
                 description = description,
                 frequency = frequency,
-                embedding = embedding
+                embedding = embedding,
+                tags = tags
             )
         )
         return
@@ -108,5 +110,19 @@ class EventDatabaseQueries() {
             (EventEdgeEntity_.firstNodeId.equal(first).and(EventEdgeEntity_.secondNodeId.equal(second)))
                 .or(EventEdgeEntity_.firstNodeId.equal(second).and(EventEdgeEntity_.secondNodeId.equal(first)))
         ).build().findFirst()
+    }
+
+    fun findNearestNeighbourOfEventNode(nodeEntity: EventNodeEntity) : Map<EventNodeEntity, Float>? {
+        val resultsMap = mutableMapOf<EventNodeEntity, Float>()
+        nodesBox.query(
+            EventNodeEntity_.type.equal(nodeEntity.type)
+                .and(EventNodeEntity_.name.nearestNeighbors(nodeEntity.embedding!!, 3))
+        ).build().findWithScores()
+            .forEach{ result ->
+                if (result.score > 0f) {
+                    resultsMap.put(result.get(), result.score.toFloat())
+                }
+            }
+        return resultsMap
     }
 }

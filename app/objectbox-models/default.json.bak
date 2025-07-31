@@ -58,7 +58,7 @@
     },
     {
       "id": "5:5472720358370264630",
-      "lastPropertyId": "7:750486348623510351",
+      "lastPropertyId": "8:5261240502134639909",
       "name": "EventNodeEntity",
       "properties": [
         {
@@ -98,13 +98,18 @@
           "id": "7:750486348623510351",
           "name": "cachedNodeIds",
           "type": 13
+        },
+        {
+          "id": "8:5261240502134639909",
+          "name": "tags",
+          "type": 30
         }
       ],
       "relations": []
     },
     {
       "id": "7:8417389103419390607",
-      "lastPropertyId": "6:2502219388949948056",
+      "lastPropertyId": "7:4450871250560969449",
       "name": "UserNodeEntity",
       "properties": [
         {
@@ -139,6 +144,11 @@
           "indexId": "3:8103902868688686740",
           "type": 28,
           "flags": 8
+        },
+        {
+          "id": "7:4450871250560969449",
+          "name": "currentLocation",
+          "type": 9
         }
       ],
       "relations": []

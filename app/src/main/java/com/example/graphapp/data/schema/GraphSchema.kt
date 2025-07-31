@@ -45,7 +45,7 @@ object GraphSchema {
     )
 
     val SchemaSemanticPropertyNodes = listOf(
-        "Entity", "Method", "Motive"
+        "Entity", "Method", "Motive", "Task", "Incident", "Outcome", "Impact"
     )
 
     val SchemaComputedPropertyNodes = listOf(

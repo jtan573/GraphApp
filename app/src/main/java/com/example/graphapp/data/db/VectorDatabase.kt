@@ -40,7 +40,8 @@ data class EventNodeEntity(
     var frequency: Int? = 1,
     @HnswIndex(dimensions=384, distanceType = VectorDistanceType.COSINE)
     var embedding: FloatArray? = null,
-    var cachedNodeIds: MutableMap<String, MutableList<Long>> = mutableMapOf()
+    var cachedNodeIds: MutableMap<String, MutableList<Long>> = mutableMapOf(),
+    var tags: MutableList<String> = mutableListOf<String>()
 )
 
 @Entity
@@ -49,6 +50,14 @@ data class EventEdgeEntity(
     var firstNodeId: Long,
     var secondNodeId: Long,
     var edgeType: String? = null
+)
+
+@Entity
+data class DictionaryNodeEntity(
+    @Id var id: Long = 0,
+    var value: String,
+    @HnswIndex(dimensions=384, distanceType = VectorDistanceType.COSINE)
+    var embedding: FloatArray? = null,
 )
 
 class LongListConverter : PropertyConverter<MutableList<Long>, String> {

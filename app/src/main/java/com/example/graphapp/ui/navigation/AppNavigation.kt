@@ -10,9 +10,9 @@ import com.example.graphapp.ui.imageScreens.ContactPersonnelMapScreen
 import com.example.graphapp.ui.imageScreens.ReRouteIntegrityAnnotatedMapScreen
 import com.example.graphapp.ui.imageScreens.ReceivedTaskScreen
 import com.example.graphapp.ui.imageScreens.RouteIntegrityAnnotatedMapScreen
+import com.example.graphapp.ui.imageScreens.SuspiciousActivityByLocationScreen
 import com.example.graphapp.ui.screens.GraphViewScreen
 import com.example.graphapp.ui.screens.PersonnelScreen
-import com.example.graphapp.ui.screens.EventQueryScreen
 import com.example.graphapp.ui.screens.UseCaseScreen
 import com.example.graphapp.ui.useCaseScreens.RouteIntegrityUseCaseScreen
 import com.example.graphapp.ui.useCaseScreens.SuspiciousBehaviourUseCaseScreen
@@ -33,9 +33,6 @@ fun AppNavigation (
         }
         composable(NavItem.Graph.route) {
             GraphViewScreen(viewModel = viewModel, navController = navController)
-        }
-        composable(NavItem.Events.route) {
-            EventQueryScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.UseCase.route) {
             UseCaseScreen(viewModel = viewModel, navController = navController)
@@ -68,6 +65,9 @@ fun AppNavigation (
         }
         composable(NavItem.ReceivedTaskScreen.route) {
             ReceivedTaskScreen()
+        }
+        composable(NavItem.SuspiciousLocationScreen.route) {
+            SuspiciousActivityByLocationScreen()
         }
     }
 }

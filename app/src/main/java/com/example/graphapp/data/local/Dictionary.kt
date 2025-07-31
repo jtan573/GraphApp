@@ -1,5 +1,9 @@
 package com.example.graphapp.data.local
 
+val SchemaSuspiciousProperties = listOf<String>(
+    "Task", "Incident", "Method", "Motive"
+)
+
 val suspiciousDict = listOf(
     "loitering",
     "lurking",
@@ -21,6 +25,7 @@ val suspiciousDict = listOf(
     "pretending to talk on phone",
     "pausing near restricted zones",
     "observing security routines",
+    "Subject loiters near restricted zone appearing to scan the area",
 
     // objects
     "unattended bag",

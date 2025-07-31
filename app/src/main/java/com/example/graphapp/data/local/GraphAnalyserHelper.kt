@@ -6,12 +6,14 @@ import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
+import com.example.graphapp.data.schema.Event
 import com.example.graphapp.data.schema.GraphSchema.SchemaComputedPropertyNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaPropertyNodes
 import com.example.graphapp.data.schema.GraphSchema.SchemaSemanticPropertyNodes
 import com.example.graphapp.domain.usecases.restoreLocationFromString
 import kotlin.collections.iterator
+import kotlin.io.path.Path
 import kotlin.math.ln
 
 /* -------------------------------------------------
@@ -54,7 +56,7 @@ fun getPropertyEmbeddings(
     val computedPropStrings = mutableMapOf<String, String?>()
 
     for (node in neighbourNodes) {
-        if (node.type in (SchemaSemanticPropertyNodes + SchemaKeyNodes)) {
+        if (node.type in (SchemaSemanticPropertyNodes)) {
             semanticPropEmbeddings[node.type] = node.embedding
         }
         if (node.type in SchemaComputedPropertyNodes) {
@@ -75,11 +77,12 @@ fun computeSemanticSimilarity(
     thresholdDistance: Float? = 5000f
 ): Float {
 
+    // Get similarity scores (cosine distance)
     val e1 = getPropertyEmbeddings(nodeId1, eventRepository, newInputNeighbours)
     val e2 = getPropertyEmbeddings(nodeId2, eventRepository)
-
     val similarities = mutableListOf<Float>()
-    for (prop in (SchemaSemanticPropertyNodes + SchemaKeyNodes)) {
+
+    for (prop in (SchemaSemanticPropertyNodes)) {
         val v1 = e1.first[prop]
         val v2 = e2.first[prop]
         if (v1 == null || v2 == null) continue
@@ -171,56 +174,56 @@ fun updateSemanticSimilarityMatrix(
     return simMatrix
 }
 
-suspend fun computeSemanticMatrixForQuery(
-    eventRepository: EventRepository,
-    embeddingRepository: EmbeddingRepository,
-    simMatrix: Map<Pair<Long, Long>, Float>,
-    newEventMap: Map<String, String>,
-    inputEventType: String,
-    threshold: Float = 0.5f
-): Pair<Map<Pair<Long, Long>, Float>, List<EventNodeEntity>> {
-
-    val allNodes = eventRepository.getAllEventNodes()
-    val allKeyNodeIds = allNodes.filter { it.type == inputEventType }.map { it.id }
-
-    // Get filtered similarity matrix
-    val filteredSimMatrix = simMatrix.filter { (keyPair, _) ->
-        keyPair.first in allKeyNodeIds || keyPair.second in allKeyNodeIds
-    }.toMutableMap()
-
-    // Get IDs of the newly added nodes
-    val newKeyNode = newEventMap.entries.filter{ it.key in SchemaKeyNodes }
-        .map { (type, name) ->
-            EventNodeEntity(
-                id = (-1L * (1..1_000_000).random()),
-                name = name,
-                type = type,
-                embedding = embeddingRepository.getTextEmbeddings(name)
-            )
-        }.single()
-
-    val newPropertyNodes = newEventMap.entries.filter{ it.key in SchemaPropertyNodes }
-        .map { (type, name) ->
-            EventNodeEntity(
-                id = (-1L * (1..1_000_000).random()),
-                name = name,
-                type = type,
-                embedding = embeddingRepository.getTextEmbeddings(name)
-            )
-        }
-
-
-    for (otherId in allKeyNodeIds) {
-
-        val score = computeSemanticSimilarity(newKeyNode.id, otherId, eventRepository, embeddingRepository, threshold, newPropertyNodes)
-
-        filteredSimMatrix[newKeyNode.id to otherId] = score
-        filteredSimMatrix[otherId to newKeyNode.id] = score
-    }
-
-    Log.d("FILTERED MATRIX", "FILTERED MATRIX")
-    return filteredSimMatrix to (newPropertyNodes + newKeyNode)
-}
+//suspend fun computeSemanticMatrixForQuery(
+//    eventRepository: EventRepository,
+//    embeddingRepository: EmbeddingRepository,
+//    simMatrix: Map<Pair<Long, Long>, Float>,
+//    newEventMap: Map<String, String>,
+//    inputEventType: String,
+//    threshold: Float = 0.5f
+//): Pair<Map<Pair<Long, Long>, Float>, List<EventNodeEntity>> {
+//
+//    val allNodes = eventRepository.getAllEventNodes()
+//    val allKeyNodeIds = allNodes.filter { it.type == inputEventType }.map { it.id }
+//
+//    // Get filtered similarity matrix
+//    val filteredSimMatrix = simMatrix.filter { (keyPair, _) ->
+//        keyPair.first in allKeyNodeIds || keyPair.second in allKeyNodeIds
+//    }.toMutableMap()
+//
+//    // Get IDs of the newly added nodes
+//    val newKeyNode = newEventMap.entries.filter{ it.key in SchemaKeyNodes }
+//        .map { (type, name) ->
+//            EventNodeEntity(
+//                id = (-1L * (1..1_000_000).random()),
+//                name = name,
+//                type = type,
+//                embedding = embeddingRepository.getTextEmbeddings(name)
+//            )
+//        }.single()
+//
+//    val newPropertyNodes = newEventMap.entries.filter{ it.key in SchemaPropertyNodes }
+//        .map { (type, name) ->
+//            EventNodeEntity(
+//                id = (-1L * (1..1_000_000).random()),
+//                name = name,
+//                type = type,
+//                embedding = embeddingRepository.getTextEmbeddings(name)
+//            )
+//        }
+//
+//
+//    for (otherId in allKeyNodeIds) {
+//
+//        val score = computeSemanticSimilarity(newKeyNode.id, otherId, eventRepository, embeddingRepository, threshold, newPropertyNodes)
+//
+//        filteredSimMatrix[newKeyNode.id to otherId] = score
+//        filteredSimMatrix[otherId to newKeyNode.id] = score
+//    }
+//
+//    Log.d("FILTERED MATRIX", "FILTERED MATRIX")
+//    return filteredSimMatrix to (newPropertyNodes + newKeyNode)
+//}
 
 fun computeSemanticSimilarEventsForProps(
     eventRepository: EventRepository,
@@ -243,7 +246,6 @@ fun computeSemanticSimilarEventsForProps(
     }
 
     val propsInEvent = onlyPropertiesMap.values.toList()
-    Log.d("CHECK PROPS", "PROPS: ${propsInEvent.map { it.name }}")
 
     val simMatrix = mutableMapOf<String, MutableList<Pair<Long, Float>>>()
 
@@ -260,7 +262,6 @@ fun computeSemanticSimilarEventsForProps(
             val freqFactor = ln(1f + (eventRepository.getEventNodeFrequencyOfNodeId(keyNodeId) ?: 1)).toFloat()
 
             val adjustedSim = sim * freqFactor
-            Log.d("CHECK SIMILARITY SCORE", "SIMSCORE: $adjustedSim")
             if (adjustedSim > threshold) {
                 simMatrix.getOrPut(eventType) { mutableListOf() }.add(keyNodeId to adjustedSim)
             }

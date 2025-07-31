@@ -147,93 +147,91 @@ fun predictMissingProperties(
     Function 2: Provide event recommendations on input event
     Function 3: Provide event recommendations on input property
 ------------------------------------------------- */
-fun recommendEventForEvent(
-    newEventMap: Map<String, String>,
-    eventRepository: EventRepository,
-    simMatrix: Map<Pair<Long, Long>, Float>,
-    newEventNodes: List<EventNodeEntity>,
-    queryKey: String? = null,
-    isQuery: Boolean
-) : Triple<List<EventNodeEntity>, List<EventEdgeEntity>, ProvideRecommendationsResponse> {
-
-    val inputKeyNode = newEventNodes.single { it.type in SchemaKeyNodes }
-
-    var topRecommendationsByType = mutableMapOf<String, MutableList<EventNodeEntity>>()
-
-    // Check cache
-    val cachedRecommendations = loadCachedRecommendations(inputKeyNode, eventRepository, queryKey)
-
-    // If there are no cached nodes
-    if (cachedRecommendations.isNotEmpty()) {
-        topRecommendationsByType = cachedRecommendations
-    } else {
-        topRecommendationsByType = computeTopRecommendations(
-            inputKeyNode = inputKeyNode,
-            repository = eventRepository,
-            simMatrix = simMatrix,
-            queryKey = queryKey
-        )
-    }
-
-    // Create API response format
-    val recList = mutableMapOf<String, List<String>>()
-
-    for ((type, recs) in topRecommendationsByType) {
-        val recsByTypeList = mutableListOf<String>()
-        for (rec in recs) { recsByTypeList.add(rec.name) }
-        recList.put(type, recsByTypeList)
-    }
-
-    val allPredictedNodeIds = topRecommendationsByType.values.flatten().map { it.id }
-
-    val (neighborNodes, neighborEdges) = buildGraphContext(
-        repository = eventRepository,
-        predictedNodeIds = allPredictedNodeIds + inputKeyNode.id,
-        addSuggestionEdges = { edgeSet, nodeSet ->
-            for ((type, recs) in topRecommendationsByType) {
-                for (node in recs) {
-                    val relationType = "Suggest-$type"
-                    val newEdge = EventEdgeEntity(
-                        id = -1L,
-                        firstNodeId = node.id,
-                        secondNodeId = inputKeyNode.id,
-                        edgeType = relationType
-                    )
-                    edgeSet.add(newEdge)
-                }
-            }
-        }
-    )
-
-    // If not query: Update cache of input node
-    if (!isQuery) {
-        for ((type, recNodeList) in topRecommendationsByType) {
-            inputKeyNode.cachedNodeIds.getOrPut(type) { mutableListOf() }
-                .addAll(recNodeList.map { it.id })
-        }
-        Log.d("Cached Node", "${inputKeyNode.cachedNodeIds}")
-    } else {
-        // Add input nodes to list too
-        neighborNodes.addAll(newEventNodes)
-        for (propNode in newEventNodes) {
-            if (propNode.type in SchemaKeyNodes) continue
-            val relationType = SchemaEdgeLabels["${propNode.type}-${inputKeyNode.type}"]
-            val newEdge = EventEdgeEntity(
-                id = -1L,
-                firstNodeId = propNode.id,
-                secondNodeId = inputKeyNode.id,
-                edgeType = relationType
-            )
-            neighborEdges.add(newEdge)
-        }
-    }
-
-    return Triple(
-        neighborNodes.toList(),
-        neighborEdges.toList(),
-        ProvideRecommendationsResponse(newEventMap, recList)
-    )
-}
+//fun recommendEventForEvent(
+//    newEventMap: Map<String, String>,
+//    eventRepository: EventRepository,
+//    simMatrix: Map<Pair<Long, Long>, Float>,
+//    newEventNodes: List<EventNodeEntity>,
+//    queryKey: String? = null,
+//    isQuery: Boolean
+//) : Triple<List<EventNodeEntity>, List<EventEdgeEntity>, ProvideRecommendationsResponse> {
+//
+//    val inputKeyNode = newEventNodes.single { it.type in SchemaKeyNodes }
+//
+//    var topRecommendationsByType = mutableMapOf<String, MutableList<EventNodeEntity>>()
+//
+//    // Check cache
+//    val cachedRecommendations = loadCachedRecommendations(inputKeyNode, eventRepository, queryKey)
+//    topRecommendationsByType = if (cachedRecommendations.isNotEmpty()) {
+//        cachedRecommendations
+//    } else {
+//        computeTopRecommendations(
+//            inputKeyNode = inputKeyNode,
+//            repository = eventRepository,
+//            simMatrix = simMatrix,
+//            queryKey = queryKey
+//        )
+//    }
+//
+//    // Create API response format
+//    val recList = mutableMapOf<String, List<String>>()
+//
+//    for ((type, recs) in topRecommendationsByType) {
+//        val recsByTypeList = mutableListOf<String>()
+//        for (rec in recs) { recsByTypeList.add(rec.name) }
+//        recList.put(type, recsByTypeList)
+//    }
+//
+//    val allPredictedNodeIds = topRecommendationsByType.values.flatten().map { it.id }
+//
+//    val (neighborNodes, neighborEdges) = buildGraphContext(
+//        repository = eventRepository,
+//        predictedNodeIds = allPredictedNodeIds + inputKeyNode.id,
+//        addSuggestionEdges = { edgeSet, nodeSet ->
+//            for ((type, recs) in topRecommendationsByType) {
+//                for (node in recs) {
+//                    val relationType = "Suggest-$type"
+//                    val newEdge = EventEdgeEntity(
+//                        id = -1L,
+//                        firstNodeId = node.id,
+//                        secondNodeId = inputKeyNode.id,
+//                        edgeType = relationType
+//                    )
+//                    edgeSet.add(newEdge)
+//                }
+//            }
+//        }
+//    )
+//
+//    // If not query: Update cache of input node
+//    if (!isQuery) {
+//        for ((type, recNodeList) in topRecommendationsByType) {
+//            inputKeyNode.cachedNodeIds.getOrPut(type) { mutableListOf() }
+//                .addAll(recNodeList.map { it.id })
+//        }
+//        Log.d("Cached Node", "${inputKeyNode.cachedNodeIds}")
+//    } else {
+//        // Add input nodes to list too
+//        neighborNodes.addAll(newEventNodes)
+//        for (propNode in newEventNodes) {
+//            if (propNode.type in SchemaKeyNodes) continue
+//            val relationType = SchemaEdgeLabels["${propNode.type}-${inputKeyNode.type}"]
+//            val newEdge = EventEdgeEntity(
+//                id = -1L,
+//                firstNodeId = propNode.id,
+//                secondNodeId = inputKeyNode.id,
+//                edgeType = relationType
+//            )
+//            neighborEdges.add(newEdge)
+//        }
+//    }
+//
+//    return Triple(
+//        neighborNodes.toList(),
+//        neighborEdges.toList(),
+//        ProvideRecommendationsResponse(newEventMap, recList)
+//    )
+//}
 
 suspend fun recommendEventsForProps (
     newEventMap: Map<String, String>,

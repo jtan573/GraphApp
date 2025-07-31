@@ -226,10 +226,10 @@ fun QueryResultCard(
                             modifier = Modifier.padding(bottom = 5.dp),
                         )
                         Button(
-                            onClick = { navController.navigate(NavItem.AssignTaskScreen.route) },
+                            onClick = { navController.navigate(NavItem.SuspiciousLocationScreen.route) },
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
                         ) {
-                            Text("Assign Task")
+                            Text("View Detail")
                         }
                     }
                     recList.forEach { event ->

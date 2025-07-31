@@ -11,7 +11,6 @@ sealed class NavItem(val route: String, val label: String, val icon: ImageVector
 
     // Main Components
     object Graph : NavItem("graph", "Graph", Icons.Default.Share)
-    object Events : NavItem("events", "Events", Icons.Default.Star)
     object Personnel : NavItem("personnel", "Personnel", Icons.Default.Person)
     object UseCase : NavItem("useCase", "UseCase", Icons.Default.Build)
 
@@ -27,8 +26,9 @@ sealed class NavItem(val route: String, val label: String, val icon: ImageVector
     object AlertTroopersScreen : NavItem("alertTroopersScreen", "AlertTroopersScreen", null)
     object AssignTaskScreen : NavItem("assignTaskScreen", "AssignTaskScreen", null)
     object ReceivedTaskScreen : NavItem("receivedTaskScreen", "ReceivedTaskScreen", null)
+    object SuspiciousLocationScreen : NavItem("suspiciousLocationScreen", "SuspiciousLocationScreen", null)
 
     companion object {
-        val items = listOf(Personnel, Graph, Events, UseCase)
+        val items = listOf(Personnel, Graph, UseCase)
     }
 }

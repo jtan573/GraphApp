@@ -1,9 +1,10 @@
 package com.example.graphapp.ui.viewmodels
 
 import android.app.Application
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.api.buildApiResponseFromResult
 import com.example.graphapp.data.db.ActionEdgeEntity
@@ -12,15 +13,14 @@ import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.data.schema.UiEvent
-import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.data.local.detectReplicateInput
 import com.example.graphapp.data.local.findPatterns
 import com.example.graphapp.data.local.initialiseSemanticSimilarityMatrix
 import com.example.graphapp.data.local.predictMissingProperties
-import com.example.graphapp.data.local.recommendEventForEvent
-import com.example.graphapp.data.local.recommendEventsForProps
 import com.example.graphapp.data.local.updateSemanticSimilarityMatrix
+import com.example.graphapp.data.repository.DictionaryRepository
 import com.example.graphapp.data.repository.EmbeddingRepository
+import com.example.graphapp.data.repository.PosTaggerRepository
 import com.example.graphapp.data.repository.UserActionRepository
 import com.example.graphapp.data.schema.QueryResult
 import com.example.graphapp.data.schema.QueryResult.IncidentResponse
@@ -29,6 +29,7 @@ import com.example.graphapp.domain.usecases.findRelatedSuspiciousEventsUseCase
 import com.example.graphapp.domain.usecases.findRelevantPersonnelByLocationUseCase
 import com.example.graphapp.domain.usecases.findThreatResponses
 import com.google.gson.Gson
+import edu.stanford.nlp.tagger.maxent.MaxentTagger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,13 +39,17 @@ import kotlinx.coroutines.launch
 import kotlin.Float
 import kotlin.collections.map
 import kotlin.text.isNotBlank
+import java.io.File
+
 
 class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     private val embeddingRepository = EmbeddingRepository(application)
     private val sentenceEmbedding = embeddingRepository.getSentenceEmbeddingModel()
-    private val eventRepository = EventRepository(sentenceEmbedding)
+    private val dictionaryRepository = DictionaryRepository(sentenceEmbedding)
+    private val eventRepository = EventRepository(sentenceEmbedding, embeddingRepository, dictionaryRepository)
     private val userActionRepository = UserActionRepository(sentenceEmbedding)
+    private val posTaggerRepository = PosTaggerRepository(application)
 
     // ---------- Graph Data States ----------
     private val _eventGraphData = MutableStateFlow<String?>(null)
@@ -84,6 +89,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     init {
         viewModelScope.launch(Dispatchers.IO) {
             embeddingRepository.initializeEmbedding()
+            dictionaryRepository.initialiseDictionaryRepository()
             eventRepository.initialiseEventRepository()
             userActionRepository.initialiseUserActionRepository()
 
@@ -102,6 +108,10 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
             // Users
             _allActiveUsers.value = userActionRepository.getAllUserNodesWithoutEmbedding()
+
+            // Testing
+            posTaggerRepository.initialisePosTagger()
+            Log.d("TAGGING", posTaggerRepository.tagText("The quick brown fox jumps over the lazy dog"))
         }
     }
 
@@ -144,14 +154,6 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _eventGraphData.value = json
     }
 
-    private fun reloadUserGraphData() {
-        val userNodes = userActionRepository.getAllUserNodes()
-        val actionNodes = userActionRepository.getAllActionNodes()
-        val edges = userActionRepository.getAllActionEdges()
-        val json = convertToJsonUser(userNodes, actionNodes, edges)
-        _userGraphData.value = json
-    }
-
     private fun reloadSimMatrix(
         simMatrix: MutableMap<Pair<Long, Long>, Float>,
         newEventMap: Map<String, String>,
@@ -180,59 +182,6 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         return
     }
 
-    // Function 2/3/5: Predict Top Relationships based on Incoming Event/Detect input anomaly
-    fun provideEventRecommendation(map: Map<String, String>, isQuery: Boolean, queryKey: String? = null) {
-        viewModelScope.launch {
-            val normalizedMap = map.filterValues { it.isNotBlank() }
-            if (normalizedMap.isEmpty()) {
-                return@launch
-            }
-
-            // Update created event list for UI
-            _createdEvent.value = normalizedMap
-
-            val noKeyTypes = normalizedMap.keys.none { it in SchemaKeyNodes }
-            if (noKeyTypes) {
-                val (nodes, edges, result) = recommendEventsForProps(normalizedMap, eventRepository, embeddingRepository, queryKey)
-                if (nodes == null || edges == null) {
-                    _uiEvent.trySend(UiEvent.ShowSnackbar("No similar events found."))
-                } else {
-                    createFilteredEventGraph(nodes, edges)
-                }
-                buildApiResponseFromResult(result)
-                return@launch
-            }
-
-            // Check if its a duplicate event
-            val (isDuplicateEvent, duplicateNode) = detectDuplicateEvent(normalizedMap)
-
-            // Action based on type of input
-            val (newEventNodes, filteredSimMatrix) = prepareNewEventNodesAndMatrix(
-                isDuplicateEvent = isDuplicateEvent,
-                duplicateNode = duplicateNode,
-                isQuery = isQuery,
-                normalizedMap = normalizedMap,
-                eventRepository = eventRepository,
-                embeddingRepository = embeddingRepository,
-                simMatrix = simMatrix,
-                reloadGraphData = { reloadEventGraphData() },
-                reloadSimMatrix = { matrix, map -> reloadSimMatrix(matrix, map) }
-            )
-
-            // Get recommendations and results
-            val (nodes, edges, result) =
-                if (isQuery && !isDuplicateEvent) {
-                    recommendEventForEvent(normalizedMap, eventRepository, filteredSimMatrix, newEventNodes, queryKey, true)
-                } else {
-                    recommendEventForEvent(normalizedMap, eventRepository, simMatrix, newEventNodes, queryKey, false)
-                }
-
-            // Create updated graph
-            createFilteredEventGraph(nodes, edges)
-            buildApiResponseFromResult(result)
-        }
-        return
-    }
 
     // Function 4: Find Patterns/Clusters
     fun findGraphRelations() {
@@ -251,20 +200,6 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         return response.isLikelyDuplicate to duplicateNode
-    }
-
-    // App response to INCIDENTS
-    fun respondToIncidents(map: Map<String, String>) {
-        viewModelScope.launch {
-            val normalizedMap = map.filterValues { it.isNotBlank() }
-            if (normalizedMap.isEmpty()) { return@launch }
-
-            val incidentResponse = findThreatResponses(
-                normalizedMap, userActionRepository, embeddingRepository, eventRepository, simMatrix
-            )
-            _queryResults.value = incidentResponse
-            _createdEvent.value = normalizedMap
-        }
     }
 
     // Functions for Use Case 1: Find relevant personnel
@@ -288,6 +223,18 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             listOfUsers.add(userActionRepository.getUserNodeByIdentifier(id)!!)
         }
         return listOfUsers
+    }
+    fun findThreatAlertAndResponse(map: Map<String, String>) {
+        viewModelScope.launch {
+            val normalizedMap = map.filterValues { it.isNotBlank() }
+            if (normalizedMap.isEmpty()) { return@launch }
+
+            val incidentResponse = findThreatResponses(
+                normalizedMap, userActionRepository, embeddingRepository, eventRepository, simMatrix
+            )
+            _queryResults.value = incidentResponse
+            _createdEvent.value = normalizedMap
+        }
     }
 
     // Function for Use Case 3: Suspicious Behaviour Detection
@@ -332,5 +279,64 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _queryResults.value =  IncidentResponse(incidentsAffectingStations = results)
     }
 
-    // Function for Use Case 5:
+
+
+
+    /* ----------------------------
+                EXTRAS
+    ------------------------------- */
+    // Function 2/3/5: Predict Top Relationships based on Incoming Event/Detect input anomaly
+//    fun provideEventRecommendation(map: Map<String, String>, isQuery: Boolean, queryKey: String? = null) {
+//
+//        viewModelScope.launch {
+//            val normalizedMap = map.filterValues { it.isNotBlank() }
+//            if (normalizedMap.isEmpty()) {
+//                return@launch
+//            }
+//
+//            // Update created event list for UI
+//            _createdEvent.value = normalizedMap
+//
+//            val noKeyTypes = normalizedMap.keys.none { it in SchemaKeyNodes }
+//            if (noKeyTypes) {
+//                val (nodes, edges, result) = recommendEventsForProps(normalizedMap, eventRepository, embeddingRepository, queryKey)
+//                if (nodes == null || edges == null) {
+//                    _uiEvent.trySend(UiEvent.ShowSnackbar("No similar events found."))
+//                } else {
+//                    createFilteredEventGraph(nodes, edges)
+//                }
+//                buildApiResponseFromResult(result)
+//                return@launch
+//            }
+//
+//            // Check if its a duplicate event
+//            val (isDuplicateEvent, duplicateNode) = detectDuplicateEvent(normalizedMap)
+//
+//            // Action based on type of input
+//            val (newEventNodes, filteredSimMatrix) = prepareNewEventNodesAndMatrix(
+//                isDuplicateEvent = isDuplicateEvent,
+//                duplicateNode = duplicateNode,
+//                isQuery = isQuery,
+//                normalizedMap = normalizedMap,
+//                eventRepository = eventRepository,
+//                embeddingRepository = embeddingRepository,
+//                simMatrix = simMatrix,
+//                reloadGraphData = { reloadEventGraphData() },
+//                reloadSimMatrix = { matrix, map -> reloadSimMatrix(matrix, map) }
+//            )
+//
+//            // Get recommendations and results
+//            val (nodes, edges, result) =
+//                if (isQuery && !isDuplicateEvent) {
+//                    recommendEventForEvent(normalizedMap, eventRepository, filteredSimMatrix, newEventNodes, queryKey, true)
+//                } else {
+//                    recommendEventForEvent(normalizedMap, eventRepository, simMatrix, newEventNodes, queryKey, false)
+//                }
+//
+//            // Create updated graph
+//            createFilteredEventGraph(nodes, edges)
+//            buildApiResponseFromResult(result)
+//        }
+//        return
+//    }
 }

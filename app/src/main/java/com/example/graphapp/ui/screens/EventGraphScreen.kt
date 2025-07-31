@@ -46,15 +46,6 @@ fun GraphViewScreen(
     val graphJson by viewModel.eventGraphData.collectAsState()
     val selectedFilter = "All"
 
-    var showForm by remember { mutableStateOf(false) }
-
-    val fieldKeys = GraphSchema.SchemaPropertyNodes + GraphSchema.SchemaOtherNodes
-    val eventInputMap = remember(fieldKeys) {
-        mutableStateMapOf<String, String>().apply {
-            fieldKeys.forEach { putIfAbsent(it, "") }
-        }
-    }
-
     val coroutineScope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
     var activeButton by remember { mutableStateOf(ActiveButton.NONE) }
@@ -80,24 +71,6 @@ fun GraphViewScreen(
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Button(
-                        onClick = { showForm = !showForm },
-                        enabled = !isLoading,
-                        modifier = Modifier.padding(end = 3.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
-                    ) {
-                        if (isLoading && activeButton == ActiveButton.EVENT) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(
-                                text = if (showForm) "Hide" else "+ Event",
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
                     Button(
                         onClick = {
                             coroutineScope.launch(Dispatchers.Default) {
@@ -152,48 +125,6 @@ fun GraphViewScreen(
                     }
                 }
             }
-        }
-
-        AnimatedVisibility(visible = showForm) {
-            EventForm(
-                fieldKeys = fieldKeys,
-                eventInputMap = eventInputMap,
-                onSubmit = {
-                    coroutineScope.launch {
-                        withContext(Dispatchers.Main) {
-                            isLoading = true
-                            activeButton = ActiveButton.EVENT
-                        }
-                        viewModel.provideEventRecommendation(eventInputMap, false)
-                        withContext(Dispatchers.Main) {
-                            isLoading = false
-                            activeButton = ActiveButton.NONE
-                            eventInputMap.clear()
-                            fieldKeys.forEach { eventInputMap[it] = "" }
-                            showForm = false
-                        }
-                        navController.navigate(NavItem.Events.route)
-                    }
-                },
-                onQuery = {
-                    coroutineScope.launch {
-                        withContext(Dispatchers.Main) {
-                            isLoading = true
-                            activeButton = ActiveButton.EVENT
-                        }
-                        viewModel.provideEventRecommendation(eventInputMap, true)
-                        withContext(Dispatchers.Main) {
-                            isLoading = false
-                            activeButton = ActiveButton.NONE
-                            eventInputMap.clear()
-                            fieldKeys.forEach { eventInputMap[it] = "" }
-                            showForm = false
-                        }
-                        navController.navigate(NavItem.Events.route)
-                    }
-                },
-                onCancel = { showForm = false }
-            )
         }
 
         if (graphJson != null) {

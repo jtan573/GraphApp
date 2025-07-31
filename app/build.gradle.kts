@@ -88,13 +88,5 @@ dependencies {
     implementation(libs.sentence.embeddings)
     implementation(libs.objectbox.android)
     implementation(libs.kotlin.reflect)
-}
-
-sqldelight {
-    databases {
-        create("GraphDatabase") {
-            packageName.set("com.example.graphdb")
-            schemaOutputDirectory.set(file("src/main/sqldelight"))
-        }
-    }
+    implementation(files("src/main/libs/stanford-postagger.jar"))
 }

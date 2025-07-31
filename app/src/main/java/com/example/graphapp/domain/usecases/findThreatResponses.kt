@@ -1,12 +1,13 @@
 package com.example.graphapp.domain.usecases
 
-import android.util.Log
+import com.example.graphapp.data.api.DiscoverEventsResponse
 import com.example.graphapp.data.api.ProvideRecommendationsResponse
 import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.repository.UserActionRepository
 import com.example.graphapp.data.schema.QueryResult.IncidentResponse
+import com.example.graphapp.domain.general.findRelevantEventsUseCase
 
 // App response to INCIDENTS
 suspend fun findThreatResponses(
@@ -35,9 +36,9 @@ suspend fun findThreatResponses(
         simMatrix = simMatrix,
         queryKey = "Impact"
     )
-    val potentialImpacts = if (impactResults is ProvideRecommendationsResponse
-        && impactResults.recommendations.isNotEmpty()) {
-        impactResults.recommendations["Impact"]
+    val potentialImpacts = if (impactResults is DiscoverEventsResponse
+        && impactResults.predictedEvents.isNotEmpty()) {
+        impactResults.predictedEvents["Impact"]?.map { it.eventName }
     } else { null }
 
     // Response 3: Similar incidents -> Tasks
@@ -48,9 +49,9 @@ suspend fun findThreatResponses(
         simMatrix = simMatrix,
         queryKey = "Task"
     )
-    val potentialTasks = if (taskResults is ProvideRecommendationsResponse
-        && taskResults.recommendations.isNotEmpty()) {
-        taskResults.recommendations["Task"]
+    val potentialTasks = if (taskResults is DiscoverEventsResponse
+        && taskResults.predictedEvents.isNotEmpty()) {
+        taskResults.predictedEvents["Task"]?.map { it.eventName }
     } else { null }
 
     // Response 4: Relevant personnel
