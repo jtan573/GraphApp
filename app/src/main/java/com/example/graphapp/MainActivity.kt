@@ -10,10 +10,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.graphapp.data.db.VectorDatabase
-import com.example.graphapp.ui.screens.MainScreen
-import com.example.graphapp.ui.theme.GraphAppTheme
-import com.example.graphapp.ui.viewmodels.GraphViewModel
-import com.example.graphapp.ui.viewmodels.GraphViewModelFactory
+import com.example.graphapp.frontend.screens.MainScreen
+import com.example.graphapp.frontend.theme.GraphAppTheme
+import com.example.graphapp.frontend.viewmodels.GraphViewModel
+import com.example.graphapp.frontend.viewmodels.GraphViewModelFactory
 
 class MainActivity : ComponentActivity() {
     private val viewModel: GraphViewModel by viewModels() {

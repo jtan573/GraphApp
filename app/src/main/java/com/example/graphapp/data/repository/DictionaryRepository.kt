@@ -2,7 +2,7 @@ package com.example.graphapp.data.repository
 
 import com.example.graphapp.data.db.DictionaryDatabaseQueries
 import com.example.graphapp.data.embedding.SentenceEmbedding
-import com.example.graphapp.data.local.suspiciousDict
+import com.example.graphapp.backend.core.suspiciousDict
 
 class DictionaryRepository(
     private val sentenceEmbedding: SentenceEmbedding

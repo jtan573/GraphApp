@@ -1,21 +1,13 @@
 package com.example.graphapp.data.repository
 
-import android.content.Context
 import android.util.Log
 import com.example.graphapp.data.embedding.SentenceEmbedding
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.db.EventDatabaseQueries
-import com.example.graphapp.data.local.SchemaSuspiciousProperties
-import com.example.graphapp.data.local.suspiciousDict
-import com.example.graphapp.data.schema.GraphSchema
-import com.example.graphapp.data.schema.GraphSchema.SchemaKeyNodes
-import com.example.graphapp.data.schema.GraphSchema.SchemaSemanticPropertyNodes
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.File
-import kotlin.math.pow
-import kotlin.math.sqrt
+import com.example.graphapp.backend.core.suspiciousDict
+import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.dto.GraphSchema.SchemaSemanticPropertyNodes
 
 class EventRepository(
     private val sentenceEmbedding: SentenceEmbedding,
