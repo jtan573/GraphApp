@@ -89,4 +89,6 @@ dependencies {
     implementation(libs.objectbox.android)
     implementation(libs.kotlin.reflect)
     implementation(files("src/main/libs/stanford-postagger.jar"))
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 }

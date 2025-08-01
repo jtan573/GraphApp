@@ -1,9 +1,16 @@
 package com.example.graphapp.data.api
 
+import android.util.Log
+import com.example.graphapp.data.db.UserNodeEntity
+
+enum class ResponseStatus {
+    SUCCESS, ERROR, FAILED
+}
+
 data class ApiResponse(
-    val status: String,
-    val timestamp: String,
-    val data: ResponseData
+    val status: ResponseStatus,
+    val timestamp: Long,
+    val data: ResponseData?
 )
 
 sealed class ResponseData {
@@ -12,6 +19,9 @@ sealed class ResponseData {
     data class PatternFindingData(val payload: PatternFindingResponse) : ResponseData()
     data class DiscoverEventsData(val payload: DiscoverEventsResponse) : ResponseData()
     data class DetectReplicaEventData(val payload: ReplicaDetectionResponse) : ResponseData()
+
+    data class ContactPersonnelData(val payload: ContactRelevantPersonnelResponse) : ResponseData()
+    data class ThreatAlertData(val payload: ThreatAlertResponse) : ResponseData()
 }
 
 /* -------------------------------------------------
@@ -101,6 +111,53 @@ data class SimilarEvent(
     val similarityRatio: Float,
     val averageSimilarityScore: Float
 )
+
+/* -------------------------------------------------
+    Use Case 1: Contact relevant personnel
+------------------------------------------------- */
+data class ContactRelevantPersonnelResponse(
+    val personnelMap: Map<UserNodeEntity, Int>?
+)
+
+/* -------------------------------------------------
+    Use Case 1: Contact relevant personnel
+------------------------------------------------- */
+data class ThreatAlertResponse(
+    val nearbyActiveUsersMap: Map<UserNodeEntity, Int>? = null,
+    val potentialImpacts: List<String>? = null,
+    val potentialTasks: List<String>? = null,
+    val taskAssignment: Map<String, List<UserNodeEntity>>? = null,
+    val similarIncidents: Map<String, List<EventDetails>>? = null,
+    val incidentsAffectingStations: Map<String, List<EventDetails>>? = null
+)
+
+/* -------------------------------------------------
+    Helper Function: Build ApiResponse
+------------------------------------------------- */
+fun buildApiResponseFromResult(result: Any): ApiResponse {
+    val responseData = when (result) {
+        is PredictMissingPropertiesResponse -> ResponseData.PredictMissingPropertiesData(result)
+        is ProvideRecommendationsResponse -> ResponseData.ProvideRecommendationsData(result)
+        is PatternFindingResponse -> ResponseData.PatternFindingData(result)
+        is DiscoverEventsResponse -> ResponseData.DiscoverEventsData(result)
+        is ReplicaDetectionResponse -> ResponseData.DetectReplicaEventData(result)
+
+        // Use cases
+        is ContactRelevantPersonnelResponse -> ResponseData.ContactPersonnelData(result)
+        is ThreatAlertResponse -> ResponseData.ThreatAlertData(result)
+
+        else -> throw IllegalArgumentException("Unsupported response type: ${result::class}")
+    }
+
+    val apiRes = ApiResponse(
+        status = ResponseStatus.SUCCESS,
+        timestamp = System.currentTimeMillis(),
+        data = responseData
+    )
+    Log.d("API RESPONSE", "Response: $apiRes")
+
+    return apiRes
+}
 
 
 
