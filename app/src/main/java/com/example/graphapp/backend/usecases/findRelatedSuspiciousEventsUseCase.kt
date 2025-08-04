@@ -3,6 +3,7 @@ package com.example.graphapp.backend.usecases
 import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.data.api.ThreatAlertResponse
 import com.example.graphapp.backend.core.recommendEventsForProps
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.data.api.EventDetailData
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
@@ -26,18 +27,18 @@ suspend fun findRelatedSuspiciousEventsUseCase(
     if (incidentMethod != null || incidentName != null) {
         val (_, _, methodRecs) = recommendEventsForProps(
             newEventMap = buildMap<String, String> {
-                incidentName?.let { put("Incident", it) }
-                incidentMethod?.let { put("Method", it) }
+                incidentName?.let { put(PropertyNames.INCIDENT.key, it) }
+                incidentMethod?.let { put(PropertyNames.HOW.key, it) }
             },
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
-            queryKey = "Incident"
+            queryKey = PropertyNames.INCIDENT.key
         )
 
         if (methodRecs.predictedEvents.isNotEmpty()) {
-            val similarEventsByMethod = methodRecs.predictedEvents["Incident"]
+            val similarEventsByMethod = methodRecs.predictedEvents[PropertyNames.INCIDENT.key]
             if (similarEventsByMethod != null) {
-                similarIncidentsFound.put("Method", similarEventsByMethod)
+                similarIncidentsFound.put(PropertyNames.HOW.key, similarEventsByMethod)
             }
         }
     }
@@ -46,25 +47,23 @@ suspend fun findRelatedSuspiciousEventsUseCase(
     if (incidentLocation != null) {
         val (_, _, locationRecs) = recommendEventsForProps(
             newEventMap = mapOf<String, String>(
-                "Location" to incidentLocation
+                PropertyNames.WHERE.key to incidentLocation
             ),
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
-            queryKey = "Incident",
+            queryKey = PropertyNames.INCIDENT.key,
             getTopThreeResultsOnly = false
         )
 
         val locationResults = mutableListOf<EventDetails>()
         if (locationRecs.predictedEvents.isNotEmpty()) {
-            val similarEventsByLocation = locationRecs.predictedEvents["Incident"]
+            val similarEventsByLocation = locationRecs.predictedEvents[PropertyNames.INCIDENT.key]
             if (similarEventsByLocation != null) {
-                val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mmX", Locale.US)
-                formatter.timeZone = TimeZone.getTimeZone("UTC+8")
 
-                locationResults.addAll(similarEventsByLocation.sortedBy { formatter.parse(it.eventProperties["Date"]!!) })
+                locationResults.addAll(similarEventsByLocation.sortedBy { it.eventProperties[PropertyNames.WHEN.key]!! })
                 similarIncidentsFound.put(
-                    "Location",
-                    similarEventsByLocation.sortedBy { formatter.parse(it.eventProperties["Date"]!!) }
+                    PropertyNames.WHERE.key,
+                    similarEventsByLocation.sortedBy { it.eventProperties[PropertyNames.WHEN.key]!! }
                 )
             }
         }

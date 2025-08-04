@@ -32,6 +32,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaOtherNodes
+import com.example.graphapp.backend.dto.GraphSchema.SchemaPropertyNodes
 import com.example.graphapp.frontend.components.QueryResultCard
 import com.example.graphapp.frontend.components.eventForms.IncidentForm
 import com.example.graphapp.frontend.viewmodels.GraphViewModel
@@ -49,7 +52,7 @@ fun ThreatDetectionUseCaseScreen(viewModel: GraphViewModel, navController: NavCo
     val coroutineScope = rememberCoroutineScope()
     var showForm by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-    var threatFieldKeys = listOf<String>("Entity", "Method", "Location", "Motive", "Date", "Description")
+    var threatFieldKeys = SchemaPropertyNodes + SchemaOtherNodes
 
     val eventInputMap = remember(threatFieldKeys) {
         mutableStateMapOf<String, String>().apply {
@@ -58,10 +61,10 @@ fun ThreatDetectionUseCaseScreen(viewModel: GraphViewModel, navController: NavCo
     }
 
     LaunchedEffect(Unit) {
-        eventInputMap["Incident"] = "Mid-flight drone propeller failure"
-        eventInputMap["Date"] = "2024-08-17T11:20Z"
-        eventInputMap["Location"] = "1.3901,103.8072"
-        eventInputMap["Method"] = "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent"
+        eventInputMap[PropertyNames.INCIDENT.key] = "Mid-flight drone propeller failure"
+        eventInputMap[PropertyNames.WHEN.key] = "1723897200000"
+        eventInputMap[PropertyNames.WHERE.key] = "1.3901,103.8072"
+        eventInputMap[PropertyNames.HOW.key] = "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent"
     }
 
     // Data for showcase purposes

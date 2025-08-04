@@ -10,6 +10,7 @@ enum class ResponseStatus {
 data class ApiResponse(
     val status: ResponseStatus,
     val timestamp: Long,
+    val message: String? = null,
     val data: ResponseData?
 )
 

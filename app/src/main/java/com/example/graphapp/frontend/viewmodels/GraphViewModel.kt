@@ -22,6 +22,7 @@ import com.example.graphapp.backend.core.findPatterns
 import com.example.graphapp.backend.core.initialiseSemanticSimilarityMatrix
 import com.example.graphapp.backend.core.predictMissingProperties
 import com.example.graphapp.backend.core.updateSemanticSimilarityMatrix
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.backend.services.ApiRouter
 import com.example.graphapp.backend.usecases.findAffectedRouteStationsByLocUseCase
 import com.example.graphapp.backend.usecases.findRelatedSuspiciousEventsUseCase
@@ -258,12 +259,12 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
                 EventRequestData(
                     eventType = "Incident",
                     details = EventDetailData(
-                        whoValue = inputMap["Entity"],
-                        whatValue = inputMap["Incident"],
-                        whenValue = inputMap["Date"],
-                        whereValue = inputMap["Location"],
-                        howValue = inputMap["Method"],
-                        whyValue = inputMap["Motive"]
+                        whoValue = inputMap[PropertyNames.WHO.key],
+                        whatValue = inputMap[PropertyNames.INCIDENT.key],
+                        whenValue = inputMap[PropertyNames.WHEN.key],
+                        whereValue = inputMap[PropertyNames.WHERE.key],
+                        howValue = inputMap[PropertyNames.HOW.key],
+                        whyValue = inputMap[PropertyNames.WHY.key]
                     )
                 )
             )
@@ -285,12 +286,12 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             EventRequestData(
                 eventType = "Incident",
                 details = EventDetailData(
-                    whoValue = inputMap["Entity"],
-                    whatValue = inputMap["Incident"],
-                    whenValue = inputMap["Date"],
-                    whereValue = inputMap["Location"],
-                    howValue = inputMap["Method"],
-                    whyValue = inputMap["Motive"]
+                    whoValue = inputMap[PropertyNames.WHO.key],
+                    whatValue = inputMap[PropertyNames.INCIDENT.key],
+                    whenValue = inputMap[PropertyNames.WHEN.key],
+                    whereValue = inputMap[PropertyNames.WHERE.key],
+                    howValue = inputMap[PropertyNames.HOW.key],
+                    whyValue = inputMap[PropertyNames.WHY.key]
                 )
             )
         )
@@ -305,7 +306,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         val listOfEvents = mutableListOf<Map<String, String>>()
         for (eventName in events) {
             val eventMap = mutableMapOf<String, String>()
-            val eventNode = eventRepository.getEventNodeByNameAndType(eventName, "Incident")
+            val eventNode = eventRepository.getEventNodeByNameAndType(eventName, PropertyNames.INCIDENT.key)
             if (eventNode != null) {
                 eventMap.put(eventNode.type, eventNode.name)
                 val neighbours = eventRepository.getNeighborsOfEventNodeById(eventNode.id)
@@ -320,12 +321,16 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     // Function for Use Case 4: Route Integrity Check
     suspend fun findAffectedRouteStationsByLocation(locations: List<String>) {
-        val results = findAffectedRouteStationsByLocUseCase(
-            eventRepository = eventRepository,
-            embeddingRepository = embeddingRepository,
-            routeStations = locations,
-        )
-        _queryResults.value = ThreatAlertResponse(incidentsAffectingStations = results)
+        if (locations.isNotEmpty()) {
+            val apiRes = callBackend(
+                EventRequestData(
+                    metadata = RequestEntry(routeCoordinates = locations)
+                )
+            )
+            if (apiRes.data is ThreatAlertData) {
+                _queryResults.value = apiRes.data.payload
+            }
+        }
     }
 
 

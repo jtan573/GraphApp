@@ -14,8 +14,8 @@ class EventDatabaseQueries() {
         frequency: Int? = 1,
         embedding: FloatArray,
         tags: MutableList<String> = mutableListOf<String>()
-    ) {
-        nodesBox.put(
+    ): Long {
+        val id = nodesBox.put(
             EventNodeEntity(
                 name = name,
                 type = type,
@@ -25,7 +25,7 @@ class EventDatabaseQueries() {
                 tags = tags
             )
         )
-        return
+        return id
     }
 
     fun addEdgeIntoDbQuery(fromId: Long, toId: Long, edgeType: String){
@@ -55,10 +55,11 @@ class EventDatabaseQueries() {
         return nodeFound
     }
 
-    fun incrementFreqOfNodeQuery(node: EventNodeEntity) {
+    fun incrementFreqOfNodeQuery(node: EventNodeEntity): Long {
         node.frequency = node.frequency?.plus(1)
-        nodesBox.put(node)
+        val id = nodesBox.put(node)
         println("Node value incremented: $node")
+        return id
     }
 
     fun findAllNodesQuery() : List<EventNodeEntity> {

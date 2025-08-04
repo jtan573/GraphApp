@@ -33,6 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.frontend.components.QueryResultCard
 import com.example.graphapp.frontend.components.eventForms.RouteForm
 import com.example.graphapp.frontend.navigation.NavItem
@@ -181,26 +183,26 @@ fun RouteIntegrityUseCaseScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Text(
-                            text = "Incident: ${incident["Incident"]}",
+                            text = "Incident: ${incident[PropertyNames.INCIDENT.key]}",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold
                             ),
                             modifier = Modifier.padding(top = 8.dp).padding(horizontal = 10.dp)
                         )
                         Text(
-                            text = "How: ${incident["Method"]}",
+                            text = "How: ${incident[PropertyNames.HOW.key]}",
                             modifier = Modifier.padding(horizontal = 10.dp).padding(top = 4.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray,
                         )
                         Text(
-                            text = "Observed on: ${incident["Date"]}",
+                            text = "Observed on: ${incident[PropertyNames.WHEN.key]}",
                             modifier = Modifier.padding(vertical = 4.dp, horizontal = 10.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray,
                         )
                         Text(
-                            text = "Location: ${incident["Location"]}",
+                            text = "Location: ${incident[PropertyNames.WHEN.key]}",
                             modifier = Modifier.padding(bottom = 8.dp).padding(horizontal = 10.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray,

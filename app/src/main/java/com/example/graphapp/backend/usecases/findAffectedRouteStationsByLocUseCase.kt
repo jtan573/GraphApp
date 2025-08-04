@@ -2,6 +2,8 @@ package com.example.graphapp.backend.usecases
 
 import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.backend.core.recommendEventsForProps
+import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 
@@ -21,16 +23,16 @@ suspend fun findAffectedRouteStationsByLocUseCase(
     val proximityIncidentsFound = mutableListOf<EventDetails>()
     routeStations.forEachIndexed { index, station ->
         val (_, _, locationRecs) = recommendEventsForProps(
-            newEventMap = mapOf("Location" to station),
+            newEventMap = mapOf(PropertyNames.WHERE.key to station),
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
-            queryKey = "Incident",
+            queryKey = PropertyNames.INCIDENT.key,
             getTopThreeResultsOnly = true,
             customThreshold = threshold
         )
 
         if (locationRecs.predictedEvents.isNotEmpty()) {
-            val nearbyIncidents = locationRecs.predictedEvents["Incident"]
+            val nearbyIncidents = locationRecs.predictedEvents[PropertyNames.INCIDENT.key]
             nearbyIncidents?.forEach { incident ->
                 val isAlreadyAdded = proximityIncidentsFound.any { it.eventId == incident.eventId }
                 if (!isAlreadyAdded) {

@@ -22,8 +22,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.data.api.ThreatAlertResponse
 import com.example.graphapp.frontend.navigation.NavItem
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+import kotlin.time.Duration.Companion.parse
 
 @Composable
 fun QueryResultCard(
@@ -31,12 +42,16 @@ fun QueryResultCard(
     queryResults: ThreatAlertResponse,
     navController: NavController
 ) {
+
+    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    sdf.timeZone = TimeZone.getTimeZone("UTC+08:00")
+
     Column(modifier = Modifier
         .padding(top = 10.dp)
         .padding(horizontal = 16.dp)
     ) {
         Text(
-            text = "Incident: ${eventAdded["Incident"]}",
+            text = "Incident: ${eventAdded[PropertyNames.INCIDENT.key]}",
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.Black
             ),
@@ -44,9 +59,14 @@ fun QueryResultCard(
             color = Color(0xFF2E4E8C)
         )
         eventAdded.forEach { (inputType, inputString) ->
-            if (inputType == "Incident") return@forEach
+            if (inputType == PropertyNames.INCIDENT.key) return@forEach
+
+            var updatedString: String = inputString
+            if (inputType == PropertyNames.WHEN.key) {
+                updatedString = sdf.format(Date(inputString.toLong()))
+            }
             Text(
-                text = "$inputType: $inputString",
+                text = "$inputType: $updatedString",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 5.dp),
                 color = Color(0xFF2E4E8C)
@@ -244,25 +264,27 @@ fun QueryResultCard(
                             .padding(top = 8.dp)
                     )
                     Text(
-                        text = "Location: ${event.eventProperties["Location"]}",
+                        text = "Location: ${event.eventProperties[PropertyNames.WHERE.key]}",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontStyle = FontStyle.Italic
                         ),
                         color = Color.DarkGray,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
                     )
+                    event.eventProperties[PropertyNames.WHEN.key]?.let {
+                        Text(
+                            text = "Observed on: ${sdf.format(Date(it.toLong()))}",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontStyle = FontStyle.Italic
+                            ),
+                            color = Color.DarkGray,
+                            modifier = Modifier
+                                .padding(horizontal = 10.dp)
+                                .padding(bottom = 2.dp)
+                        )
+                    }
                     Text(
-                        text = "Observed on: ${event.eventProperties["Date"]}",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontStyle = FontStyle.Italic
-                        ),
-                        color = Color.DarkGray,
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp)
-                            .padding(bottom = 2.dp)
-                    )
-                    Text(
-                        text = "How: ${event.eventProperties["Method"]}",
+                        text = "How: ${event.eventProperties[PropertyNames.HOW.key]}",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontStyle = FontStyle.Italic
                         ),
@@ -314,7 +336,7 @@ fun QueryResultCard(
                                 .padding(top = 8.dp)
                         )
                         Text(
-                            text = "Location: ${incident.eventProperties["Location"]}",
+                            text = "Location: ${incident.eventProperties[PropertyNames.WHERE.key]}",
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontStyle = FontStyle.Italic
                             ),
@@ -324,9 +346,9 @@ fun QueryResultCard(
                                 vertical = 2.dp
                             )
                         )
-                        incident.eventProperties["Date"]?.let {
+                        incident.eventProperties[PropertyNames.WHEN.key]?.let {
                             Text(
-                                text = "Observed on: $it",
+                                text = "Observed on: ${sdf.format(Date(it.toLong()))}",
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     fontStyle = FontStyle.Italic
                                 ),
@@ -336,7 +358,7 @@ fun QueryResultCard(
                                     .padding(bottom = 2.dp)
                             )
                         }
-                        incident.eventProperties["Method"]?.let {
+                        incident.eventProperties[PropertyNames.HOW.key]?.let {
                             Text(
                                 text = "How: $it",
                                 style = MaterialTheme.typography.bodyMedium.copy(

@@ -17,6 +17,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -31,6 +32,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaOtherNodes
+import com.example.graphapp.backend.dto.GraphSchema.SchemaPropertyNodes
 import com.example.graphapp.frontend.components.QueryResultCard
 import com.example.graphapp.frontend.components.eventForms.IncidentForm
 import com.example.graphapp.frontend.viewmodels.GraphViewModel
@@ -48,12 +53,17 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: N
     val coroutineScope = rememberCoroutineScope()
     var showForm by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-    var threatFieldKeys = listOf<String>("Entity", "Method", "Location", "Motive", "Date", "Description")
+    var threatFieldKeys = SchemaPropertyNodes + SchemaOtherNodes
 
     val eventInputMap = remember(threatFieldKeys) {
         mutableStateMapOf<String, String>().apply {
             threatFieldKeys.forEach { putIfAbsent(it, "") }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        eventInputMap[PropertyNames.INCIDENT.key] = "Subject lurking around the area, trying to avoid cameras"
+        eventInputMap[PropertyNames.WHERE.key] = "1.3425,103.6897"
     }
 
     // Data for showcase purposes
@@ -126,26 +136,26 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: N
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Text(
-                            text = "Incident: ${incident["Incident"]}",
+                            text = "Incident: ${incident[PropertyNames.INCIDENT.key]}",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold
                             ),
                             modifier = Modifier.padding(top = 8.dp).padding(horizontal = 10.dp)
                         )
                         Text(
-                            text = "How: ${incident["Method"]}",
+                            text = "How: ${incident[PropertyNames.HOW.key]}",
                             modifier = Modifier.padding(horizontal = 10.dp).padding(top = 4.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray,
                         )
                         Text(
-                            text = "Observed on: ${incident["Date"]}",
+                            text = "Observed on: ${incident[PropertyNames.WHEN.key]}",
                             modifier = Modifier.padding(vertical = 4.dp, horizontal = 10.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray,
                         )
                         Text(
-                            text = "Location: ${incident["Location"]}",
+                            text = "Location: ${incident[PropertyNames.WHERE.key]}",
                             modifier = Modifier.padding(bottom = 8.dp).padding(horizontal = 10.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray,

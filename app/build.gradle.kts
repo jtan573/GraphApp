@@ -7,7 +7,6 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.sqldelightPlugin)
     id("com.google.devtools.ksp")
-    id("androidx.room")
     id("kotlin-kapt") // Only for Kotlin projects
     id("io.objectbox") // Apply last
 }
@@ -45,9 +44,6 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
-    }
-    room {
-        schemaDirectory("$projectDir/schemas")
     }
 }
 
@@ -91,4 +87,7 @@ dependencies {
     implementation(files("src/main/libs/stanford-postagger.jar"))
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.guava)
+
 }

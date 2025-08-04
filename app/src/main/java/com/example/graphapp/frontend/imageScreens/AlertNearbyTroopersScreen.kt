@@ -22,16 +22,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 
 @Composable
 fun AlertNearbyTroopersScreen(
     navController: NavController
 ) {
     val alertDetails = mapOf<String, String>(
-        "Incident" to "Mid-Flight Drone Propeller Failure",
-        "Method" to "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent",
-        "Date" to "2024-08-17T11:20Z",
-        "Location" to "1.3901,103.8072"
+        PropertyNames.INCIDENT.key to "Mid-Flight Drone Propeller Failure",
+        PropertyNames.HOW.key to "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent",
+        PropertyNames.WHEN.key to "1723897200000",
+        PropertyNames.WHERE.key to "1.3901,103.8072"
     )
 
     val likelyImpacts = listOf<String>(

@@ -1,5 +1,7 @@
 package com.example.graphapp.backend.usecases
 
+import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.data.api.DiscoverEventsResponse
 import com.example.graphapp.data.api.EventDetailData
 import com.example.graphapp.data.api.EventDetails
@@ -29,18 +31,18 @@ suspend fun findThreatResponses(
 
     // Response 2: Similar Incidents -> What are the possible impacts?
     val statusEventMap = mutableMapOf<String, String>()
-    eventInput.whatValue?.map { statusEventMap.put("Incident", eventInput.whatValue) }
-    eventInput.howValue?.map { statusEventMap.put("Method", eventInput.howValue) }
+    eventInput.whatValue?.map { statusEventMap.put(PropertyNames.INCIDENT.key, eventInput.whatValue) }
+    eventInput.howValue?.map { statusEventMap.put(PropertyNames.HOW.key, eventInput.howValue) }
 
     val (_, _ ,impactResults) = findRelevantEventsUseCase(
         statusEventMap = statusEventMap,
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
-        queryKey = "Impact"
+        queryKey = PropertyNames.IMPACT.key
     )
     val potentialImpacts = if (impactResults is DiscoverEventsResponse
         && impactResults.predictedEvents.isNotEmpty()) {
-        impactResults.predictedEvents["Impact"]?.map { it.eventName }
+        impactResults.predictedEvents[PropertyNames.IMPACT.key]?.map { it.eventName }
     } else { null }
 
 
@@ -49,21 +51,21 @@ suspend fun findThreatResponses(
         statusEventMap = statusEventMap,
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
-        queryKey = "Task"
+        queryKey = PropertyNames.TASK.key
     )
     val potentialTasks = if (taskResults is DiscoverEventsResponse
         && taskResults.predictedEvents.isNotEmpty()) {
-        taskResults.predictedEvents["Task"]?.map { it.eventName }
+        taskResults.predictedEvents[PropertyNames.TASK.key]?.map { it.eventName }
     } else { null }
 
 
     // Response 4: Relevant personnel
     val taskingMap = mutableMapOf<String, List<UserNodeEntity>>()
     potentialTasks?.forEach { task ->
-        val taskNode = eventRepository.getEventNodeByNameAndType(task, "Task")
+        val taskNode = eventRepository.getEventNodeByNameAndType(task, PropertyNames.TASK.key)
         if (taskNode != null) {
             val method = eventRepository.getNeighborsOfEventNodeById(taskNode.id)
-                .first { it.type == "Method" }.name
+                .first { it.type == PropertyNames.HOW.key }.name
 
             val taskDescription = taskNode.name + method
             val nearbyPersonnelMap = findRelevantPersonnelByLocationUseCase(

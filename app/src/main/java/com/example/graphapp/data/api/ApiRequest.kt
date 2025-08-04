@@ -1,5 +1,8 @@
 package com.example.graphapp.data.api
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 enum class DbAction {
     CREATE, UPDATE, DELETE
 }
@@ -11,13 +14,19 @@ data class ApiRequest(
     val inputData: RequestData
 )
 
+@Serializable
 sealed class RequestData {
+
+    @Serializable
+    @SerialName("EventRequestData")
     data class EventRequestData(
-        val eventType: String,
-        val details: EventDetailData,
+        val eventType: String? = null,
+        val details: EventDetailData? = null,
         val metadata: RequestEntry? = null
     ) : RequestData()
 
+    @Serializable
+    @SerialName("PersonnelRequestData")
     data class PersonnelRequestData(
         val whereValue: String? = null,
         val descValue: String? = null
@@ -27,6 +36,7 @@ sealed class RequestData {
 /* -------------------------------------------------
     Related to Events
 ------------------------------------------------- */
+@Serializable
 data class EventDetailData(
     val whatValue: String? = null,
     val whoValue: String? = null,
@@ -36,6 +46,7 @@ data class EventDetailData(
     val howValue: String? = null
 )
 
+@Serializable
 data class RequestEntry(
     val routeCoordinates: List<String>? = null
 )

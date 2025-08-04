@@ -23,11 +23,12 @@ class EventRepository(
         inputType: String,
         inputDescription: String? = null,
         inputFrequency: Int? = 1
-    ) {
+    ): Long {
         val nodeFound = queries.findNodeByNameTypeQuery(inputName, inputType)
 
         if (nodeFound != null) {
-            queries.incrementFreqOfNodeQuery(nodeFound)
+            val nodeId = queries.incrementFreqOfNodeQuery(nodeFound)
+            return nodeId
         } else {
 
             var isSuspicious = false
@@ -35,7 +36,7 @@ class EventRepository(
                 isSuspicious = dictionaryRepository.checkIfSuspicious(inputName)
             }
 
-            queries.addNodeIntoDbQuery(
+            val nodeId = queries.addNodeIntoDbQuery(
                 name = inputName,
                 type = inputType,
                 description = inputDescription,
@@ -45,6 +46,7 @@ class EventRepository(
                     mutableListOf("Suspicious")
                 } else { mutableListOf() }
             )
+            return nodeId
         }
     }
 
@@ -215,26 +217,26 @@ class EventRepository(
         insertEventNodeIntoDb("Protect civilian population", "Motive")
         insertEventNodeIntoDb("Enemy information acquisition", "Motive")
 
-// --- Dates (unique) ---
-        insertEventNodeIntoDb("2023-09-15T06:00Z", "Date") //1
-        insertEventNodeIntoDb("2023-09-15T08:30Z", "Date") //2
-//        insertNodeIntoDb("2023-09-15T09:15Z", "Date") //3
-        insertEventNodeIntoDb("2023-09-16T10:45Z", "Date") //4
-        insertEventNodeIntoDb("2023-09-16T14:20Z", "Date") //5
-        insertEventNodeIntoDb("2023-09-17T05:10Z", "Date") //6
-        insertEventNodeIntoDb("2023-09-17T18:00Z", "Date") //7
-        insertEventNodeIntoDb("2023-09-18T04:00Z", "Date") //8
-        insertEventNodeIntoDb("2023-09-18T12:00Z", "Date") //9
-        insertEventNodeIntoDb("2023-09-19T07:30Z", "Date") //10
-        insertEventNodeIntoDb("2023-09-20T05:00Z", "Date") //11
-        insertEventNodeIntoDb("2023-09-21T11:45Z", "Date") //12
-        insertEventNodeIntoDb("2023-09-22T02:15Z", "Date") //13
-        insertEventNodeIntoDb("2023-09-23T04:30Z", "Date") //14
-        insertEventNodeIntoDb("2023-09-24T03:20Z", "Date") //15
-        insertEventNodeIntoDb("2023-09-25T07:00Z", "Date") //16
-        insertEventNodeIntoDb("2023-09-26T08:00Z", "Date") //17
-        insertEventNodeIntoDb("2023-09-28T12:30Z", "Date") //19
-        insertEventNodeIntoDb("2023-09-29T15:45Z", "Date") //20
+// --- DateTimes (unique) ---
+        insertEventNodeIntoDb("1694757600000", "DateTime") //1
+        insertEventNodeIntoDb("1694766600000", "DateTime") //2
+//        insertNodeIntoDb("2023-09-15T09:15Z", "DateTime") //3
+        insertEventNodeIntoDb("1694861100000", "DateTime") //4
+        insertEventNodeIntoDb("1694876400000", "DateTime") //5
+        insertEventNodeIntoDb("1694937000000", "DateTime") //6
+        insertEventNodeIntoDb("1694983200000", "DateTime") //7
+        insertEventNodeIntoDb("1695019200000", "DateTime") //8
+        insertEventNodeIntoDb("1695048000000", "DateTime") //9
+        insertEventNodeIntoDb("1695118200000", "DateTime") //10
+        insertEventNodeIntoDb("1695186000000", "DateTime") //11
+        insertEventNodeIntoDb("1695296700000", "DateTime") //12
+        insertEventNodeIntoDb("1695348900000", "DateTime") //13
+        insertEventNodeIntoDb("1695443400000", "DateTime") //14
+        insertEventNodeIntoDb("1695529200000", "DateTime") //15
+        insertEventNodeIntoDb("1695634800000", "DateTime") //16
+        insertEventNodeIntoDb("1695705600000", "DateTime") //17
+        insertEventNodeIntoDb("1695894600000", "DateTime") //19
+        insertEventNodeIntoDb("1696002300000", "DateTime") //20
 
         // Event Nodes
         insertEventNodeIntoDb("Reconnaissance Patrol", "Task")
@@ -278,7 +280,7 @@ class EventRepository(
             getEventNodeByNameAndType("Reconnaissance Patrol", "Task")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-15T06:00Z", "Date"),
+            getEventNodeByNameAndType("1694757600000", "DateTime"),
             getEventNodeByNameAndType("Reconnaissance Patrol", "Task")
         )
         insertEventEdgeIntoDb(
@@ -290,7 +292,7 @@ class EventRepository(
             getEventNodeByNameAndType("Reconnaissance Patrol", "Task")
         )
 
-        insertEventNodeIntoDb("2023-09-15T07:00Z", "Date")
+        insertEventNodeIntoDb("2023-09-15T07:00Z", "DateTime")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Alpha Company", "Entity"),
             getEventNodeByNameAndType("Area Surveillance Operation", "Task")
@@ -300,7 +302,7 @@ class EventRepository(
             getEventNodeByNameAndType("Area Surveillance Operation", "Task")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-15T07:00Z", "Date"),
+            getEventNodeByNameAndType("2023-09-15T07:00Z", "DateTime"),
             getEventNodeByNameAndType("Area Surveillance Operation", "Task")
         )
 //        insertEdgeIntoDB(getNodeByNameAndType("1.3521,103.8198", "Location"), getNodeByNameAndType("Area Surveillance Operation", "Task"))
@@ -316,7 +318,7 @@ class EventRepository(
             getEventNodeByNameAndType("Convoy Escort", "Task")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-16T10:45Z", "Date"),
+            getEventNodeByNameAndType("1694861100000", "DateTime"),
             getEventNodeByNameAndType("Convoy Escort", "Task")
         )
         insertEventEdgeIntoDb(
@@ -339,7 +341,7 @@ class EventRepository(
             getEventNodeByNameAndType("Supply Convoy Security", "Task")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-16T10:45Z", "Date"),
+            getEventNodeByNameAndType("1694861100000", "DateTime"),
             getEventNodeByNameAndType("Supply Convoy Security", "Task")
         )
         insertEventEdgeIntoDb(
@@ -361,7 +363,7 @@ class EventRepository(
             getEventNodeByNameAndType("Forward Observation", "Task")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-17T05:10Z", "Date"),
+            getEventNodeByNameAndType("1694937000000", "DateTime"),
             getEventNodeByNameAndType("Forward Observation", "Task")
         )
         insertEventEdgeIntoDb(
@@ -382,7 +384,7 @@ class EventRepository(
             getEventNodeByNameAndType("Resupply Mission", "Task")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-20T05:00Z", "Date"),
+            getEventNodeByNameAndType("1695186000000", "DateTime"),
             getEventNodeByNameAndType("Resupply Mission", "Task")
         )
         insertEventEdgeIntoDb(
@@ -403,7 +405,7 @@ class EventRepository(
             getEventNodeByNameAndType("Quick Reaction Deployment", "Task")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-21T11:45Z", "Date"),
+            getEventNodeByNameAndType("1695296700000", "DateTime"),
             getEventNodeByNameAndType("Quick Reaction Deployment", "Task")
         )
         insertEventEdgeIntoDb(
@@ -416,7 +418,7 @@ class EventRepository(
         )
 
 
-// --- Incidents (unique Dates, varied properties) ---
+// --- Incidents (unique DateTimes, varied properties) ---
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Enemy Forces", "Entity"),
             getEventNodeByNameAndType("Ambush", "Incident")
@@ -426,7 +428,7 @@ class EventRepository(
             getEventNodeByNameAndType("Ambush", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-15T08:30Z", "Date"),
+            getEventNodeByNameAndType("1694766600000", "DateTime"),
             getEventNodeByNameAndType("Ambush", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -440,7 +442,7 @@ class EventRepository(
 
         insertEventNodeIntoDb("Enemies", "Entity")
         insertEventNodeIntoDb("Counterattack", "Motive")
-        insertEventNodeIntoDb("2023-09-15T10:50Z", "Date")
+        insertEventNodeIntoDb("2023-09-15T10:50Z", "DateTime")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Enemies", "Entity"),
             getEventNodeByNameAndType("Surprise Attack", "Incident")
@@ -450,7 +452,7 @@ class EventRepository(
             getEventNodeByNameAndType("Surprise Attack", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-15T10:50Z", "Date"),
+            getEventNodeByNameAndType("2023-09-15T10:50Z", "DateTime"),
             getEventNodeByNameAndType("Surprise Attack", "Incident")
         )
 //        insertEdgeIntoDB(getNodeByNameAndType("1.1344,104.0495", "Location"), getNodeByNameAndType("Surprise Attack", "Incident"))
@@ -469,7 +471,7 @@ class EventRepository(
             getEventNodeByNameAndType("Roadside Bombing", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-16T14:20Z", "Date"),
+            getEventNodeByNameAndType("1694876400000", "DateTime"),
             getEventNodeByNameAndType("Roadside Bombing", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -480,7 +482,7 @@ class EventRepository(
 
         insertEventNodeIntoDb("Interfere with enemy supply lines", "Motive")
         insertEventNodeIntoDb("Explosion of IED", "Method")
-        insertEventNodeIntoDb("2023-09-16T15:42Z", "Date")
+        insertEventNodeIntoDb("2023-09-16T15:42Z", "DateTime")
 //        insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemy Group", "Entity"), getEventNodeByNameAndType("Improvised Explosive Strike", "Incident"))
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
@@ -489,7 +491,7 @@ class EventRepository(
             ), getEventNodeByNameAndType("Improvised Explosive Strike", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-16T15:42Z", "Date"),
+            getEventNodeByNameAndType("2023-09-16T15:42Z", "DateTime"),
             getEventNodeByNameAndType("Improvised Explosive Strike", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -511,7 +513,7 @@ class EventRepository(
             getEventNodeByNameAndType("Sniper Attack", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-17T18:00Z", "Date"),
+            getEventNodeByNameAndType("1694983200000", "DateTime"),
             getEventNodeByNameAndType("Sniper Attack", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -532,7 +534,7 @@ class EventRepository(
             getEventNodeByNameAndType("Vehicle Breakdown", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-18T04:00Z", "Date"),
+            getEventNodeByNameAndType("1695019200000", "DateTime"),
             getEventNodeByNameAndType("Vehicle Breakdown", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -553,7 +555,7 @@ class EventRepository(
             getEventNodeByNameAndType("Airstrike Misfire", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-22T02:15Z", "Date"),
+            getEventNodeByNameAndType("1695348900000", "DateTime"),
             getEventNodeByNameAndType("Airstrike Misfire", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -566,14 +568,14 @@ class EventRepository(
         )
 
 
-        // --- Outcomes (unique Dates, varied properties) ---
+        // --- Outcomes (unique DateTimes, varied properties) ---
 //        insertEdgeIntoDB(getNodeByNameAndType("Echo Unit", "Entity"), getNodeByNameAndType("Extraction Completed", "Outcome"))
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Protect civilian population", "Motive"),
             getEventNodeByNameAndType("Extraction Completed", "Outcome")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-23T04:30Z", "Date"),
+            getEventNodeByNameAndType("1695443400000", "DateTime"),
             getEventNodeByNameAndType("Extraction Completed", "Outcome")
         )
         insertEventEdgeIntoDb(
@@ -586,7 +588,7 @@ class EventRepository(
         )
 
         insertEventNodeIntoDb("Guard general public", "Motive")
-//        insertEventNodeIntoDb("2023-09-23T04:30Z", "Date")
+//        insertEventNodeIntoDb("1695443400000", "DateTime")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Echo Unit", "Entity"),
             getEventNodeByNameAndType("Evacuation Finalized", "Outcome")
@@ -596,7 +598,7 @@ class EventRepository(
             getEventNodeByNameAndType("Evacuation Finalized", "Outcome")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-23T04:30Z", "Date"),
+            getEventNodeByNameAndType("1695443400000", "DateTime"),
             getEventNodeByNameAndType("Evacuation Finalized", "Outcome")
         )
         insertEventEdgeIntoDb(
@@ -618,7 +620,7 @@ class EventRepository(
             getEventNodeByNameAndType("Objective Secured", "Outcome")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-24T03:20Z", "Date"),
+            getEventNodeByNameAndType("1695529200000", "DateTime"),
             getEventNodeByNameAndType("Objective Secured", "Outcome")
         )
         insertEventEdgeIntoDb(
@@ -631,7 +633,7 @@ class EventRepository(
         )
 
         insertEventNodeIntoDb("Create advanced base", "Motive")
-        insertEventNodeIntoDb("2023-09-28T08:20Z", "Date")
+        insertEventNodeIntoDb("1695882000000", "DateTime")
         insertEventNodeIntoDb("Nighttime offensive", "Method")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Bravo Company", "Entity"),
@@ -642,7 +644,7 @@ class EventRepository(
             getEventNodeByNameAndType("Target Area Secured", "Outcome")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-28T08:20Z", "Date"),
+            getEventNodeByNameAndType("1695882000000", "DateTime"),
             getEventNodeByNameAndType("Target Area Secured", "Outcome")
         )
 //        insertEdgeIntoDB(getNodeByNameAndType("1.3000,103.9000", "Location"), getNodeByNameAndType("Target Area Secured", "Outcome"))
@@ -661,7 +663,7 @@ class EventRepository(
             getEventNodeByNameAndType("Casualty Evacuation", "Outcome")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-25T07:00Z", "Date"),
+            getEventNodeByNameAndType("1695634800000", "DateTime"),
             getEventNodeByNameAndType("Casualty Evacuation", "Outcome")
         )
         insertEventEdgeIntoDb(
@@ -682,7 +684,7 @@ class EventRepository(
             getEventNodeByNameAndType("Mission Delay", "Outcome")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-26T08:00Z", "Date"),
+            getEventNodeByNameAndType("1695705600000", "DateTime"),
             getEventNodeByNameAndType("Mission Delay", "Outcome")
         )
         insertEventEdgeIntoDb(
@@ -703,7 +705,7 @@ class EventRepository(
             getEventNodeByNameAndType("Equipment Loss", "Outcome")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-27T09:15Z", "Date"),
+            getEventNodeByNameAndType("1695806100000", "DateTime"),
             getEventNodeByNameAndType("Equipment Loss", "Outcome")
         )
         insertEventEdgeIntoDb(
@@ -715,7 +717,7 @@ class EventRepository(
             getEventNodeByNameAndType("Equipment Loss", "Outcome")
         )
 
-// --- Impacts (unique Dates, varied properties) ---
+// --- Impacts (unique DateTimes, varied properties) ---
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Joint Task Force Command", "Entity"),
             getEventNodeByNameAndType("Operational Delay", "Impact")
@@ -725,7 +727,7 @@ class EventRepository(
             getEventNodeByNameAndType("Operational Delay", "Impact")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-28T12:30Z", "Date"),
+            getEventNodeByNameAndType("1695894600000", "DateTime"),
             getEventNodeByNameAndType("Operational Delay", "Impact")
         )
         insertEventEdgeIntoDb(
@@ -748,7 +750,7 @@ class EventRepository(
             getEventNodeByNameAndType("Mission Timeline Extended", "Impact")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-28T12:30Z", "Date"),
+            getEventNodeByNameAndType("1695894600000", "DateTime"),
             getEventNodeByNameAndType("Mission Timeline Extended", "Impact")
         )
 //        insertEdgeIntoDB(getNodeByNameAndType("1.4250,103.8500", "Location"), getNodeByNameAndType("Mission Timeline Extended", "Impact"))
@@ -766,7 +768,7 @@ class EventRepository(
             getEventNodeByNameAndType("Intel Gap Created", "Impact")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-29T15:45Z", "Date"),
+            getEventNodeByNameAndType("1696002300000", "DateTime"),
             getEventNodeByNameAndType("Intel Gap Created", "Impact")
         )
         insertEventEdgeIntoDb(
@@ -787,7 +789,7 @@ class EventRepository(
             getEventNodeByNameAndType("Resource Shortage", "Impact")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-19T07:30Z", "Date"),
+            getEventNodeByNameAndType("1695118200000", "DateTime"),
             getEventNodeByNameAndType("Resource Shortage", "Impact")
         )
         insertEventEdgeIntoDb(
@@ -808,7 +810,7 @@ class EventRepository(
             getEventNodeByNameAndType("Increased Hostilities", "Impact")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-18T12:00Z", "Date"),
+            getEventNodeByNameAndType("1695048000000", "DateTime"),
             getEventNodeByNameAndType("Increased Hostilities", "Impact")
         )
         insertEventEdgeIntoDb(
@@ -829,7 +831,7 @@ class EventRepository(
             getEventNodeByNameAndType("Strategic Advantage Lost", "Impact")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-17T05:10Z", "Date"),
+            getEventNodeByNameAndType("1694937000000", "DateTime"),
             getEventNodeByNameAndType("Strategic Advantage Lost", "Impact")
         )
         insertEventEdgeIntoDb(
@@ -894,7 +896,7 @@ class EventRepository(
             "Battery thermal runaway mid-air caused fireball and crash in vegetation zone",
             "Method"
         )
-        insertEventNodeIntoDb("2025-01-18T08:00Z", "Date")
+        insertEventNodeIntoDb("1737177600000", "DateTime")
         insertEventNodeIntoDb("1.3331,103.8198", "Location")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Aerial Perimeter Recon", "Motive"),
@@ -907,7 +909,7 @@ class EventRepository(
             ), getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2025-01-18T08:00Z", "Date"),
+            getEventNodeByNameAndType("1737177600000", "DateTime"),
             getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -921,7 +923,7 @@ class EventRepository(
             "Thermal interference disrupted uplink, causing drone to hover erratically before crash-landing near treeline",
             "Method"
         )
-        insertEventNodeIntoDb("2025-01-18T10:45Z", "Date")
+        insertEventNodeIntoDb("1737187500000", "DateTime")
         insertEventNodeIntoDb("1.3683,103.8454", "Location")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Fire Perimeter Scouting", "Motive"),
@@ -934,7 +936,7 @@ class EventRepository(
             ), getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2025-01-18T10:45Z", "Date"),
+            getEventNodeByNameAndType("1737187500000", "DateTime"),
             getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -948,7 +950,7 @@ class EventRepository(
             "Dust ingress in rotor hub stalled motor mid-ascent, causing drone to crash near fire truck",
             "Method"
         )
-        insertEventNodeIntoDb("2025-01-18T13:20Z", "Date")
+        insertEventNodeIntoDb("1737196800000", "DateTime")
         insertEventNodeIntoDb("1.3012,103.7880", "Location")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Pre-Deployment Check", "Motive"),
@@ -961,7 +963,7 @@ class EventRepository(
             ), getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2025-01-18T13:20Z", "Date"),
+            getEventNodeByNameAndType("1737196800000", "DateTime"),
             getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -978,7 +980,7 @@ class EventRepository(
             "Deploy foam suppressant around crash area and establish ember watch perimeter",
             "Method"
         )
-        insertEventNodeIntoDb("2025-01-18T08:05Z", "Date")
+        insertEventNodeIntoDb("1737177900000", "DateTime")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
                 "Prevent vegetation ignition from battery combustion debris",
@@ -992,7 +994,7 @@ class EventRepository(
             ), getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2025-01-18T08:05Z", "Date"),
+            getEventNodeByNameAndType("1737177900000", "DateTime"),
             getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task")
         )
         insertEventEdgeIntoDb(
@@ -1006,7 +1008,7 @@ class EventRepository(
             "Track last known GPS path, recover wreckage, and reconfigure thermal-resistant signal repeater",
             "Method"
         )
-        insertEventNodeIntoDb("2025-01-18T10:50Z", "Date")
+        insertEventNodeIntoDb("1737187800000", "DateTime")
         insertEventNodeIntoDb("1.3684,103.8454", "Location")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
@@ -1021,7 +1023,7 @@ class EventRepository(
             ), getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2025-01-18T10:50Z", "Date"),
+            getEventNodeByNameAndType("1737187800000", "DateTime"),
             getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task")
         )
         insertEventEdgeIntoDb(
@@ -1038,7 +1040,7 @@ class EventRepository(
             "Clear debris from lift pad and conduct rotor health scan across nearby UAVs",
             "Method"
         )
-        insertEventNodeIntoDb("2025-01-18T13:21Z", "Date")
+        insertEventNodeIntoDb("1737196860000", "DateTime")
         insertEventNodeIntoDb("1.3013,103.7880", "Location")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
@@ -1053,7 +1055,7 @@ class EventRepository(
             ), getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2025-01-18T13:21Z", "Date"),
+            getEventNodeByNameAndType("1737196860000", "DateTime"),
             getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task")
         )
         insertEventEdgeIntoDb(
@@ -1067,7 +1069,7 @@ class EventRepository(
             "Uplink loss triggered blackout over 400m stretch of fire line, delaying spread estimation",
             "Method"
         )
-        insertEventNodeIntoDb("2025-01-18T13:25Z", "Date")
+        insertEventNodeIntoDb("1737197100000", "DateTime")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Fire Line Command Unit", "Entity"),
             getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact")
@@ -1079,7 +1081,7 @@ class EventRepository(
             ), getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2025-01-18T13:25Z", "Date"),
+            getEventNodeByNameAndType("1737197100000", "DateTime"),
             getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact")
         )
         insertEventEdgeIntoDb(
@@ -1093,7 +1095,7 @@ class EventRepository(
             "Battery fragments landed in brush, igniting localized ground fire before suppression team arrived",
             "Method"
         )
-        insertEventNodeIntoDb("2025-01-18T08:01Z", "Date")
+        insertEventNodeIntoDb("1737177660000", "DateTime")
         insertEventNodeIntoDb("1.3531,103.8178", "Location")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Drone Patrol Zone Crew", "Entity"),
@@ -1106,7 +1108,7 @@ class EventRepository(
             ), getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2025-01-18T08:01Z", "Date"),
+            getEventNodeByNameAndType("1737177660000", "DateTime"),
             getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact")
         )
         insertEventEdgeIntoDb(
@@ -1120,7 +1122,7 @@ class EventRepository(
             "Pad debris and rotor jam caused a 30-minute hold on drone launch queue",
             "Method"
         )
-        insertEventNodeIntoDb("2025-01-18T10:46Z", "Date")
+        insertEventNodeIntoDb("1737187560000", "DateTime")
         insertEventNodeIntoDb("1.3685,103.8454", "Location")
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("UAV Ground Control Team", "Entity"),
@@ -1133,7 +1135,7 @@ class EventRepository(
             ), getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2025-01-18T10:46Z", "Date"),
+            getEventNodeByNameAndType("1737187560000", "DateTime"),
             getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact")
         )
         insertEventEdgeIntoDb(
@@ -1174,7 +1176,7 @@ class EventRepository(
             "Incident"
         )
         insertEventNodeIntoDb("Unidentified Male", "Entity")
-        insertEventNodeIntoDb("2023-09-10T08:45Z", "Date")
+        insertEventNodeIntoDb("1694335500000", "DateTime")
         insertEventNodeIntoDb("1.3500,103.6999", "Location")
         insertEventNodeIntoDb("Loitering with camera", "Method")
         insertEventEdgeIntoDb(
@@ -1185,7 +1187,7 @@ class EventRepository(
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-10T08:45Z", "Date"),
+            getEventNodeByNameAndType("1694335500000", "DateTime"),
             getEventNodeByNameAndType(
                 "Subject loiters near restricted zone appearing to scan the area",
                 "Incident"
@@ -1211,7 +1213,7 @@ class EventRepository(
             "Incident"
         )
         insertEventNodeIntoDb("Middle-aged Woman", "Entity")
-        insertEventNodeIntoDb("2023-09-11T10:12Z", "Date")
+        insertEventNodeIntoDb("1694427120000", "DateTime")
         insertEventNodeIntoDb("1.3453,103.6000", "Location")
         insertEventNodeIntoDb("Walking in circles", "Method")
         insertEventEdgeIntoDb(
@@ -1222,7 +1224,7 @@ class EventRepository(
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-11T10:12Z", "Date"),
+            getEventNodeByNameAndType("1694427120000", "DateTime"),
             getEventNodeByNameAndType(
                 "Subject spotted wandering aimlessly along perimeter fencing",
                 "Incident"
@@ -1248,7 +1250,7 @@ class EventRepository(
             "Incident"
         )
         insertEventNodeIntoDb("Unidentified Youth", "Entity")
-        insertEventNodeIntoDb("2023-09-12T07:05Z", "Date")
+        insertEventNodeIntoDb("1694502300000", "DateTime")
         insertEventNodeIntoDb("1.3425,103.6897", "Location")
         insertEventNodeIntoDb("Taking notes discreetly", "Method")
         insertEventEdgeIntoDb(
@@ -1259,7 +1261,7 @@ class EventRepository(
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-12T07:05Z", "Date"),
+            getEventNodeByNameAndType("1694502300000", "DateTime"),
             getEventNodeByNameAndType(
                 "Person discreetly writing or sketching near checkpoint structure",
                 "Incident"
@@ -1285,7 +1287,7 @@ class EventRepository(
             "Incident"
         )
         insertEventNodeIntoDb("Two Individuals", "Entity")
-        insertEventNodeIntoDb("2023-09-13T13:37Z", "Date")
+        insertEventNodeIntoDb("1694612220000", "DateTime")
         insertEventNodeIntoDb("1.3456,103.6902", "Location")
         insertEventNodeIntoDb("Briefcase handover", "Method")
         insertEventEdgeIntoDb(
@@ -1296,7 +1298,7 @@ class EventRepository(
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-13T13:37Z", "Date"),
+            getEventNodeByNameAndType("1694612220000", "DateTime"),
             getEventNodeByNameAndType(
                 "Unusual handoff of item occurs at public bench with minimal interaction",
                 "Incident"
@@ -1322,7 +1324,7 @@ class EventRepository(
             "Incident"
         )
         insertEventNodeIntoDb("Small Group", "Entity")
-        insertEventNodeIntoDb("2023-09-14T09:55Z", "Date")
+        insertEventNodeIntoDb("1694685300000", "DateTime")
         insertEventNodeIntoDb("1.3409,103.6885", "Location")
         insertEventNodeIntoDb("Use of chalk/paint marking", "Method")
         insertEventEdgeIntoDb(
@@ -1333,7 +1335,7 @@ class EventRepository(
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-14T09:55Z", "Date"),
+            getEventNodeByNameAndType("1694685300000", "DateTime"),
             getEventNodeByNameAndType(
                 "Small group appears to annotate or inspect public utility fixture",
                 "Incident"
@@ -1362,7 +1364,7 @@ class EventRepository(
         insertEventNodeIntoDb("Bombing at Urban Supply Depot", "Incident")
         insertEventNodeIntoDb("Unknown Operative", "Entity")
         insertEventNodeIntoDb("Disrupt supply lines", "Motive")
-        insertEventNodeIntoDb("2023-09-13T07:20Z", "Date")
+        insertEventNodeIntoDb("1694589600000", "DateTime")
         insertEventNodeIntoDb("1.3250,103.8098", "Location")
         insertEventNodeIntoDb("Explosive Charges", "Method")
         insertEventEdgeIntoDb(
@@ -1374,7 +1376,7 @@ class EventRepository(
             getEventNodeByNameAndType("Bombing at Urban Supply Depot", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-13T07:20Z", "Date"),
+            getEventNodeByNameAndType("1694589600000", "DateTime"),
             getEventNodeByNameAndType("Bombing at Urban Supply Depot", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -1390,7 +1392,7 @@ class EventRepository(
         insertEventNodeIntoDb("Sniper Nest Detected on Ridge", "Incident")
         insertEventNodeIntoDb("Hostile Marksman", "Entity")
         insertEventNodeIntoDb("Target high-ranking officer", "Motive")
-        insertEventNodeIntoDb("2023-09-13T07:32Z", "Date")
+        insertEventNodeIntoDb("1694590320000", "DateTime")
         insertEventNodeIntoDb("1.3010,103.7845", "Location")
         insertEventNodeIntoDb("Scoped Rifle from Elevated Cover", "Method")
         insertEventEdgeIntoDb(
@@ -1402,7 +1404,7 @@ class EventRepository(
             getEventNodeByNameAndType("Sniper Nest Detected on Ridge", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-13T07:32Z", "Date"),
+            getEventNodeByNameAndType("1694590320000", "DateTime"),
             getEventNodeByNameAndType("Sniper Nest Detected on Ridge", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -1420,7 +1422,7 @@ class EventRepository(
         insertEventNodeIntoDb("Sabotage at Communications Relay", "Incident")
         insertEventNodeIntoDb("Insider Threat", "Entity")
         insertEventNodeIntoDb("Blind surveillance systems", "Motive")
-        insertEventNodeIntoDb("2023-09-13T07:40Z", "Date")
+        insertEventNodeIntoDb("1694590800000", "DateTime")
         insertEventNodeIntoDb("1.2859,103.7298", "Location")
         insertEventNodeIntoDb("Signal Jammer Deployment", "Method")
         insertEventEdgeIntoDb(
@@ -1432,7 +1434,7 @@ class EventRepository(
             getEventNodeByNameAndType("Sabotage at Communications Relay", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-13T07:40Z", "Date"),
+            getEventNodeByNameAndType("1694590800000", "DateTime"),
             getEventNodeByNameAndType("Sabotage at Communications Relay", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -1448,7 +1450,7 @@ class EventRepository(
         insertEventNodeIntoDb("Enemy Encampment Spotted in Jungle", "Incident")
         insertEventNodeIntoDb("Militant Group Foxtrot", "Entity")
         insertEventNodeIntoDb("Staging ground for ambush", "Motive")
-        insertEventNodeIntoDb("2023-09-13T07:53Z", "Date")
+        insertEventNodeIntoDb("1694591580000", "DateTime")
         insertEventNodeIntoDb("1.2948,103.0221", "Location")
         insertEventNodeIntoDb("Camouflaged Tent Setup", "Method")
         insertEventEdgeIntoDb(
@@ -1460,7 +1462,7 @@ class EventRepository(
             getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-13T07:53Z", "Date"),
+            getEventNodeByNameAndType("1694591580000", "DateTime"),
             getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -1475,7 +1477,7 @@ class EventRepository(
         // Testing direction of airflow thing
         insertEventNodeIntoDb("Chemical Release Into Air", "Incident")
         insertEventNodeIntoDb("Malicious intent", "Motive")
-        insertEventNodeIntoDb("2023-09-23T22:15Z", "Date")
+        insertEventNodeIntoDb("1695507300000", "DateTime")
         insertEventNodeIntoDb("1.3521,103.7927", "Location")
         insertEventNodeIntoDb("Release of toxic materials from factory", "Method")
 //        insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown Source", "Entity"), getEventNodeByNameAndType("Chemical Release Into Air", "Incident"))
@@ -1484,7 +1486,7 @@ class EventRepository(
             getEventNodeByNameAndType("Chemical Release Into Air", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-23T22:15Z", "Date"),
+            getEventNodeByNameAndType("1695507300000", "DateTime"),
             getEventNodeByNameAndType("Chemical Release Into Air", "Incident")
         )
         insertEventEdgeIntoDb(
@@ -1500,7 +1502,7 @@ class EventRepository(
 
         insertEventNodeIntoDb("SE", "Wind")
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-23T22:15Z", "Date"),
+            getEventNodeByNameAndType("1695507300000", "DateTime"),
             getEventNodeByNameAndType("SE", "Wind")
         )
 
