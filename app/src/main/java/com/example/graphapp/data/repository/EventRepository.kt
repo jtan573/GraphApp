@@ -1,6 +1,7 @@
 package com.example.graphapp.data.repository
 
 import android.util.Log
+import androidx.compose.ui.text.toLowerCase
 import com.example.graphapp.data.embedding.SentenceEmbedding
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
@@ -12,7 +13,8 @@ import com.example.graphapp.backend.dto.GraphSchema.SchemaSemanticPropertyNodes
 class EventRepository(
     private val sentenceEmbedding: SentenceEmbedding,
     private val embeddingRepository: EmbeddingRepository,
-    private val dictionaryRepository: DictionaryRepository
+    private val dictionaryRepository: DictionaryRepository,
+    private val posTaggerRepository: PosTaggerRepository
 ) {
 
     private val queries = EventDatabaseQueries()
@@ -31,9 +33,19 @@ class EventRepository(
             return nodeId
         } else {
 
+            var posTagged = listOf<String>()
             var isSuspicious = false
             if (inputType in SchemaSemanticPropertyNodes) {
-                isSuspicious = dictionaryRepository.checkIfSuspicious(inputName)
+                isSuspicious = dictionaryRepository.checkIfSuspicious(inputName.lowercase())
+
+                val taggedSentence = posTaggerRepository.tagText(inputName.lowercase())
+                posTagged = posTaggerRepository.extractTaggedWords(taggedSentence)
+            }
+
+            val relevantTags = if (isSuspicious) {
+                posTagged + "suspicious"
+            } else {
+                posTagged
             }
 
             val nodeId = queries.addNodeIntoDbQuery(
@@ -41,10 +53,8 @@ class EventRepository(
                 type = inputType,
                 description = inputDescription,
                 frequency = inputFrequency,
-                embedding = sentenceEmbedding.encode(inputName),
-                tags = if (isSuspicious) {
-                    mutableListOf("Suspicious")
-                } else { mutableListOf() }
+                embedding = sentenceEmbedding.encode(inputName.lowercase()),
+                tags = relevantTags
             )
             return nodeId
         }
@@ -137,7 +147,8 @@ class EventRepository(
             id = (-1L * (1..1_000_000).random()),
             name = value,
             type = type,
-            embedding = embeddingRepository.getTextEmbeddings(value)
+            embedding = embeddingRepository.getTextEmbeddings(value),
+            tags = posTaggerRepository.extractTaggedWords(posTaggerRepository.tagText(value))
         )
     }
 
@@ -1470,34 +1481,34 @@ class EventRepository(
             getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident")
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Camouflaged Tent Setup", "Method"),
+            getEventNodeByNameAndType("Camouflaged tent setup", "Method"),
             getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident")
         )
 
         // Testing direction of airflow thing
-        insertEventNodeIntoDb("Chemical Release Into Air", "Incident")
+        insertEventNodeIntoDb("Chemical release into air", "Incident")
         insertEventNodeIntoDb("Malicious intent", "Motive")
         insertEventNodeIntoDb("1695507300000", "DateTime")
         insertEventNodeIntoDb("1.3521,103.7927", "Location")
         insertEventNodeIntoDb("Release of toxic materials from factory", "Method")
-//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown Source", "Entity"), getEventNodeByNameAndType("Chemical Release Into Air", "Incident"))
+//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown Source", "Entity"), getEventNodeByNameAndType("Chemical release into air", "Incident"))
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Malicious intent", "Motive"),
-            getEventNodeByNameAndType("Chemical Release Into Air", "Incident")
+            getEventNodeByNameAndType("Chemical release into air", "Incident")
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("1695507300000", "DateTime"),
-            getEventNodeByNameAndType("Chemical Release Into Air", "Incident")
+            getEventNodeByNameAndType("Chemical release into air", "Incident")
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("1.3521,103.7927", "Location"),
-            getEventNodeByNameAndType("Chemical Release Into Air", "Incident")
+            getEventNodeByNameAndType("Chemical release into air", "Incident")
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
                 "Release of toxic materials from factory",
                 "Method"
-            ), getEventNodeByNameAndType("Chemical Release Into Air", "Incident")
+            ), getEventNodeByNameAndType("Chemical release into air", "Incident")
         )
 
         insertEventNodeIntoDb("SE", "Wind")

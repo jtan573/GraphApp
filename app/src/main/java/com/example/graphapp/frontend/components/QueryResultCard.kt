@@ -132,7 +132,7 @@ fun QueryResultCard(
                 modifier = Modifier.padding(bottom = 5.dp)
             )
 
-            queryResults.potentialImpacts.forEach { recommendation ->
+            queryResults.potentialImpacts.forEach { impact ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -140,10 +140,11 @@ fun QueryResultCard(
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Text(
-                        text = recommendation,
+                        text = impact.eventName,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
                     )
+                    // TODO
                 }
             }
             Spacer(modifier = Modifier.padding(vertical = 12.dp))

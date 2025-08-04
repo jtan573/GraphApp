@@ -13,7 +13,7 @@ class EventDatabaseQueries() {
         description: String? = null,
         frequency: Int? = 1,
         embedding: FloatArray,
-        tags: MutableList<String> = mutableListOf<String>()
+        tags: List<String> = mutableListOf<String>()
     ): Long {
         val id = nodesBox.put(
             EventNodeEntity(

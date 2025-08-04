@@ -16,9 +16,9 @@ class AppBackend(
     val embeddingRepository = EmbeddingRepository(context)
     val sentenceEmbedding = embeddingRepository.getSentenceEmbeddingModel()
     val dictionaryRepository = DictionaryRepository(sentenceEmbedding)
-    val eventRepository = EventRepository(sentenceEmbedding, embeddingRepository, dictionaryRepository)
-    val userActionRepository = UserActionRepository(sentenceEmbedding)
     val posTaggerRepository = PosTaggerRepository(context)
+    val eventRepository = EventRepository(sentenceEmbedding, embeddingRepository, dictionaryRepository, posTaggerRepository)
+    val userActionRepository = UserActionRepository(sentenceEmbedding)
 
 
     suspend fun initialiseBackend() {
@@ -26,6 +26,8 @@ class AppBackend(
         Log.d("REPOSITORY", "EMBEDDING REPO INITIALISED.")
         dictionaryRepository.initialiseDictionaryRepository()
         Log.d("REPOSITORY", "DICTIONARY REPO INITIALISED.")
+        posTaggerRepository.initialisePosTagger()
+        Log.d("REPOSITORY", "POS TAGGER REPO INITIALISED.")
         eventRepository.initialiseEventRepository()
         Log.d("REPOSITORY", "EVENT REPO INITIALISED.")
         userActionRepository.initialiseUserActionRepository()

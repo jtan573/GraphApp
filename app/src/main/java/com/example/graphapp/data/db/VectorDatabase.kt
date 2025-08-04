@@ -41,7 +41,7 @@ data class EventNodeEntity(
     @HnswIndex(dimensions=384, distanceType = VectorDistanceType.COSINE)
     var embedding: FloatArray? = null,
     var cachedNodeIds: MutableMap<String, MutableList<Long>> = mutableMapOf(),
-    var tags: MutableList<String> = mutableListOf<String>()
+    var tags: List<String> = mutableListOf<String>()
 )
 
 @Entity

@@ -42,7 +42,7 @@ suspend fun findThreatResponses(
     )
     val potentialImpacts = if (impactResults is DiscoverEventsResponse
         && impactResults.predictedEvents.isNotEmpty()) {
-        impactResults.predictedEvents[PropertyNames.IMPACT.key]?.map { it.eventName }
+        impactResults.predictedEvents[PropertyNames.IMPACT.key]?.map { it }
     } else { null }
 
 

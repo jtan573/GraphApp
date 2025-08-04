@@ -21,7 +21,6 @@ import com.example.graphapp.backend.core.detectReplicateInput
 import com.example.graphapp.backend.core.findPatterns
 import com.example.graphapp.backend.core.initialiseSemanticSimilarityMatrix
 import com.example.graphapp.backend.core.predictMissingProperties
-import com.example.graphapp.backend.core.updateSemanticSimilarityMatrix
 import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.backend.services.ApiRouter
 import com.example.graphapp.backend.usecases.findAffectedRouteStationsByLocUseCase
@@ -59,7 +58,6 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     private val embeddingRepository = backend.embeddingRepository
     private val eventRepository = backend.eventRepository
     private val userActionRepository = backend.userActionRepository
-    private val posTaggerRepository = backend.posTaggerRepository
 
     // ---------- Graph Data States ----------
     private val _eventGraphData = MutableStateFlow<String?>(null)
@@ -72,11 +70,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     val userGraphData: StateFlow<String?> = _userGraphData
 
     // ---------- Graph Logic States ----------
-    private var _simMatrix: Map<Pair<Long, Long>, Float>? = null
-    val simMatrix: Map<Pair<Long, Long>, Float>
-        get() = _simMatrix ?: initialiseSemanticSimilarityMatrix(eventRepository, embeddingRepository).also {
-            _simMatrix = it
-        }
+    private val _simMatrix = MutableStateFlow<Map<Pair<Long, Long>, Float>>(emptyMap())
+    val simMatrix: StateFlow<Map<Pair<Long, Long>, Float>> = _simMatrix
 
     // ---------- Event Query States ----------
     private val _createdEvent = MutableStateFlow(mapOf<String, String>())
@@ -100,6 +95,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             backend.initialiseBackend()
 
+            _simMatrix.value = initialiseSemanticSimilarityMatrix(eventRepository, embeddingRepository)
+
             // For event repository
             val eventNodes = eventRepository.getAllEventNodesWithoutEmbedding()
             val eventEdges = eventRepository.getAllEventEdges()
@@ -115,10 +112,6 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
             // Users
             _allActiveUsers.value = userActionRepository.getAllUserNodesWithoutEmbedding()
-
-            // Testing
-            posTaggerRepository.initialisePosTagger()
-            Log.d("TAGGING", posTaggerRepository.tagText("The quick brown fox jumps over the lazy dog"))
         }
     }
 
@@ -161,12 +154,12 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         _eventGraphData.value = json
     }
 
-    private fun reloadSimMatrix(
-        simMatrix: MutableMap<Pair<Long, Long>, Float>,
-        newEventMap: Map<String, String>,
-    ) {
-        _simMatrix = updateSemanticSimilarityMatrix(eventRepository, embeddingRepository, simMatrix, newEventMap)
-    }
+//    private fun reloadSimMatrix(
+//        simMatrix: MutableMap<Pair<Long, Long>, Float>,
+//        newEventMap: Map<String, String>,
+//    ) {
+//        _simMatrix = updateSemanticSimilarityMatrix(eventRepository, embeddingRepository, simMatrix, newEventMap)
+//    }
 
     private fun createFullEventGraph(nodes: List<EventNodeEntity>, edges: List<EventEdgeEntity>) {
         val json = convertToJsonEvent(nodes, edges)
@@ -180,7 +173,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     // Function 1: Predict missing properties
     fun fillMissingLinks() {
-        val (newEdges, response) = predictMissingProperties(eventRepository, simMatrix)
+        val (newEdges, response) = predictMissingProperties(eventRepository, simMatrix.value)
         val nodes = eventRepository.getAllEventNodes()
         val edges = eventRepository.getAllEventEdges() + newEdges
         createFullEventGraph(nodes, edges)
@@ -191,7 +184,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     // Function 4: Find Patterns/Clusters
     fun findGraphRelations() {
-        val response = findPatterns(eventRepository, simMatrix)
+        val response = findPatterns(eventRepository, simMatrix.value)
         buildApiResponseFromResult(response)
         return
     }

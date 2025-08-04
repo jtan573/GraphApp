@@ -1,6 +1,8 @@
 package com.example.graphapp.data.api
 
+import android.media.metrics.Event
 import android.util.Log
+import com.example.graphapp.backend.schema.SimilarEventTags
 import com.example.graphapp.data.db.UserNodeEntity
 
 enum class ResponseStatus {
@@ -81,7 +83,8 @@ data class EventDetails(
     val eventId: Long,
     val eventName: String,
     val eventProperties: Map<String, String>,
-    val simScore: Float
+    val simScore: Float,
+    val simProperties: List<SimilarEventTags>? = null
 )
 
 /* -------------------------------------------------
@@ -125,7 +128,7 @@ data class ContactRelevantPersonnelResponse(
 ------------------------------------------------- */
 data class ThreatAlertResponse(
     val nearbyActiveUsersMap: Map<UserNodeEntity, Int>? = null,
-    val potentialImpacts: List<String>? = null,
+    val potentialImpacts: List<EventDetails>? = null,
     val potentialTasks: List<String>? = null,
     val taskAssignment: Map<String, List<UserNodeEntity>>? = null,
     val similarIncidents: Map<String, List<EventDetails>>? = null,

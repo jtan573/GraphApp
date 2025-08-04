@@ -176,9 +176,11 @@
         const graphHeight = yExtent[1] - yExtent[0] + padding * 2;
 
         const scale = Math.min(width / graphWidth, height / graphHeight);
+        const zoomFactor = 2.4; // Change to 1.1, 1.3 etc. as desired
+        const finalScale = scale * zoomFactor;
 
-        const translateX = width / 2 - scale * (xExtent[0] + xExtent[1]) / 2;
-        const translateY = height / 2 - scale * (yExtent[0] + yExtent[1]) / 2;
+        const translateX = width / 2 - finalScale * (xExtent[0] + xExtent[1]) / 2;
+        const translateY = height / 2 - finalScale * (yExtent[0] + yExtent[1]) / 2;
 
         svg.transition()
           .duration(500)
@@ -186,7 +188,7 @@
             zoom.transform,
             d3.zoomIdentity
               .translate(translateX, translateY)
-              .scale(scale)
+              .scale(finalScale)
           );
       });
 

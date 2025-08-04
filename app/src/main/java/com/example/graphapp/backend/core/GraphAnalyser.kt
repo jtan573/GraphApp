@@ -240,45 +240,44 @@ suspend fun recommendEventsForProps (
 ) : Triple<List<EventNodeEntity>?, List<EventEdgeEntity>?, DiscoverEventsResponse> {
 
     // Compute similarity of each candidate to event nodes
-    var eventPropNodesByType = mutableMapOf<String, EventNodeEntity>()
+    var eventNodesByType = mutableMapOf<String, EventNodeEntity>()
     newEventMap.entries.map { (type, value) ->
-        val propExist = eventRepository.getEventNodeByNameAndType(value, type)
-        if (propExist != null) {
-            eventPropNodesByType[type] = propExist
+        val nodeExist = eventRepository.getEventNodeByNameAndType(value, type)
+        if (nodeExist != null) {
+            eventNodesByType[type] = nodeExist
         } else {
-            eventPropNodesByType[type] = eventRepository.getTemporaryEventNode(value, type, embeddingRepository)
+            eventNodesByType[type] = eventRepository.getTemporaryEventNode(value, type, embeddingRepository)
         }
     }
-
-    Log.d("EVENTPROPS", "eventprops: ${eventPropNodesByType.map { it.key }}")
 
     // For each key node type, compute top 3
     val topRecommendationsByType = computeSemanticSimilarEventsForProps(
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
-        onlyPropertiesMap = eventPropNodesByType,
+        newEventMap = eventNodesByType,
         queryKey = queryKey,
         getTopThreeResultsOnly = getTopThreeResultsOnly,
         threshold = customThreshold
     )
-
     Log.d("topRecommendationsByType","$topRecommendationsByType")
+
     val eventsByType = mutableMapOf<String, List<EventDetails>>()
 
     for ((type, recs) in topRecommendationsByType) {
         val predictedEventsList = mutableListOf<EventDetails>()
         for (rec in recs) {
-            val neighbourProps = eventRepository.getNeighborsOfEventNodeById(rec.first)
+            val neighbourProps = eventRepository.getNeighborsOfEventNodeById(rec.targetNodeId)
                 .filter { it.type in (SchemaPropertyNodes + SchemaOtherNodes) }
                 .associate { it.type to it.name }
 
-            val recNode = eventRepository.getEventNodeById(rec.first)!!
+            val recNode = eventRepository.getEventNodeById(rec.targetNodeId)!!
             predictedEventsList.add(
                 EventDetails(
                     eventId = recNode.id,
                     eventName = recNode.name,
                     eventProperties = neighbourProps,
-                    simScore = rec.second
+                    simScore = rec.simScore,
+                    simProperties = rec.explainedSimilarity
                 )
             )
         }
@@ -289,22 +288,22 @@ suspend fun recommendEventsForProps (
         return Triple(null, null, DiscoverEventsResponse(newEventMap, eventsByType))
     }
 
-    val allPredictedNodesIds = topRecommendationsByType.values.flatten().map{ it.first }
-    val eventPropNodes = eventPropNodesByType.values.toList()
+    val allPredictedNodesIds = topRecommendationsByType.values.flatten().map{ it.targetNodeId }
+    val eventPropNodes = eventNodesByType.values.toList()
 
     val (neighborNodes, neighborEdges) = buildGraphContext(
         repository = eventRepository,
         predictedNodeIds = allPredictedNodesIds,
         extraNodes = eventPropNodes,
         addSuggestionEdges = { edgeSet, nodeSet ->
-            for (id in eventPropNodesByType.map { it.value.id }) {
+            for (id in eventNodesByType.map { it.value.id }) {
                 for ((type, recs) in topRecommendationsByType) {
                     for (rec in recs) {
                         val relationType = "Suggest-$type"
                         val newEdge = EventEdgeEntity(
                             id = -1L,
                             firstNodeId = id,
-                            secondNodeId = rec.first,
+                            secondNodeId = rec.targetNodeId,
                             edgeType = relationType
                         )
                         edgeSet.add(newEdge)
