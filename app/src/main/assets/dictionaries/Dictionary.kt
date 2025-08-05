@@ -1,8 +1,4 @@
-package com.example.graphapp.backend.core
-
-val SchemaSuspiciousProperties = listOf<String>(
-    "Task", "Incident", "Method", "Motive"
-)
+package dictionaries
 
 val suspiciousDict = listOf(
     "loitering",

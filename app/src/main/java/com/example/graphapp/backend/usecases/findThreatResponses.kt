@@ -38,7 +38,8 @@ suspend fun findThreatResponses(
         statusEventMap = statusEventMap,
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
-        queryKey = PropertyNames.IMPACT.key
+        queryKey = PropertyNames.IMPACT.key,
+        activeNodesOnly = false
     )
     val potentialImpacts = if (impactResults is DiscoverEventsResponse
         && impactResults.predictedEvents.isNotEmpty()) {
@@ -51,18 +52,19 @@ suspend fun findThreatResponses(
         statusEventMap = statusEventMap,
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
-        queryKey = PropertyNames.TASK.key
+        queryKey = PropertyNames.TASK.key,
+        activeNodesOnly = false
     )
     val potentialTasks = if (taskResults is DiscoverEventsResponse
         && taskResults.predictedEvents.isNotEmpty()) {
-        taskResults.predictedEvents[PropertyNames.TASK.key]?.map { it.eventName }
+        taskResults.predictedEvents[PropertyNames.TASK.key]?.map { it }
     } else { null }
 
 
     // Response 4: Relevant personnel
     val taskingMap = mutableMapOf<String, List<UserNodeEntity>>()
     potentialTasks?.forEach { task ->
-        val taskNode = eventRepository.getEventNodeByNameAndType(task, PropertyNames.TASK.key)
+        val taskNode = eventRepository.getEventNodeByNameAndType(task.eventName, PropertyNames.TASK.key)
         if (taskNode != null) {
             val method = eventRepository.getNeighborsOfEventNodeById(taskNode.id)
                 .first { it.type == PropertyNames.HOW.key }.name
@@ -77,7 +79,7 @@ suspend fun findThreatResponses(
             )
             if (nearbyPersonnelMap != null) {
                 val top3 = nearbyPersonnelMap.entries.take(3).associate { it.key to it.value }
-                taskingMap.put("$task: $method", top3.keys.toList())
+                taskingMap.put("${task.eventName}: $method", top3.keys.toList())
             }
         }
     }

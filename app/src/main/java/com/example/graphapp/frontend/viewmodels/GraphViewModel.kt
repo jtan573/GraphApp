@@ -31,9 +31,10 @@ import com.example.graphapp.data.api.ApiResponse
 import com.example.graphapp.data.api.ContactRelevantPersonnelResponse
 import com.example.graphapp.data.api.EventDetailData
 import com.example.graphapp.data.api.EventDetails
+import com.example.graphapp.data.api.EventRequestEntry
+import com.example.graphapp.data.api.PersonnelRequestEntry
 import com.example.graphapp.data.api.RequestData.EventRequestData
 import com.example.graphapp.data.api.RequestData.PersonnelRequestData
-import com.example.graphapp.data.api.RequestEntry
 import com.example.graphapp.data.api.ResponseData.ContactPersonnelData
 import com.example.graphapp.data.api.ResponseData.ThreatAlertData
 import com.example.graphapp.data.api.ThreatAlertResponse
@@ -202,11 +203,14 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // API ROUTING
-    suspend fun callBackend(inputRequest: RequestData) : ApiResponse {
+    suspend fun callBackend(
+        requestedDbAction: DbAction,
+        inputRequest: RequestData
+    ) : ApiResponse {
         val request = ApiRequest(
             userId = "TEMP",
             timestamp = System.currentTimeMillis(),
-            action = DbAction.CREATE,
+            action = requestedDbAction,
             inputData = inputRequest
         )
         val apiRes = ApiRouter.handlePredict(
@@ -223,9 +227,12 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     fun findRelevantPersonnelOnDemand(inputLocation: String, inputDescription: String) {
         viewModelScope.launch {
             val apiRes = callBackend(
+                DbAction.CREATE,
                 PersonnelRequestData(
-                    whereValue = inputLocation,
-                    descValue = inputDescription
+                    metadata = PersonnelRequestEntry(
+                        incidentLocation = inputLocation,
+                        incidentDescription = inputDescription
+                    ),
                 )
             )
 
@@ -243,12 +250,12 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         }
         return listOfUsers
     }
-    fun findThreatAlertAndResponse(inputMap: Map<String, String>) {
-        viewModelScope.launch {
+    suspend fun findThreatAlertAndResponse(inputMap: Map<String, String>) {
             val normalizedMap = inputMap.filterValues { it.isNotBlank() }
-            if (normalizedMap.isEmpty()) { return@launch }
+            if (normalizedMap.isEmpty()) { return }
 
             val apiRes = callBackend(
+                DbAction.CREATE,
                 EventRequestData(
                     eventType = "Incident",
                     details = EventDetailData(
@@ -263,11 +270,9 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             )
 
             if (apiRes.data is ThreatAlertData) {
-                Log.d("CHECK", "threat alert data detected")
                 _queryResults.value = apiRes.data.payload
                 _createdEvent.value = normalizedMap
             }
-        }
     }
 
     // Function for Use Case 3: Suspicious Behaviour Detection
@@ -276,6 +281,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         if (normalizedMap.isEmpty()) { return }
 
         val apiRes = callBackend(
+            DbAction.CREATE,
             EventRequestData(
                 eventType = "Incident",
                 details = EventDetailData(
@@ -316,8 +322,9 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     suspend fun findAffectedRouteStationsByLocation(locations: List<String>) {
         if (locations.isNotEmpty()) {
             val apiRes = callBackend(
+                DbAction.CREATE,
                 EventRequestData(
-                    metadata = RequestEntry(routeCoordinates = locations)
+                    metadata = EventRequestEntry(routeCoordinates = locations)
                 )
             )
             if (apiRes.data is ThreatAlertData) {

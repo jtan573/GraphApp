@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -124,7 +126,6 @@ fun QueryResultCard(
             Spacer(modifier = Modifier.padding(vertical = 12.dp))
         }
 
-
         if (queryResults.potentialImpacts != null) {
             Text(
                 text = "Potential impacts of the incident:",
@@ -141,10 +142,31 @@ fun QueryResultCard(
                 ) {
                     Text(
                         text = impact.eventName,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
                     )
-                    // TODO
+                    impact.simProperties?.forEach { propertySimTagList ->
+                        if (propertySimTagList.relevantTagsA.isNotEmpty() && propertySimTagList.relevantTagsB.isNotEmpty()) {
+                            Text(
+                                text = "Similar Factor: ${propertySimTagList.propertyType}",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                modifier = Modifier
+                                    .padding(top = 3.dp, bottom = 3.dp)
+                                    .padding(horizontal = 10.dp),
+                            )
+                            TagChipRow(
+                                tags = propertySimTagList.relevantTagsA,
+                                label = "New Incident:"
+                            )
+                            TagChipRow(
+                                tags = propertySimTagList.relevantTagsB,
+                                label = "Past Incident:"
+                            )
+                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
+                        }
+                    }
                 }
             }
             Spacer(modifier = Modifier.padding(vertical = 12.dp))
@@ -165,10 +187,32 @@ fun QueryResultCard(
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Text(
-                        text = task,
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = task.eventName,
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
                     )
+                    task.simProperties?.forEach { propertySimTagList ->
+                        if (propertySimTagList.relevantTagsA.isNotEmpty() && propertySimTagList.relevantTagsB.isNotEmpty()) {
+                            Text(
+                                text = "Similar Factor: ${propertySimTagList.propertyType}",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                modifier = Modifier
+                                    .padding(top = 3.dp, bottom = 3.dp)
+                                    .padding(horizontal = 10.dp),
+                            )
+                            TagChipRow(
+                                tags = propertySimTagList.relevantTagsA,
+                                label = "New Incident:"
+                            )
+                            TagChipRow(
+                                tags = propertySimTagList.relevantTagsB,
+                                label = "Past Incident:"
+                            )
+                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
+                        }
+                    }
                 }
             }
             Spacer(modifier = Modifier.padding(vertical = 12.dp))
@@ -190,9 +234,7 @@ fun QueryResultCard(
                 ) {
                     Text(
                         text = task,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
                     )
                     troopers.forEach { trooper ->
@@ -207,14 +249,16 @@ fun QueryResultCard(
                         Text(
                             text = trooper.specialisation,
                             modifier = Modifier
-                                .padding(bottom = 8.dp)
+                                .padding(bottom = 10.dp)
                                 .padding(horizontal = 10.dp),
                             style = MaterialTheme.typography.labelMedium,
                             color = Color.DarkGray,
                         )
                     }
                     Row (
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp),
                         horizontalArrangement = Arrangement.End
                     ) {
                         Button(
@@ -232,7 +276,9 @@ fun QueryResultCard(
 
         queryResults.similarIncidents?.forEach { (type, recList) ->
             Row (
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -294,6 +340,32 @@ fun QueryResultCard(
                             .padding(horizontal = 10.dp)
                             .padding(bottom = 8.dp)
                     )
+                    event.simProperties?.forEach { propertySimTagList ->
+                        if (propertySimTagList.relevantTagsA.isNotEmpty() && propertySimTagList.relevantTagsB.isNotEmpty()) {
+                            HorizontalDivider(
+                                color = Color.LightGray.copy(alpha = 0.7f), thickness = 1.dp,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
+                            )
+                            Text(
+                                text = "Their similarities:",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                modifier = Modifier
+                                    .padding(top = 6.dp, bottom = 6.dp)
+                                    .padding(horizontal = 10.dp),
+                            )
+                            TagChipRow(
+                                tags = propertySimTagList.relevantTagsA,
+                                label = "New Incident:"
+                            )
+                            TagChipRow(
+                                tags = propertySimTagList.relevantTagsB,
+                                label = "Past Incident:"
+                            )
+                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
+                        }
+                    }
                 }
             }
             Spacer(modifier = Modifier.padding(vertical = 10.dp))

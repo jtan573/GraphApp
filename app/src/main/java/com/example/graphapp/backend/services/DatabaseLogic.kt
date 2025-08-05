@@ -2,10 +2,14 @@ package com.example.graphapp.backend.services
 
 import android.util.Log
 import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.data.api.ApiResponse
 import com.example.graphapp.data.api.RequestData
 import com.example.graphapp.data.api.RequestData.EventRequestData
+import com.example.graphapp.data.api.RequestData.PersonnelRequestData
+import com.example.graphapp.data.api.ResponseStatus
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EventRepository
+import com.example.graphapp.data.repository.UserActionRepository
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.Cache
 import kotlinx.serialization.json.Json
@@ -83,5 +87,68 @@ object DatabaseLogic {
             }
         }
     }
-    
+
+    /* -------------------------------------------------------
+        Helper to delete data from DB
+    -------------------------------------------------------*/
+    fun removeEventFromEventDb(
+        inputData: EventRequestData,
+        eventRepository: EventRepository
+    ) : ApiResponse {
+        if (inputData.eventType != null && inputData.details?.whatValue != null) {
+            val nodeId = eventRepository.getEventNodeByNameAndType(
+                inputName = inputData.details.whatValue,
+                inputType = inputData.eventType
+            )?.id
+            if (nodeId != null) {
+                eventRepository.removeNodeById(nodeId)
+            }
+            return ApiResponse(
+                status = ResponseStatus.SUCCESS,
+                timestamp = System.currentTimeMillis(),
+                message = "Deleted ${inputData.eventType} (${inputData.details.whatValue}) from database.",
+                data = null
+            )
+        } else {
+            return ApiResponse(
+                status = ResponseStatus.FAILED,
+                timestamp = System.currentTimeMillis(),
+                message = "DataDeletionError: Incomplete input, cannot delete anything based on supplied information.",
+                data = null
+            )
+        }
+    }
+
+    fun removeUserActionFromDb(
+        inputData: PersonnelRequestData,
+        userActionRepository: UserActionRepository
+    ): ApiResponse {
+        if (inputData.actionData != null) {
+            userActionRepository.removeActionFromDb(inputData.actionData.actionName)
+            return ApiResponse(
+                status = ResponseStatus.SUCCESS,
+                timestamp = System.currentTimeMillis(),
+                message = "Deleted action (${inputData.actionData.actionName}) from database.",
+                data = null
+            )
+        }
+        else if (inputData.userData != null) {
+            userActionRepository.removeUserFromDb(inputData.userData.identifier)
+            return ApiResponse(
+                status = ResponseStatus.SUCCESS,
+                timestamp = System.currentTimeMillis(),
+                message = "Deleted user (${inputData.userData.identifier}) from database.",
+                data = null
+            )
+        } else {
+            return ApiResponse(
+                status = ResponseStatus.FAILED,
+                timestamp = System.currentTimeMillis(),
+                message = "DataDeletionError: Incomplete input, cannot delete anything based on supplied information.",
+                data = null
+            )
+        }
+    }
+
+
 }

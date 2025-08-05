@@ -68,11 +68,6 @@ data class ProvideRecommendationsResponse(
     val recommendations: Map<String, List<String>>
 )
 
-data class Recommendation(
-    val recType: String,
-    val recItems: List<String>
-)
-
 // Function 3
 data class DiscoverEventsResponse(
     val inputInformation: Map<String, String>,
@@ -129,7 +124,7 @@ data class ContactRelevantPersonnelResponse(
 data class ThreatAlertResponse(
     val nearbyActiveUsersMap: Map<UserNodeEntity, Int>? = null,
     val potentialImpacts: List<EventDetails>? = null,
-    val potentialTasks: List<String>? = null,
+    val potentialTasks: List<EventDetails>? = null,
     val taskAssignment: Map<String, List<UserNodeEntity>>? = null,
     val similarIncidents: Map<String, List<EventDetails>>? = null,
     val incidentsAffectingStations: Map<String, List<EventDetails>>? = null

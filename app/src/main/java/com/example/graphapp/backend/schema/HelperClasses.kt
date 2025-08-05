@@ -1,5 +1,7 @@
 package com.example.graphapp.backend.schema
 
+import io.objectbox.converter.PropertyConverter
+
 data class EventEmbeddingSet (
     // Type, Metadata
     val semanticProps: Map<String, EventMetadata>? = null,
@@ -27,3 +29,10 @@ data class ExplainedSimilarityWithScores (
     val targetNodeId: Long,
     val explainedSimilarity: List<SimilarEventTags>
 )
+
+
+// enum class for vector db
+enum class EventStatus(val id: Int) {
+    INACTIVE(0), ACTIVE(1), UNKNOWN(2)
+}
+

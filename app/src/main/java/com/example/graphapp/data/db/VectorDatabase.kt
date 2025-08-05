@@ -1,6 +1,7 @@
 package com.example.graphapp.data.db
 
 import android.content.Context
+import com.example.graphapp.backend.schema.EventStatus
 import io.objectbox.BoxStore
 import io.objectbox.BoxStoreBuilder
 import io.objectbox.annotation.Convert
@@ -40,6 +41,8 @@ data class EventNodeEntity(
     var frequency: Int? = 1,
     @HnswIndex(dimensions=384, distanceType = VectorDistanceType.COSINE)
     var embedding: FloatArray? = null,
+    @Convert(converter = StatusConverter::class, dbType = Int::class)
+    var status: EventStatus = EventStatus.ACTIVE,
     var cachedNodeIds: MutableMap<String, MutableList<Long>> = mutableMapOf(),
     var tags: List<String> = mutableListOf<String>()
 )
@@ -60,20 +63,7 @@ data class DictionaryNodeEntity(
     var embedding: FloatArray? = null,
 )
 
-class LongListConverter : PropertyConverter<MutableList<Long>, String> {
-    override fun convertToEntityProperty(databaseValue: String?): MutableList<Long> {
-        return databaseValue
-            ?.split(",")
-            ?.filter { it.isNotBlank() }
-            ?.map { it.trim().toLong() }
-            ?.toMutableList()
-            ?: mutableListOf()
-    }
 
-    override fun convertToDatabaseValue(entityProperty: MutableList<Long>?): String {
-        return entityProperty?.joinToString(",") ?: ""
-    }
-}
 
 @Entity
 data class UserNodeEntity(
@@ -92,7 +82,7 @@ data class UserNodeEntity(
 data class ActionNodeEntity(
     @Id var id: Long = 0,
     var actionName: String,
-    var timestamp: String,
+    var timestamp: Long,
 )
 
 @Entity
@@ -104,5 +94,42 @@ data class ActionEdgeEntity(
     var toNodeType: String
 )
 
+
+/*----------------------------------
+    Converters
+ ----------------------------------*/
+class LongListConverter : PropertyConverter<MutableList<Long>, String> {
+    override fun convertToEntityProperty(databaseValue: String?): MutableList<Long> {
+        return databaseValue
+            ?.split(",")
+            ?.filter { it.isNotBlank() }
+            ?.map { it.trim().toLong() }
+            ?.toMutableList()
+            ?: mutableListOf()
+    }
+
+    override fun convertToDatabaseValue(entityProperty: MutableList<Long>?): String {
+        return entityProperty?.joinToString(",") ?: ""
+    }
+}
+
+
+class StatusConverter : PropertyConverter<EventStatus?, Int?> {
+    override fun convertToEntityProperty(databaseValue: Int?): EventStatus? {
+        if (databaseValue == null) {
+            return null
+        }
+        for (role in EventStatus.entries) {
+            if (role.id == databaseValue) {
+                return role
+            }
+        }
+        return EventStatus.UNKNOWN
+    }
+
+    override fun convertToDatabaseValue(entityProperty: EventStatus?): Int? {
+        return entityProperty?.id
+    }
+}
 
 

@@ -1,17 +1,14 @@
 package com.example.graphapp.data.repository
 
 import android.util.Log
-import androidx.compose.ui.text.toLowerCase
 import com.example.graphapp.data.embedding.SentenceEmbedding
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.db.EventDatabaseQueries
-import com.example.graphapp.backend.core.suspiciousDict
 import com.example.graphapp.backend.dto.GraphSchema
 import com.example.graphapp.backend.dto.GraphSchema.SchemaSemanticPropertyNodes
 
 class EventRepository(
-    private val sentenceEmbedding: SentenceEmbedding,
     private val embeddingRepository: EmbeddingRepository,
     private val dictionaryRepository: DictionaryRepository,
     private val posTaggerRepository: PosTaggerRepository
@@ -38,8 +35,9 @@ class EventRepository(
             if (inputType in SchemaSemanticPropertyNodes) {
                 isSuspicious = dictionaryRepository.checkIfSuspicious(inputName.lowercase())
 
-                val taggedSentence = posTaggerRepository.tagText(inputName.lowercase())
-                posTagged = posTaggerRepository.extractTaggedWords(taggedSentence)
+                val (matchedPhrases, cleanedSentence) = dictionaryRepository.extractAndRemovePhrases(inputName)
+                val taggedSentence = posTaggerRepository.tagText(cleanedSentence.lowercase())
+                posTagged = posTaggerRepository.extractTaggedWords(taggedSentence) + matchedPhrases
             }
 
             val relevantTags = if (isSuspicious) {
@@ -53,7 +51,7 @@ class EventRepository(
                 type = inputType,
                 description = inputDescription,
                 frequency = inputFrequency,
-                embedding = sentenceEmbedding.encode(inputName.lowercase()),
+                embedding = embeddingRepository.getTextEmbeddings(inputName.lowercase()),
                 tags = relevantTags
             )
             return nodeId
@@ -113,7 +111,7 @@ class EventRepository(
         return queries.findNodeFrequencyOfNodeId(id)
     }
 
-    fun findAllEdgesAroundNodeId(id: Long): List<EventEdgeEntity> {
+    fun getAllEdgesAroundNodeId(id: Long): List<EventEdgeEntity> {
         return queries.findAllEdgesAroundNodeIdQuery(id)
     }
 
@@ -156,16 +154,20 @@ class EventRepository(
         return queries.findNearestNeighbourOfEventNode(eventNode)
     }
 
-    suspend fun detectSuspiciousActivity(input: String) : Boolean {
-        val inputEmbedding = sentenceEmbedding.encode(input)
-        suspiciousDict.forEach { suspiciousTerm ->
-            val termEmbedding = sentenceEmbedding.encode(suspiciousTerm)
-            val distance = embeddingRepository.cosineDistance(inputEmbedding, termEmbedding)
-            if (distance > 0.5f) {
-                return true
+    fun removeNodeById(inputId: Long) {
+        val neighboursIds = getNeighborsOfEventNodeById(inputId).map { it.id }
+
+        val nodeIdsToRemove = mutableListOf<Long>()
+        val edgeIdsToRemove = mutableListOf<Long>()
+
+        neighboursIds.forEach { neighbourId ->
+            val neighboursOfNeighbour = getNeighborsOfEventNodeById(neighbourId)
+            if (neighboursOfNeighbour.size == 1) {
+                nodeIdsToRemove.add(neighbourId)
+                edgeIdsToRemove.addAll(getAllEdgesAroundNodeId(neighbourId).map { it.id })
             }
         }
-        return false
+        queries.deleteNodesAndEdges(nodeIdsToRemove, edgeIdsToRemove)
     }
 
     // Function to initialise repository

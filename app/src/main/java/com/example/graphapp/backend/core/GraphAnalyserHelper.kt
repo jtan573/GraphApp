@@ -12,6 +12,7 @@ import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.backend.dto.GraphSchema.SchemaSemanticPropertyNodes
 import com.example.graphapp.backend.schema.EventEmbeddingSet
 import com.example.graphapp.backend.schema.EventMetadata
+import com.example.graphapp.backend.schema.EventStatus
 import com.example.graphapp.backend.schema.ExplainedSimilarityWithScores
 import com.example.graphapp.backend.schema.SimilarEventTags
 import com.example.graphapp.backend.usecases.restoreLocationFromString
@@ -108,7 +109,7 @@ suspend fun computeSemanticSimilarity(
             similarities.add(similarity)
 
             // Consider extracting the tags?
-            if (explainSimilarity == true && similarity > 0.4f) {
+            if (explainSimilarity == true) {
 
                 val v1TagEmbeddings = v1.eventTags?.map { it to embeddingRepository.getTextEmbeddings(it) }
                 val v2TagEmbeddings = v2.eventTags?.map { it to embeddingRepository.getTextEmbeddings(it) }
@@ -120,7 +121,7 @@ suspend fun computeSemanticSimilarity(
                     for ((tagA, embeddingA) in v1TagEmbeddings) {
                         for ((tagB, embeddingB) in v2TagEmbeddings) {
                             val sim = embeddingRepository.cosineDistance(embeddingA, embeddingB)
-                            if (sim >= 0.5f) {
+                            if (sim >= 0.4f) {
                                 tagsFromA.add(tagA)
                                 tagsFromB.add(tagB)
                             }
@@ -281,15 +282,26 @@ suspend fun computeSemanticSimilarEventsForProps(
     queryKey: String? = null,
     getTopThreeResultsOnly: Boolean = true,
     threshold: Float = 0.0f,
+    activeNodesOnly: Boolean
 ): Map<String, List<ExplainedSimilarityWithScores>> {
 
     val allNodes = eventRepository.getAllEventNodes()
 
+    val nodeStatus = if (activeNodesOnly) {
+        listOf(EventStatus.ACTIVE)
+    } else {
+        listOf(EventStatus.INACTIVE, EventStatus.ACTIVE)
+    }
+
     var allKeyNodeIdsByType = mapOf<String, List<Long>>()
     allKeyNodeIdsByType = if (queryKey != null) {
-        allNodes.filter { it.type == queryKey }.groupBy { it.type }.mapValues { (_, nodes) -> nodes.map { it.id } }
+        allNodes
+            .filter { it.type == queryKey && it.status in nodeStatus }
+            .groupBy { it.type }.mapValues { (_, nodes) -> nodes.map { it.id } }
     } else {
-        allNodes.filter { it.type in SchemaKeyNodes }.groupBy { it.type }.mapValues { (_, nodes) -> nodes.map { it.id } }
+        allNodes
+            .filter { it.type in SchemaKeyNodes && it.status in nodeStatus }
+            .groupBy { it.type }.mapValues { (_, nodes) -> nodes.map { it.id } }
     }
 
     val propsInEvent = newEventMap.values.toList()

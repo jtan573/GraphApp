@@ -15,9 +15,9 @@ class AppBackend(
 
     val embeddingRepository = EmbeddingRepository(context)
     val sentenceEmbedding = embeddingRepository.getSentenceEmbeddingModel()
-    val dictionaryRepository = DictionaryRepository(sentenceEmbedding)
+    val dictionaryRepository = DictionaryRepository(context, sentenceEmbedding)
     val posTaggerRepository = PosTaggerRepository(context)
-    val eventRepository = EventRepository(sentenceEmbedding, embeddingRepository, dictionaryRepository, posTaggerRepository)
+    val eventRepository = EventRepository(embeddingRepository, dictionaryRepository, posTaggerRepository)
     val userActionRepository = UserActionRepository(sentenceEmbedding)
 
 

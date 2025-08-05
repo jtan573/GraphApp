@@ -55,6 +55,11 @@ class EventDatabaseQueries() {
         return nodeFound
     }
 
+    fun deleteNodesAndEdges(nodeIdsToDelete: List<Long>, edgeIdsToDelete: List<Long>) {
+        nodesBox.removeByIds(nodeIdsToDelete)
+        edgesBox.removeByIds(edgeIdsToDelete)
+    }
+
     fun incrementFreqOfNodeQuery(node: EventNodeEntity): Long {
         node.frequency = node.frequency?.plus(1)
         val id = nodesBox.put(node)

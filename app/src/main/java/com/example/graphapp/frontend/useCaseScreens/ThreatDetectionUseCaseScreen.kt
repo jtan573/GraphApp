@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -87,6 +89,13 @@ fun ThreatDetectionUseCaseScreen(viewModel: GraphViewModel, navController: NavCo
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 64.dp, bottom = 8.dp)
             )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    color = Color.DarkGray,
+                    strokeWidth = 2.dp,
+                    modifier = Modifier.size(40.dp).padding(10.dp),
+                )
+            }
         }
 
         Box(modifier = Modifier.fillMaxSize()) {

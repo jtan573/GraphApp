@@ -13,7 +13,8 @@ suspend fun findRelevantEventsUseCase(
     statusEventMap: Map<String, String>,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
-    queryKey: String = "Incident"
+    queryKey: String = "Incident",
+    activeNodesOnly: Boolean
 ): Triple<List<EventNodeEntity>, List<EventEdgeEntity>, Any> {
 
 //    val noKeyTypes = statusEventMap.keys.none { it in SchemaKeyNodes }
@@ -23,7 +24,11 @@ suspend fun findRelevantEventsUseCase(
     lateinit var result: Any
 
     val (resultsNodes, resultsEdges, resultsRecs) = recommendEventsForProps(
-        statusEventMap, eventRepository, embeddingRepository, queryKey
+        newEventMap = statusEventMap,
+        eventRepository = eventRepository,
+        embeddingRepository = embeddingRepository,
+        queryKey = queryKey,
+        activeNodesOnly = activeNodesOnly
     )
     if (resultsNodes != null && resultsEdges != null) {
         nodes = resultsNodes

@@ -35,14 +35,10 @@ class UserActionDatabaseQueries() {
         userIdentifier: String,
         actionName: String
     ) {
-        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US)
-        sdf.timeZone = java.util.TimeZone.getTimeZone("GMT+08:00")
-        val timestamp = sdf.format(java.util.Date())
-
         val (lastType, lastId) = findLastNodeInUserHistoryQuery(userIdentifier)
 
         actionsBox.put(
-            ActionNodeEntity(actionName = actionName, timestamp = timestamp)
+            ActionNodeEntity(actionName = actionName, timestamp = System.currentTimeMillis())
         )
         val newActionNode = findActionNodeByName(actionName)
 
@@ -77,6 +73,13 @@ class UserActionDatabaseQueries() {
         return
     }
 
+    fun findActionEdgeQuery(fromId: Long, fromType:String, toId: Long, toType: String) : ActionEdgeEntity? {
+        return actionsEdgesBox.query(
+            (ActionEdgeEntity_.fromNodeId.equal(fromId).and(ActionEdgeEntity_.fromNodeType.equal(fromType)))
+                .and(ActionEdgeEntity_.toNodeId.equal(toId).and(ActionEdgeEntity_.toNodeType.equal(toType)))
+        ).build().findFirst()
+    }
+
     fun findUserNodeByIdentifierQuery(identifier: String) : UserNodeEntity? {
         val nodeFound = usersBox
             .query(UserNodeEntity_.identifier.equal(identifier))
@@ -84,6 +87,22 @@ class UserActionDatabaseQueries() {
             .findFirst()
 
         return nodeFound
+    }
+
+    fun findAllEdgesAroundNodeIdQuery(id: Long): List<ActionEdgeEntity> {
+        return actionsEdgesBox.query(
+            ActionEdgeEntity_.fromNodeId.equal(id).or(ActionEdgeEntity_.toNodeId.equal(id))
+        ).build().find()
+    }
+
+    fun deleteNodesQuery(
+        actionIdsToDelete: List<Long>? = null,
+        userIdsToDelete: List<Long>? = null,
+        actionEdgeIdsToDelete: List<Long>? = null
+    ) {
+        usersBox.removeByIds(userIdsToDelete)
+        actionsBox.removeByIds(actionIdsToDelete)
+        actionsEdgesBox.removeByIds(actionEdgeIdsToDelete)
     }
 
     fun findUserNodeByIdQuery(inputId: Long) : UserNodeEntity? {
@@ -147,6 +166,13 @@ class UserActionDatabaseQueries() {
                     timestamp = node.timestamp
                 )
             }
+    }
+
+    fun updateActionsListQuery(deletedActionId: Long, userNode: UserNodeEntity) {
+        if (deletedActionId in userNode.actionsTaken) {
+            userNode.actionsTaken.remove(deletedActionId)
+            usersBox.put(userNode)
+        }
     }
 
 }

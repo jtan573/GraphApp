@@ -22,7 +22,7 @@
         {
           "id": "3:1657723659467141022",
           "name": "timestamp",
-          "type": 9
+          "type": 6
         }
       ],
       "relations": []
@@ -58,7 +58,7 @@
     },
     {
       "id": "5:5472720358370264630",
-      "lastPropertyId": "8:5261240502134639909",
+      "lastPropertyId": "9:4379730360853006937",
       "name": "EventNodeEntity",
       "properties": [
         {
@@ -103,6 +103,11 @@
           "id": "8:5261240502134639909",
           "name": "tags",
           "type": 30
+        },
+        {
+          "id": "9:4379730360853006937",
+          "name": "status",
+          "type": 5
         }
       ],
       "relations": []

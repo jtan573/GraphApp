@@ -186,10 +186,36 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "9:441345626016719622",
+      "lastPropertyId": "3:7201346851366653889",
+      "name": "DictionaryNodeEntity",
+      "properties": [
+        {
+          "id": "1:7506061556302491465",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3505326206206456615",
+          "name": "value",
+          "type": 9
+        },
+        {
+          "id": "3:7201346851366653889",
+          "name": "embedding",
+          "indexId": "4:7323196369151097052",
+          "type": 28,
+          "flags": 8
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "8:7041210966750999923",
-  "lastIndexId": "3:8103902868688686740",
+  "lastEntityId": "9:441345626016719622",
+  "lastIndexId": "4:7323196369151097052",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

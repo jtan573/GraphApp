@@ -136,7 +136,7 @@ fun RouteIntegrityUseCaseScreen(
                 CircularProgressIndicator(
                     color = Color.DarkGray,
                     strokeWidth = 2.dp,
-                    modifier = Modifier.size(20.dp).padding(4.dp),
+                    modifier = Modifier.size(40.dp).padding(10.dp),
                 )
             }
         }

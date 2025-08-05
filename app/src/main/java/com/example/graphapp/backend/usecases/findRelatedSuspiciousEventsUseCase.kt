@@ -11,9 +11,9 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 
-/*
-Function to suspicious events in database
- */
+/* --------------------------------------------------
+    Function to suspicious events in database
+-------------------------------------------------- */
 suspend fun findRelatedSuspiciousEventsUseCase(
     eventInput: EventDetailData,
     eventRepository: EventRepository,
@@ -32,7 +32,8 @@ suspend fun findRelatedSuspiciousEventsUseCase(
             },
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
-            queryKey = PropertyNames.INCIDENT.key
+            queryKey = PropertyNames.INCIDENT.key,
+            activeNodesOnly = false
         )
 
         if (methodRecs.predictedEvents.isNotEmpty()) {
@@ -52,7 +53,8 @@ suspend fun findRelatedSuspiciousEventsUseCase(
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
             queryKey = PropertyNames.INCIDENT.key,
-            getTopThreeResultsOnly = false
+            getTopThreeResultsOnly = false,
+            activeNodesOnly =  false
         )
 
         val locationResults = mutableListOf<EventDetails>()

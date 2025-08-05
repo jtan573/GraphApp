@@ -56,6 +56,11 @@ class UserActionRepository (
         return queries.findAllActionEdgesQuery()
     }
 
+    // Get edge between action-action and between user-action
+    fun getActionEdgeBetweenIds(fromId: Long, fromType: String, toId: Long, toType: String) : ActionEdgeEntity? {
+        return queries.findActionEdgeQuery(fromId, fromType, toId, toType)
+    }
+
     // Get all USER nodes without their embedding
     fun getAllUserNodesWithoutEmbedding() : List<UserNodeEntity> {
         return queries.findAllUserNodesWithoutEmbeddingQuery()
@@ -71,8 +76,69 @@ class UserActionRepository (
         return queries.findUserNodeByIdentifierQuery(identifier)
     }
 
-    suspend fun initialiseUserActionRepository() {
+    // Delete user
+    fun removeUserFromDb(identifier: String) {
+        val userNode = getUserNodeByIdentifier(identifier)
+        if (userNode != null) {
+            val userActions = userNode.actionsTaken.toList()
+            queries.deleteNodesQuery(
+                actionIdsToDelete = userActions,
+                userIdsToDelete = listOf(userNode.id)
+            )
+        }
+    }
 
+    // Delete action
+    fun removeActionFromDb(deletedActionName: String) {
+
+        val deletedActionId = queries.findActionNodeByName(deletedActionName)?.id
+
+        if (deletedActionId == null) {
+            Log.e("MissingDbEntryError", "Action not found in database ($deletedActionName).")
+        } else {
+            // Delete the node
+            queries.deleteNodesQuery(
+                actionIdsToDelete = listOf(deletedActionId)
+            )
+
+            // Update user actions taken list
+            val allUsers = queries.findAllUserNodesWithoutEmbeddingQuery()
+            allUsers.forEach { user ->
+                queries.updateActionsListQuery(deletedActionId, user)
+            }
+
+            // Update action edges box
+            updateActionEdgeUponActionDeletion(deletedActionId)
+        }
+    }
+
+    // Find neighbour nodes
+    fun updateActionEdgeUponActionDeletion(deletedActionId: Long) {
+        val neighbourEdges = queries.findAllEdgesAroundNodeIdQuery(deletedActionId)
+
+        var newFromId: Long? = null
+        var newFromType: String? = null
+        var newToId: Long? = null
+        var newToType: String? = null
+
+        for (edge in neighbourEdges) {
+            if (edge.fromNodeId == deletedActionId) {
+                newToId = edge.toNodeId
+                newToType = edge.toNodeType
+            }
+            if (edge.toNodeId == deletedActionId) {
+                newFromId = edge.fromNodeId
+                newFromType = edge.fromNodeType
+            }
+        }
+        if (newFromId != null && newToId != null && newFromType != null && newToType != null) {
+            queries.addActionEdgeIntoDbQuery(newFromId, newFromType, newToId, newToType)
+        } else {
+            Log.e("EdgeError", "Missing edge information for actionId: $deletedActionId")
+        }
+    }
+
+    suspend fun initialiseUserActionRepository() {
         // Users for Tasks
         insertUserNodeIntoDb(
             inputIdentifier = "SGT-001",

@@ -22,14 +22,15 @@ sealed class RequestData {
     data class EventRequestData(
         val eventType: String? = null,
         val details: EventDetailData? = null,
-        val metadata: RequestEntry? = null
+        val metadata: EventRequestEntry? = null
     ) : RequestData()
 
     @Serializable
     @SerialName("PersonnelRequestData")
     data class PersonnelRequestData(
-        val whereValue: String? = null,
-        val descValue: String? = null
+        val userData: UserDetailData? = null,
+        val actionData: ActionDetailData? = null,
+        val metadata: PersonnelRequestEntry? = null
     ) : RequestData()
 }
 
@@ -47,10 +48,28 @@ data class EventDetailData(
 )
 
 @Serializable
-data class RequestEntry(
+data class EventRequestEntry(
     val routeCoordinates: List<String>? = null
 )
 
 /* -------------------------------------------------
     Related to Users/Personnel
 ------------------------------------------------- */
+@Serializable
+data class UserDetailData (
+    val identifier: String,
+    val role: String? = null,
+    val specialisation: String? = null,
+    val currentLocation: String? = null,
+)
+
+@Serializable
+data class ActionDetailData (
+    val actionName: String
+)
+
+@Serializable
+data class PersonnelRequestEntry (
+    val incidentDescription: String? = null,
+    val incidentLocation: String?= null
+)

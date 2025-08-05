@@ -28,7 +28,8 @@ suspend fun findAffectedRouteStationsByLocUseCase(
             embeddingRepository = embeddingRepository,
             queryKey = PropertyNames.INCIDENT.key,
             getTopThreeResultsOnly = true,
-            customThreshold = threshold
+            customThreshold = threshold,
+            activeNodesOnly = true
         )
 
         if (locationRecs.predictedEvents.isNotEmpty()) {
