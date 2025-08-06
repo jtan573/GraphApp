@@ -240,8 +240,9 @@ suspend fun recommendEventsForProps (
     activeNodesOnly: Boolean
 ) : Triple<List<EventNodeEntity>?, List<EventEdgeEntity>?, DiscoverEventsResponse> {
 
-    // Compute similarity of each candidate to event nodes
     var eventNodesByType = mutableMapOf<String, EventNodeEntity>()
+
+    // Get nodes from DB / Create temporary nodes for the search
     newEventMap.entries.map { (type, value) ->
         val nodeExist = eventRepository.getEventNodeByNameAndType(value, type)
         if (nodeExist != null) {

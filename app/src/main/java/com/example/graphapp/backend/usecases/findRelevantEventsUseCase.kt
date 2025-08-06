@@ -6,9 +6,9 @@ import com.example.graphapp.backend.core.recommendEventsForProps
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 
-/*
-Function to query for relevant contacts based on status.
- */
+/* ------------------------------------------------------------------
+    Function to query for relevant incidents (Default Incidents)
+------------------------------------------------------------------ */
 suspend fun findRelevantEventsUseCase(
     statusEventMap: Map<String, String>,
     eventRepository: EventRepository,
@@ -17,11 +17,8 @@ suspend fun findRelevantEventsUseCase(
     activeNodesOnly: Boolean
 ): Triple<List<EventNodeEntity>, List<EventEdgeEntity>, Any> {
 
-//    val noKeyTypes = statusEventMap.keys.none { it in SchemaKeyNodes }
-
     var nodes = listOf<EventNodeEntity>()
     var edges = listOf<EventEdgeEntity>()
-    lateinit var result: Any
 
     val (resultsNodes, resultsEdges, resultsRecs) = recommendEventsForProps(
         newEventMap = statusEventMap,
@@ -36,41 +33,4 @@ suspend fun findRelevantEventsUseCase(
     }
 
     return Triple(nodes, edges, resultsRecs)
-
-    // For entries with no key nodes
-//    if (noKeyTypes) {
-//        val (resultsNodes, resultsEdges, resultsRecs) = recommendEventsForProps(
-//            statusEventMap, eventRepository, embeddingRepository, queryKey
-//        )
-//        if (resultsNodes != null && resultsEdges != null) {
-//            nodes = resultsNodes
-//            edges = resultsEdges
-//        }
-//
-//        return Triple(nodes, edges, resultsRecs)
-//
-//    } else {
-//        val newEventNodes = mutableListOf<EventNodeEntity>()
-//        var filteredSimMatrix = mapOf<Pair<Long, Long>, Float>()
-//
-//        val keyNodeType = statusEventMap.filter { it.key in SchemaKeyNodes }
-//            .map { it.key }.single()
-//
-//        val (filteredSemSimMatrix, eventNodesCreated) = computeSemanticMatrixForQuery(
-//            eventRepository, embeddingRepository, simMatrix, statusEventMap, keyNodeType
-//        )
-//        filteredSimMatrix = filteredSemSimMatrix
-//        newEventNodes.addAll(eventNodesCreated)
-//
-//        val (resultsNodes, resultsEdges, resultsRecs) = recommendEventForEvent(
-//            statusEventMap, eventRepository, filteredSimMatrix, newEventNodes, queryKey, true
-//        )
-//
-//        nodes = resultsNodes
-//        edges = resultsEdges
-//
-//        return Triple(nodes, edges, resultsRecs)
-//    }
-
-    return Triple(nodes, edges, result)
 }

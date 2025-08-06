@@ -4,12 +4,14 @@ import android.content.Context
 import com.example.graphapp.backend.schema.EventStatus
 import io.objectbox.BoxStore
 import io.objectbox.BoxStoreBuilder
+import io.objectbox.annotation.Backlink
 import io.objectbox.annotation.Convert
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.HnswIndex
 import io.objectbox.annotation.Id
 import io.objectbox.annotation.VectorDistanceType
 import io.objectbox.converter.PropertyConverter
+import io.objectbox.relation.ToMany
 
 object VectorDatabase {
     lateinit var store: BoxStore
@@ -29,9 +31,14 @@ object VectorDatabase {
         store.boxFor(UserNodeEntity::class.java).removeAll()
         store.boxFor(ActionNodeEntity::class.java).removeAll()
         store.boxFor(ActionEdgeEntity::class.java).removeAll()
+
+        store.boxFor(DictionaryNodeEntity::class.java).removeAll()
     }
 }
 
+/* -----------------------------------
+    EVENT NODE ENTITY
+------------------------------------ */
 @Entity
 data class EventNodeEntity(
     @Id var id: Long = 0,
@@ -55,16 +62,25 @@ data class EventEdgeEntity(
     var edgeType: String? = null
 )
 
+
+/* -----------------------------------
+    DICTIONARY NODE ENTITY
+------------------------------------ */
 @Entity
 data class DictionaryNodeEntity(
     @Id var id: Long = 0,
+    var type: String,
     var value: String,
     @HnswIndex(dimensions=384, distanceType = VectorDistanceType.COSINE)
     var embedding: FloatArray? = null,
-)
+) {
+    lateinit var events: ToMany<EventNodeEntity>
+}
 
 
-
+/* -----------------------------------
+    USER/ACTION NODE ENTITY
+------------------------------------ */
 @Entity
 data class UserNodeEntity(
     @Id var id: Long = 0,

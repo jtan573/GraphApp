@@ -118,17 +118,4 @@ class EventDatabaseQueries() {
         ).build().findFirst()
     }
 
-    fun findNearestNeighbourOfEventNode(nodeEntity: EventNodeEntity) : Map<EventNodeEntity, Float>? {
-        val resultsMap = mutableMapOf<EventNodeEntity, Float>()
-        nodesBox.query(
-            EventNodeEntity_.type.equal(nodeEntity.type)
-                .and(EventNodeEntity_.name.nearestNeighbors(nodeEntity.embedding!!, 3))
-        ).build().findWithScores()
-            .forEach{ result ->
-                if (result.score > 0f) {
-                    resultsMap.put(result.get(), result.score.toFloat())
-                }
-            }
-        return resultsMap
-    }
 }

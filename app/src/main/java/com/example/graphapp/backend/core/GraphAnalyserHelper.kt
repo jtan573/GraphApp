@@ -1,6 +1,7 @@
 package com.example.graphapp.backend.core
 
 import android.util.Log
+import androidx.room.util.query
 import com.example.graphapp.backend.dto.GraphSchema
 import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.data.db.EventEdgeEntity
@@ -285,14 +286,35 @@ suspend fun computeSemanticSimilarEventsForProps(
     activeNodesOnly: Boolean
 ): Map<String, List<ExplainedSimilarityWithScores>> {
 
-    val allNodes = eventRepository.getAllEventNodes()
-
+    // Get node status
     val nodeStatus = if (activeNodesOnly) {
         listOf(EventStatus.ACTIVE)
     } else {
         listOf(EventStatus.INACTIVE, EventStatus.ACTIVE)
     }
 
+    val allNodes = eventRepository.getAllEventNodes()
+
+    // Testing here
+//    var allKeyNodeIdsByType = mutableMapOf<String, List<Long>>()
+//    if (queryKey != null) {
+//        val event = newEventMap[queryKey]
+//        if (event != null) {
+//            val nodes = eventRepository.getRelevantNodes(event.tags, queryKey)
+//            allKeyNodeIdsByType.put(queryKey,
+//                nodes.filter { it.status in nodeStatus }.map { it.id }
+//            )
+//        }
+//    } else {
+//        newEventMap.forEach { (type, eventNode) ->
+//            val nodes = eventRepository.getRelevantNodes(eventNode.tags, type)
+//            allKeyNodeIdsByType.put(type,
+//                nodes.filter { it.status in nodeStatus }.map { it.id }
+//            )
+//        }
+//    }
+
+    // Get active and/or inactive nodes and Group by their type
     var allKeyNodeIdsByType = mapOf<String, List<Long>>()
     allKeyNodeIdsByType = if (queryKey != null) {
         allNodes
@@ -304,10 +326,13 @@ suspend fun computeSemanticSimilarEventsForProps(
             .groupBy { it.type }.mapValues { (_, nodes) -> nodes.map { it.id } }
     }
 
+    // Get values in new event
     val propsInEvent = newEventMap.values.toList()
 
+    // Create temporary similarity matrix
     val simMatrix = mutableMapOf<String, MutableList<ExplainedSimilarityWithScores>>()
 
+    // Compute semantic similarity between key node pairs
     for ((eventType, keyNodeIds) in allKeyNodeIdsByType) {
         for (keyNodeId in keyNodeIds) {
             val sim = computeSemanticSimilarity(

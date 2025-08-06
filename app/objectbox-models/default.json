@@ -194,7 +194,7 @@
     },
     {
       "id": "9:441345626016719622",
-      "lastPropertyId": "3:7201346851366653889",
+      "lastPropertyId": "7:2107194953651279333",
       "name": "DictionaryNodeEntity",
       "properties": [
         {
@@ -214,14 +214,25 @@
           "indexId": "4:7323196369151097052",
           "type": 28,
           "flags": 8
+        },
+        {
+          "id": "7:2107194953651279333",
+          "name": "type",
+          "type": 9
         }
       ],
-      "relations": []
+      "relations": [
+        {
+          "id": "1:3115233928843439845",
+          "name": "events",
+          "targetId": "5:5472720358370264630"
+        }
+      ]
     }
   ],
   "lastEntityId": "9:441345626016719622",
   "lastIndexId": "4:7323196369151097052",
-  "lastRelationId": "0:0",
+  "lastRelationId": "1:3115233928843439845",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
@@ -253,7 +264,10 @@
     2706382889621961485,
     1140410827548214919,
     2126880205432101843,
-    5113413463374473302
+    5113413463374473302,
+    4766763998393261628,
+    7591827823489532623,
+    2933366458043138798
   ],
   "retiredRelationUids": [],
   "version": 1

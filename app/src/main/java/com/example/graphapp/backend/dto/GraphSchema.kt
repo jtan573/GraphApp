@@ -69,7 +69,11 @@ object GraphSchema {
         WIND("Wind")
     }
 
-    val SchemaPosTags = listOf(
-        "NN", "NNS", "NNP", "NNPS", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ"
-    )
+    val SchemaPosTags = listOf("NN", "NNS", "NNP", "NNPS", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ")
+    val SchemaNounTags = listOf("NN", "NNS", "NNP", "NNPS")
+    val SchemaVerbTags = listOf("VB", "VBD", "VBG", "VBN", "VBP", "VBZ")
+
+    enum class DictionaryTypes {
+        NOUN, VERB, SUSPICIOUS
+    }
 }

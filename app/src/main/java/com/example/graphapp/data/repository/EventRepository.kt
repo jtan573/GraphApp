@@ -6,7 +6,10 @@ import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.db.EventDatabaseQueries
 import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.dto.GraphSchema.DictionaryTypes
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.backend.dto.GraphSchema.SchemaSemanticPropertyNodes
+import com.example.graphapp.backend.usecases.predictImpactOfWindAtLocationUseCase
 
 class EventRepository(
     private val embeddingRepository: EmbeddingRepository,
@@ -30,20 +33,22 @@ class EventRepository(
             return nodeId
         } else {
 
-            var posTagged = listOf<String>()
+            var allTags = listOf<String>()
+            var posTags = listOf<String>()
             var isSuspicious = false
             if (inputType in SchemaSemanticPropertyNodes) {
-                isSuspicious = dictionaryRepository.checkIfSuspicious(inputName.lowercase())
+                isSuspicious = dictionaryRepository.checkIfSuspicious(inputName.lowercase()).isNotEmpty()
 
                 val (matchedPhrases, cleanedSentence) = dictionaryRepository.extractAndRemovePhrases(inputName)
                 val taggedSentence = posTaggerRepository.tagText(cleanedSentence.lowercase())
-                posTagged = posTaggerRepository.extractTaggedWords(taggedSentence) + matchedPhrases
+                posTags = posTaggerRepository.extractTaggedWords(taggedSentence)
+                allTags = posTags + matchedPhrases
             }
 
             val relevantTags = if (isSuspicious) {
-                posTagged + "suspicious"
+                allTags + "suspicious"
             } else {
-                posTagged
+                allTags
             }
 
             val nodeId = queries.addNodeIntoDbQuery(
@@ -54,6 +59,15 @@ class EventRepository(
                 embedding = embeddingRepository.getTextEmbeddings(inputName.lowercase()),
                 tags = relevantTags
             )
+
+            // Update dictionary repository after node is initialised
+            val eventNode = getEventNodeById(nodeId)
+            if (eventNode != null) {
+                posTags.forEach {
+                    dictionaryRepository.insertPosTagIntoDb(it, eventNode)
+                }
+            }
+
             return nodeId
         }
     }
@@ -141,17 +155,14 @@ class EventRepository(
         type: String,
         embeddingRepository: EmbeddingRepository,
     ): EventNodeEntity {
+        val tags = posTaggerRepository.extractTaggedWords(posTaggerRepository.tagText(value))
         return EventNodeEntity(
             id = (-1L * (1..1_000_000).random()),
             name = value,
             type = type,
             embedding = embeddingRepository.getTextEmbeddings(value),
-            tags = posTaggerRepository.extractTaggedWords(posTaggerRepository.tagText(value))
+            tags = tags
         )
-    }
-
-    fun getMostSimilarEventsOfEventNode(eventNode: EventNodeEntity) : Map<EventNodeEntity, Float>? {
-        return queries.findNearestNeighbourOfEventNode(eventNode)
     }
 
     fun removeNodeById(inputId: Long) {
@@ -169,6 +180,15 @@ class EventRepository(
         }
         queries.deleteNodesAndEdges(nodeIdsToRemove, edgeIdsToRemove)
     }
+
+    // Retrieve nodes with relevant tags
+    suspend fun getRelevantNodes(
+        eventTags: List<String>,
+        eventType: String
+    ): List<EventNodeEntity> {
+        return dictionaryRepository.getEventsWithSimilarTags(eventTags, eventType)
+    }
+
 
     // Function to initialise repository
     suspend fun initialiseEventRepository() {

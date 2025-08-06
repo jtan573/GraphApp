@@ -22,7 +22,7 @@
         {
           "id": "3:1657723659467141022",
           "name": "timestamp",
-          "type": 9
+          "type": 6
         }
       ],
       "relations": []
@@ -58,7 +58,7 @@
     },
     {
       "id": "5:5472720358370264630",
-      "lastPropertyId": "8:5261240502134639909",
+      "lastPropertyId": "9:4379730360853006937",
       "name": "EventNodeEntity",
       "properties": [
         {
@@ -103,6 +103,11 @@
           "id": "8:5261240502134639909",
           "name": "tags",
           "type": 30
+        },
+        {
+          "id": "9:4379730360853006937",
+          "name": "status",
+          "type": 5
         }
       ],
       "relations": []
@@ -189,7 +194,7 @@
     },
     {
       "id": "9:441345626016719622",
-      "lastPropertyId": "3:7201346851366653889",
+      "lastPropertyId": "6:2933366458043138798",
       "name": "DictionaryNodeEntity",
       "properties": [
         {
@@ -211,12 +216,18 @@
           "flags": 8
         }
       ],
-      "relations": []
+      "relations": [
+        {
+          "id": "1:3115233928843439845",
+          "name": "events",
+          "targetId": "5:5472720358370264630"
+        }
+      ]
     }
   ],
   "lastEntityId": "9:441345626016719622",
   "lastIndexId": "4:7323196369151097052",
-  "lastRelationId": "0:0",
+  "lastRelationId": "1:3115233928843439845",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
@@ -248,7 +259,10 @@
     2706382889621961485,
     1140410827548214919,
     2126880205432101843,
-    5113413463374473302
+    5113413463374473302,
+    4766763998393261628,
+    7591827823489532623,
+    2933366458043138798
   ],
   "retiredRelationUids": [],
   "version": 1

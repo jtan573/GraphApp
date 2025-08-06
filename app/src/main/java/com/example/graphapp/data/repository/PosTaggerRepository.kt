@@ -38,7 +38,7 @@ data class PosTaggerRepository(private val context: Context) {
         return taggedTokens.mapNotNull { token ->
             val parts = token.split("_")
             if (parts.size == 2 && parts[1] in SchemaPosTags) {
-                parts[0] // return the word only
+                parts[0]
             } else {
                 null
             }
