@@ -63,7 +63,7 @@ fun PersonnelScreen(
     val coroutineScope = rememberCoroutineScope()
     var showForm by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-    var localUserQueryDescription by remember { mutableStateOf("") }
+    var localUserQueryDescription by remember { mutableStateOf("Looking for support with ground and drone surveillance in a high-risk zone.") }
     var localUserQueryLocation by remember { mutableStateOf("1.3580,103.6900") }
     var viewMode by remember { mutableStateOf("list") } // or "graph"
 

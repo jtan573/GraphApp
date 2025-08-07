@@ -48,8 +48,8 @@ import kotlin.collections.set
 @Composable
 fun ThreatDetectionUseCaseScreen(viewModel: GraphViewModel, navController: NavController) {
 
-    val queryResults by viewModel.queryResults.collectAsState()
-    val eventAdded by viewModel.createdEvent.collectAsState()
+    val threatAlertResults by viewModel.threatAlertResults.collectAsState()
+    val eventAdded by viewModel.threatAlertCreatedEvent.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
     var showForm by remember { mutableStateOf(false) }
@@ -126,7 +126,7 @@ fun ThreatDetectionUseCaseScreen(viewModel: GraphViewModel, navController: NavCo
                         onCancel = { showForm = false }
                     )
                 }
-                queryResults?.let { QueryResultCard(eventAdded, it, navController) }
+                threatAlertResults?.let { QueryResultCard(eventAdded, it, navController) }
 
                 Text(
                     text = "List Of Active Users:",

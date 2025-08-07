@@ -234,7 +234,7 @@ suspend fun recommendEventsForProps (
     newEventMap: Map<String, String>,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
-    queryKey: String? = null,
+    targetEventType: String? = null,
     getTopThreeResultsOnly: Boolean = true,
     customThreshold: Float = 0.0f,
     activeNodesOnly: Boolean
@@ -257,7 +257,7 @@ suspend fun recommendEventsForProps (
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
         newEventMap = eventNodesByType,
-        queryKey = queryKey,
+        targetEventType = targetEventType,
         getTopThreeResultsOnly = getTopThreeResultsOnly,
         threshold = customThreshold,
         activeNodesOnly = activeNodesOnly

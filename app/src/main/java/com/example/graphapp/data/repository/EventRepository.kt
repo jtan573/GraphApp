@@ -8,8 +8,11 @@ import com.example.graphapp.data.db.EventDatabaseQueries
 import com.example.graphapp.backend.dto.GraphSchema
 import com.example.graphapp.backend.dto.GraphSchema.DictionaryTypes
 import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyNodes
+import com.example.graphapp.backend.dto.GraphSchema.SchemaComputedPropertyNodes
 import com.example.graphapp.backend.dto.GraphSchema.SchemaSemanticPropertyNodes
 import com.example.graphapp.backend.usecases.predictImpactOfWindAtLocationUseCase
+import com.example.graphapp.backend.usecases.restoreLocationFromString
 
 class EventRepository(
     private val embeddingRepository: EmbeddingRepository,
@@ -184,9 +187,24 @@ class EventRepository(
     // Retrieve nodes with relevant tags
     suspend fun getRelevantNodes(
         eventTags: List<String>,
-        eventType: String
+        eventType: String   // Type of nodes to retrieve
     ): List<EventNodeEntity> {
         return dictionaryRepository.getEventsWithSimilarTags(eventTags, eventType)
+    }
+
+    // Retrieve nodes by distance
+    fun getCloseNodesByLocation(
+        location: String
+    ): List<EventNodeEntity> {
+        val relevantNodes = mutableListOf<EventNodeEntity>()
+        val allNodes = getAllEventNodes().filter{ it.type == PropertyNames.WHERE.key }
+        allNodes.forEach { locationNode ->
+            val distance = restoreLocationFromString(location).distanceTo(restoreLocationFromString(locationNode.name))
+            if (distance < 5000f) {
+                relevantNodes.add(locationNode)
+            }
+        }
+        return relevantNodes
     }
 
 

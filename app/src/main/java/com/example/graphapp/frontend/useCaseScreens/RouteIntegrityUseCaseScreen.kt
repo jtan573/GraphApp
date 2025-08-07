@@ -48,9 +48,8 @@ fun RouteIntegrityUseCaseScreen(
     viewModel: GraphViewModel,
     navController: NavController
 ) {
-
-    val queryResults by viewModel.queryResults.collectAsState()
-    val eventAdded by viewModel.createdEvent.collectAsState()
+    val routeIntegrityResults by viewModel.routeIntegrityResults.collectAsState()
+    val eventAdded by viewModel.routeIntegrityCreatedEvent.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
     var showForm by remember { mutableStateOf(false) }
@@ -166,8 +165,8 @@ fun RouteIntegrityUseCaseScreen(
                         onCancel = { showForm = false }
                     )
                 }
-                queryResults?.let { QueryResultCard(eventAdded, it, navController) }
-                queryResults?.let { showPlanRoute = true }
+                routeIntegrityResults?.let { QueryResultCard(eventAdded, it, navController) }
+                routeIntegrityResults?.let { showPlanRoute = true }
 
                 Text(
                     text = "List Of Incidents Reported:",

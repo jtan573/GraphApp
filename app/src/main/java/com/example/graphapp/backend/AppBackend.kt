@@ -20,8 +20,7 @@ class AppBackend(
     val eventRepository = EventRepository(embeddingRepository, dictionaryRepository, posTaggerRepository)
     val userActionRepository = UserActionRepository(sentenceEmbedding)
 
-
-    suspend fun initialiseBackend() {
+    suspend fun initialiseBackend() : Boolean {
         embeddingRepository.initializeEmbedding()
         Log.d("REPOSITORY", "EMBEDDING REPO INITIALISED.")
         dictionaryRepository.initialiseDictionaryRepository()
@@ -32,5 +31,7 @@ class AppBackend(
         Log.d("REPOSITORY", "EVENT REPO INITIALISED.")
         userActionRepository.initialiseUserActionRepository()
         Log.d("REPOSITORY", "USER-ACTION REPO INITIALISED.")
+
+        return true
     }
 }

@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 enum class DbAction {
-    CREATE, UPDATE, DELETE
+    CREATE, DELETE, QUERY
 }
 
 data class ApiRequest(
@@ -20,7 +20,7 @@ sealed class RequestData {
     @Serializable
     @SerialName("EventRequestData")
     data class EventRequestData(
-        val eventType: String? = null,
+        val eventType: String? = null, // change to enum
         val details: EventDetailData? = null,
         val metadata: EventRequestEntry? = null
     ) : RequestData()
@@ -57,7 +57,7 @@ data class EventRequestEntry(
 ------------------------------------------------- */
 @Serializable
 data class UserDetailData (
-    val identifier: String,
+    val identifier: String? = null,
     val role: String? = null,
     val specialisation: String? = null,
     val currentLocation: String? = null,
@@ -65,7 +65,8 @@ data class UserDetailData (
 
 @Serializable
 data class ActionDetailData (
-    val actionName: String
+    val actionName: String? = null,
+    val userIdentifier: String? = null,
 )
 
 @Serializable

@@ -1,6 +1,7 @@
 package com.example.graphapp.backend.core
 
 import android.util.Log
+import androidx.compose.runtime.key
 import androidx.room.util.query
 import com.example.graphapp.backend.dto.GraphSchema
 import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
@@ -17,6 +18,7 @@ import com.example.graphapp.backend.schema.EventStatus
 import com.example.graphapp.backend.schema.ExplainedSimilarityWithScores
 import com.example.graphapp.backend.schema.SimilarEventTags
 import com.example.graphapp.backend.usecases.restoreLocationFromString
+import com.example.graphapp.data.api.main
 import com.example.graphapp.data.repository.PosTaggerRepository
 import kotlin.collections.iterator
 import kotlin.math.ln
@@ -280,7 +282,8 @@ suspend fun computeSemanticSimilarEventsForProps(
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
     newEventMap: Map<String, EventNodeEntity>,
-    queryKey: String? = null,
+    sourceEventType: String? = PropertyNames.INCIDENT.key,
+    targetEventType: String? = null,
     getTopThreeResultsOnly: Boolean = true,
     threshold: Float = 0.0f,
     activeNodesOnly: Boolean
@@ -293,37 +296,31 @@ suspend fun computeSemanticSimilarEventsForProps(
         listOf(EventStatus.INACTIVE, EventStatus.ACTIVE)
     }
 
-    val allNodes = eventRepository.getAllEventNodes()
+    var allKeyNodeIdsByType = mutableMapOf<String, MutableList<Long>>()
+    newEventMap.forEach { (type, eventNode) ->
+        var nodes: List<EventNodeEntity> = if (type in SchemaSemanticPropertyNodes) {
+            // Semantic nodes
+            eventRepository.getRelevantNodes(eventNode.tags, type).filter { it.status in nodeStatus }
+        } else {
+            // Computed Nodes
+            eventRepository.getCloseNodesByLocation(eventNode.name).filter { it.status in nodeStatus }
+        }
 
-    // Testing here
-//    var allKeyNodeIdsByType = mutableMapOf<String, List<Long>>()
-//    if (queryKey != null) {
-//        val event = newEventMap[queryKey]
-//        if (event != null) {
-//            val nodes = eventRepository.getRelevantNodes(event.tags, queryKey)
-//            allKeyNodeIdsByType.put(queryKey,
-//                nodes.filter { it.status in nodeStatus }.map { it.id }
-//            )
-//        }
-//    } else {
-//        newEventMap.forEach { (type, eventNode) ->
-//            val nodes = eventRepository.getRelevantNodes(eventNode.tags, type)
-//            allKeyNodeIdsByType.put(type,
-//                nodes.filter { it.status in nodeStatus }.map { it.id }
-//            )
-//        }
-//    }
-
-    // Get active and/or inactive nodes and Group by their type
-    var allKeyNodeIdsByType = mapOf<String, List<Long>>()
-    allKeyNodeIdsByType = if (queryKey != null) {
-        allNodes
-            .filter { it.type == queryKey && it.status in nodeStatus }
-            .groupBy { it.type }.mapValues { (_, nodes) -> nodes.map { it.id } }
-    } else {
-        allNodes
-            .filter { it.type in SchemaKeyNodes && it.status in nodeStatus }
-            .groupBy { it.type }.mapValues { (_, nodes) -> nodes.map { it.id } }
+        nodes.forEach { node ->
+            var keyNeighbours: List<EventNodeEntity> = if (sourceEventType != null) {
+                eventRepository.getNeighborsOfEventNodeById(node.id)
+                    .filter { it.type == sourceEventType }
+            } else {
+                eventRepository.getNeighborsOfEventNodeById(node.id)
+                    .filter { it.type in SchemaKeyNodes }
+            }
+            keyNeighbours.forEach {
+                val list = allKeyNodeIdsByType.getOrPut(it.type) { mutableListOf() }
+                if (it.id !in list) {
+                    list.add(it.id)
+                }
+            }
+        }
     }
 
     // Get values in new event
@@ -333,7 +330,7 @@ suspend fun computeSemanticSimilarEventsForProps(
     val simMatrix = mutableMapOf<String, MutableList<ExplainedSimilarityWithScores>>()
 
     // Compute semantic similarity between key node pairs
-    for ((eventType, keyNodeIds) in allKeyNodeIdsByType) {
+    for ((_, keyNodeIds) in allKeyNodeIdsByType) {
         for (keyNodeId in keyNodeIds) {
             val sim = computeSemanticSimilarity(
                 nodeId1 = -0L,
@@ -344,16 +341,27 @@ suspend fun computeSemanticSimilarEventsForProps(
                 newInputNeighbours = propsInEvent,
                 explainSimilarity = true
             )
-            val freqFactor = ln(1f + (eventRepository.getEventNodeFrequencyOfNodeId(keyNodeId) ?: 1)).toFloat()
 
-            val adjustedSim = sim.first * freqFactor
-            if (adjustedSim > threshold) {
-                simMatrix.getOrPut(eventType) { mutableListOf() }.add(
-                    ExplainedSimilarityWithScores(
-                        simScore = adjustedSim,
-                        targetNodeId = keyNodeId,
-                        explainedSimilarity = sim.second
-                ))
+            val mainNodes = eventRepository.getNeighborsOfEventNodeById(keyNodeId).toMutableList()
+            mainNodes.add(eventRepository.getEventNodeById(keyNodeId)!!)
+            val simNodesIds = if (targetEventType != null) {
+                mainNodes.filter{ it.type == targetEventType }.map { it.type to it.id}
+            } else {
+                mainNodes.filter{ it.type in SchemaKeyNodes }.map { it.type to it.id}
+            }
+
+            simNodesIds.forEach { (type, nodeId) ->
+                val freqFactor = ln(1f + (eventRepository.getEventNodeFrequencyOfNodeId(nodeId) ?: 1)).toFloat()
+                val adjustedSim = sim.first * freqFactor
+
+                if (adjustedSim > threshold) {
+                    simMatrix.getOrPut(type) { mutableListOf() }.add(
+                        ExplainedSimilarityWithScores(
+                            simScore = adjustedSim,
+                            targetNodeId = nodeId,
+                            explainedSimilarity = sim.second
+                        ))
+                }
             }
         }
     }

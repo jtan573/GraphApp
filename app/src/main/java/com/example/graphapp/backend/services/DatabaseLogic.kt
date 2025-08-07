@@ -43,53 +43,114 @@ object DatabaseLogic {
     }
 
     /* -------------------------------------------------------
-        Helper to add data to DB
+        Helper to add data to DBs
     -------------------------------------------------------*/
     suspend fun addEventToDatabase(
-       inputData: RequestData,
+       inputData: EventRequestData,
        eventRepository: EventRepository
-    ) {
-        if (inputData is EventRequestData) {
-            var keyNode: EventNodeEntity? = null
-            if (inputData.eventType != null && inputData.details?.whatValue != null) {
-                val toNodeId = eventRepository.insertEventNodeIntoDb(
-                    inputName = inputData.details.whatValue,
-                    inputType = inputData.eventType
+    ): ApiResponse {
+
+        var keyNode: EventNodeEntity? = null
+        if (inputData.eventType != null && inputData.details?.whatValue != null) {
+            val toNodeId = eventRepository.insertEventNodeIntoDb(
+                inputName = inputData.details.whatValue,
+                inputType = inputData.eventType
+            )
+            keyNode = eventRepository.getEventNodeById(toNodeId)
+        }
+
+        val fromNodeList = mutableListOf<EventNodeEntity>()
+        listOf(
+            PropertyNames.WHO.key to inputData.details?.whoValue,
+            PropertyNames.WHEN.key to inputData.details?.whenValue,
+            PropertyNames.WHERE.key to inputData.details?.whereValue,
+            PropertyNames.WHY.key to inputData.details?.whyValue,
+            PropertyNames.HOW.key to inputData.details?.howValue,
+        ).forEach { (key, value) ->
+            if (value != null) {
+                val nodeId = eventRepository.insertEventNodeIntoDb(
+                    inputName = value,
+                    inputType = key
                 )
-                keyNode = eventRepository.getEventNodeById(toNodeId)
-            }
-
-            val fromNodeList = mutableListOf<EventNodeEntity>()
-            listOf(
-                PropertyNames.WHO.key to inputData.details?.whoValue,
-                PropertyNames.WHEN.key to inputData.details?.whenValue,
-                PropertyNames.WHERE.key to inputData.details?.whereValue,
-                PropertyNames.WHY.key to inputData.details?.whyValue,
-                PropertyNames.HOW.key to inputData.details?.howValue,
-            ).forEach { (key, value) ->
-                if (value != null) {
-                    val nodeId = eventRepository.insertEventNodeIntoDb(
-                        inputName = value,
-                        inputType = key
-                    )
-                    fromNodeList.add(eventRepository.getEventNodeById(nodeId)!!)
-                }
-            }
-
-            if (keyNode != null) {
-                fromNodeList.forEach { fromNode ->
-                    eventRepository.insertEventEdgeIntoDb(
-                        fromNode = fromNode,
-                        toNode = keyNode
-                    )
-                }
-                Log.d("DATABASE UPDATED:", "Event added: ${keyNode.name}")
+                fromNodeList.add(eventRepository.getEventNodeById(nodeId)!!)
             }
         }
+
+        if (keyNode != null) {
+            fromNodeList.forEach { fromNode ->
+                eventRepository.insertEventEdgeIntoDb(
+                    fromNode = fromNode,
+                    toNode = keyNode
+                )
+
+            }
+        }
+        return ApiResponse(
+            status = ResponseStatus.SUCCESS,
+            timestamp = System.currentTimeMillis(),
+            message = "Event data added to database successfully.",
+            data = null
+        )
+    }
+
+    suspend fun addPersonnelToDatabase(
+        inputData: PersonnelRequestData,
+        userActionRepository: UserActionRepository
+    ): ApiResponse {
+
+        val user = inputData.userData
+        // Check if userData or any of the fields are missing
+        if (user != null) {
+
+            if (user.identifier.isNullOrBlank() || user.role.isNullOrBlank() ||
+            user.specialisation.isNullOrBlank() || user.currentLocation.isNullOrBlank()) {
+
+                return ApiResponse(
+                    status = ResponseStatus.FAILED,
+                    timestamp = System.currentTimeMillis(),
+                    message = "Missing required user data fields.",
+                    data = null
+                )
+            }
+
+            userActionRepository.insertUserNodeIntoDb(
+                inputIdentifier = inputData.userData.identifier,
+                inputRole = inputData.userData.role,
+                inputSpecialisation = inputData.userData.specialisation,
+                inputLocation = inputData.userData.currentLocation
+            )
+        }
+
+        // Check if actionData or any of the fields are missing
+        val action = inputData.actionData
+        if (action != null) {
+
+            if (action.actionName.isNullOrBlank() || action.userIdentifier.isNullOrBlank() ||
+                userActionRepository.getUserNodeByIdentifier(action.userIdentifier) == null) {
+                return ApiResponse(
+                    status = ResponseStatus.FAILED,
+                    timestamp = System.currentTimeMillis(),
+                    message = "Missing/Incorrect required action data fields.",
+                    data = null
+                )
+            }
+
+            userActionRepository.insertActionNodeIntoDb(
+                userIdentifier = action.userIdentifier,
+                inputName = action.actionName
+            )
+        }
+
+        return ApiResponse(
+            status = ResponseStatus.SUCCESS,
+            timestamp = System.currentTimeMillis(),
+            message = "Personnel data added to database successfully.",
+            data = null
+        )
     }
 
     /* -------------------------------------------------------
-        Helper to delete data from DB
+        Helper to delete data from DBs
     -------------------------------------------------------*/
     fun removeEventFromEventDb(
         inputData: EventRequestData,
@@ -119,25 +180,44 @@ object DatabaseLogic {
         }
     }
 
+    // TODO: FIX LOGIC ERROR
     fun removeUserActionFromDb(
         inputData: PersonnelRequestData,
         userActionRepository: UserActionRepository
     ): ApiResponse {
-        if (inputData.actionData != null) {
-            userActionRepository.removeActionFromDb(inputData.actionData.actionName)
-            return ApiResponse(
-                status = ResponseStatus.SUCCESS,
-                timestamp = System.currentTimeMillis(),
-                message = "Deleted action (${inputData.actionData.actionName}) from database.",
-                data = null
-            )
+
+        var deleted = false
+        var message: String = ""
+        val action = inputData.actionData
+        if (action != null) {
+            if (!action.actionName.isNullOrBlank()) {
+                userActionRepository.removeActionFromDb(action.actionName)
+                deleted = true
+                message = message + "SUCCESS: Deleted action (${inputData.actionData.actionName}) from database."
+            }
+            else {
+                message = message + "ERROR: Action (${inputData.actionData.actionName}) cannot be deleted from database."
+            }
         }
-        else if (inputData.userData != null) {
-            userActionRepository.removeUserFromDb(inputData.userData.identifier)
+
+        val user = inputData.userData
+        if (user != null) {
+            if (!user.identifier.isNullOrBlank()) {
+                userActionRepository.removeUserFromDb(user.identifier)
+                deleted = true
+                message = message + "SUCCESS: Deleted user (${user.identifier}) from database."
+            }
+            else {
+                deleted = false
+                message = message + "ERROR: uSER (${user.identifier}) cannot be deleted from database."
+            }
+        }
+
+        if (deleted) {
             return ApiResponse(
                 status = ResponseStatus.SUCCESS,
                 timestamp = System.currentTimeMillis(),
-                message = "Deleted user (${inputData.userData.identifier}) from database.",
+                message = message,
                 data = null
             )
         } else {

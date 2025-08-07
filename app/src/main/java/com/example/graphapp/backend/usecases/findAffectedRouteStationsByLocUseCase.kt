@@ -26,7 +26,7 @@ suspend fun findAffectedRouteStationsByLocUseCase(
             newEventMap = mapOf(PropertyNames.WHERE.key to station),
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
-            queryKey = PropertyNames.INCIDENT.key,
+            targetEventType = PropertyNames.INCIDENT.key,
             getTopThreeResultsOnly = true,
             customThreshold = threshold,
             activeNodesOnly = true

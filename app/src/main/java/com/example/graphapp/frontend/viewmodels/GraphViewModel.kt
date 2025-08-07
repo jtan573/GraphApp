@@ -81,6 +81,24 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     private val _queryResults = MutableStateFlow<ThreatAlertResponse?>(null)
     val queryResults: StateFlow<ThreatAlertResponse?> = _queryResults
 
+    // RouteIntegrityUseCase
+    private val _routeIntegrityResults = MutableStateFlow<ThreatAlertResponse?>(null)
+    val routeIntegrityResults: StateFlow<ThreatAlertResponse?> = _routeIntegrityResults
+    private val _routeIntegrityCreatedEvent = MutableStateFlow(mapOf<String, String>())
+    val routeIntegrityCreatedEvent: StateFlow<Map<String, String>> = _routeIntegrityCreatedEvent
+
+    // ThreatAlertUseCase
+    private val _threatAlertResults = MutableStateFlow<ThreatAlertResponse?>(null)
+    val threatAlertResults: StateFlow<ThreatAlertResponse?> = _threatAlertResults
+    private val _threatAlertCreatedEvent = MutableStateFlow(mapOf<String, String>())
+    val threatAlertCreatedEvent: StateFlow<Map<String, String>> = _threatAlertCreatedEvent
+
+    // SuspiciousDetectionUseCase
+    private val _suspiciousDetectionResults = MutableStateFlow<ThreatAlertResponse?>(null)
+    val suspiciousDetectionResults: StateFlow<ThreatAlertResponse?> = _suspiciousDetectionResults
+    private val _suspiciousDetectionCreatedEvent = MutableStateFlow(mapOf<String, String>())
+    val suspiciousDetectionCreatedEvent: StateFlow<Map<String, String>> = _suspiciousDetectionCreatedEvent
+
     // ---------- Personnel Query States ----------
     private val _relevantContactState = MutableStateFlow<ContactRelevantPersonnelResponse?>(null)
     val relevantContactState: StateFlow<ContactRelevantPersonnelResponse?> = _relevantContactState
@@ -227,7 +245,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     fun findRelevantPersonnelOnDemand(inputLocation: String, inputDescription: String) {
         viewModelScope.launch {
             val apiRes = callBackend(
-                DbAction.CREATE,
+                DbAction.QUERY,
                 PersonnelRequestData(
                     metadata = PersonnelRequestEntry(
                         incidentLocation = inputLocation,
@@ -255,7 +273,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             if (normalizedMap.isEmpty()) { return }
 
             val apiRes = callBackend(
-                DbAction.CREATE,
+                DbAction.QUERY,
                 EventRequestData(
                     eventType = "Incident",
                     details = EventDetailData(
@@ -270,8 +288,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
             )
 
             if (apiRes.data is ThreatAlertData) {
-                _queryResults.value = apiRes.data.payload
-                _createdEvent.value = normalizedMap
+                _threatAlertResults.value = apiRes.data.payload
+                _threatAlertCreatedEvent.value = normalizedMap
             }
     }
 
@@ -281,7 +299,7 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         if (normalizedMap.isEmpty()) { return }
 
         val apiRes = callBackend(
-            DbAction.CREATE,
+            DbAction.QUERY,
             EventRequestData(
                 eventType = "Incident",
                 details = EventDetailData(
@@ -296,8 +314,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
         )
 
         if (apiRes.data is ThreatAlertData) {
-            _queryResults.value = apiRes.data.payload
-            _createdEvent.value = normalizedMap
+            _suspiciousDetectionResults.value = apiRes.data.payload
+            _suspiciousDetectionCreatedEvent.value = normalizedMap
         }
     }
 
@@ -322,13 +340,13 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     suspend fun findAffectedRouteStationsByLocation(locations: List<String>) {
         if (locations.isNotEmpty()) {
             val apiRes = callBackend(
-                DbAction.CREATE,
+                DbAction.QUERY,
                 EventRequestData(
                     metadata = EventRequestEntry(routeCoordinates = locations)
                 )
             )
             if (apiRes.data is ThreatAlertData) {
-                _queryResults.value = apiRes.data.payload
+                _routeIntegrityResults.value = apiRes.data.payload
             }
         }
     }

@@ -39,6 +39,10 @@ object ApiRouter {
                     }
 
                     DbAction.CREATE -> {
+                        dbLogic.addPersonnelToDatabase(request.inputData, userActionRepository)
+                    }
+
+                    DbAction.QUERY -> {
                         // Use Case: Find relevant personnel on demand
                         if (requestData.metadata != null) {
                             backendLogic.findRelevantPersonnelOnDemand(
@@ -56,8 +60,6 @@ object ApiRouter {
                             )
                         }
                     }
-
-                    DbAction.UPDATE -> TODO()
                 }
             }
 
@@ -71,7 +73,7 @@ object ApiRouter {
                         )
                     }
 
-                    DbAction.CREATE -> {
+                    DbAction.QUERY -> {
                         // Check route
                         if (requestData.metadata?.routeCoordinates != null &&
                             requestData.metadata.routeCoordinates.isNotEmpty()) {
@@ -83,16 +85,16 @@ object ApiRouter {
                         }
 
                         // Threat detection?
-                        else if (requestData.eventType == "Incident" &&
-                            (requestData.details?.whatValue != null || requestData.details?.howValue != null)
-                        ) {
-                            backendLogic.findThreatAlertAndResponse(
-                                eventInput = requestData.details,
-                                userActionRepository = userActionRepository,
-                                embeddingRepository = embeddingRepository,
-                                eventRepository = eventRepository
-                            )
-                        }
+//                        else if (requestData.eventType == "Incident" &&
+//                            (requestData.details?.whatValue != null || requestData.details?.howValue != null)
+//                        ) {
+//                            backendLogic.findThreatAlertAndResponse(
+//                                eventInput = requestData.details,
+//                                userActionRepository = userActionRepository,
+//                                embeddingRepository = embeddingRepository,
+//                                eventRepository = eventRepository
+//                            )
+//                        }
 
                         // Suspicious?
                         else if (requestData.eventType == "Incident" &&
@@ -116,22 +118,38 @@ object ApiRouter {
                         }
                     }
 
-                    DbAction.UPDATE -> TODO()
+                    DbAction.CREATE -> {
+                        // Update cache and database
+                        val hash = dbLogic.hashRequestData(requestData)
+                        val foundInCache = dbLogic.requestHashCache.getIfPresent(hash)
+                        if (foundInCache == null) {
+                            dbLogic.requestHashCache.put(hash, true)
+                            dbLogic.addEventToDatabase(
+                                inputData = requestData,
+                                eventRepository = eventRepository
+                            )
+                        } else {
+                            ApiResponse(
+                                status = ResponseStatus.FAILED,
+                                timestamp = System.currentTimeMillis(),
+                                message = "Duplicate data found, data not added to database.",
+                                data = null
+                            )
+                        }
+                    }
                 }
-
+//                 else {
+//                    ApiResponse(
+//                        status = ResponseStatus.FAILED,
+//                        timestamp = System.currentTimeMillis(),
+//                        message = "Duplicate data found, data not added to database.",
+//                        data = null
+//                    )
+//                }
             }
         }
 
-        // Update cache and database
-        val hash = dbLogic.hashRequestData(requestData)
-        val foundInCache = dbLogic.requestHashCache.getIfPresent(hash)
-        if (foundInCache == null) {
-            dbLogic.requestHashCache.put(hash, true)
-            dbLogic.addEventToDatabase(
-                inputData = requestData,
-                eventRepository = eventRepository
-            )
-        }
+
 
         return apiRes
     }

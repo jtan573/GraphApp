@@ -24,7 +24,7 @@ suspend fun findRelevantEventsUseCase(
         newEventMap = statusEventMap,
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
-        queryKey = queryKey,
+        targetEventType = queryKey,
         activeNodesOnly = activeNodesOnly
     )
     if (resultsNodes != null && resultsEdges != null) {

@@ -32,7 +32,7 @@ suspend fun findRelatedSuspiciousEventsUseCase(
             },
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
-            queryKey = PropertyNames.INCIDENT.key,
+            targetEventType = PropertyNames.INCIDENT.key,
             activeNodesOnly = false
         )
 
@@ -52,7 +52,7 @@ suspend fun findRelatedSuspiciousEventsUseCase(
             ),
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
-            queryKey = PropertyNames.INCIDENT.key,
+            targetEventType = PropertyNames.INCIDENT.key,
             getTopThreeResultsOnly = false,
             activeNodesOnly =  false
         )
