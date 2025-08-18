@@ -1,15 +1,12 @@
 package com.example.graphapp.backend.core
 
 import android.util.Log
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.api.DiscoverEventsResponse
 import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.data.api.KeyNode
-import com.example.graphapp.data.api.NodeDetails
 import com.example.graphapp.data.api.PatternFindingResponse
-import com.example.graphapp.data.api.PredictMissingProperties
-import com.example.graphapp.data.api.PredictMissingPropertiesResponse
-import com.example.graphapp.data.api.PredictedProperty
 import com.example.graphapp.data.api.ReplicaDetectionResponse
 import com.example.graphapp.data.api.SimilarEvent
 import com.example.graphapp.data.db.EventEdgeEntity
@@ -18,6 +15,8 @@ import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.backend.dto.GraphSchema.SchemaOtherNodes
 import com.example.graphapp.backend.dto.GraphSchema.SchemaPropertyNodes
+import com.example.graphapp.data.api.EventType
+import com.example.graphapp.data.api.eventTypeFromString
 //import com.example.graphdb.Edge
 //import com.example.graphdb.Node
 import kotlin.collections.component1
@@ -25,216 +24,14 @@ import kotlin.collections.component2
 import kotlin.collections.iterator
 
 /* -------------------------------------------------
-    Function 1: Predict missing properties
+    FUNCTION 1: Find similar events
 ------------------------------------------------- */
-fun predictMissingProperties(
-    eventRepository: EventRepository,
-    simMatrix: Map<Pair<Long, Long>, Float>
-): Pair<List<EventEdgeEntity>, PredictMissingPropertiesResponse> {
-
-    val predictionsList = mutableListOf<PredictMissingProperties>()
-
-    val allNodes = eventRepository.getAllEventNodes()
-    val allKeyNodes = allNodes.filter { it.type in SchemaKeyNodes }
-
-    for (node in allKeyNodes) {
-
-        val existingPropertiesNodes = eventRepository.getNeighborsOfEventNodeById(node.id)
-        val existingPropertyTypes = existingPropertiesNodes.map { it.type }
-        val missingProps = SchemaPropertyNodes.filter { prop ->
-            prop !in existingPropertyTypes
-        }
-
-        if (missingProps.isEmpty()) continue
-
-        var flag = false
-        // missingPropType -> propNode, simScore, keyNodeName
-        val predictedPropertiesMap = mutableMapOf<String, Triple<EventNodeEntity, Float, String>>()
-
-        // Iterate over the missing properties
-        for (prop in missingProps) {
-
-            // Collect candidates of same node type with this property
-            val candidates = allNodes.filter { candidate ->
-                candidate.id != node.id && candidate.type == node.type && eventRepository
-                    .getNeighborsOfEventNodeById(candidate.id)
-                    .any { neighbour -> neighbour.type == prop }
-            }
-
-            // keyNode -> propNode, simValue
-            val scoreByValue = mutableMapOf<EventNodeEntity, Pair<EventNodeEntity, Float>>()
-
-            for (candidate in candidates) {
-                val simScore = computeWeightedSim(
-                    targetId = node.id,
-                    candidateId = candidate.id,
-                    repository = eventRepository,
-                    similarityMatrix = simMatrix
-                )
-
-                // Retrieve the property value of this candidate
-                val propNode = eventRepository
-                    .getNeighborsOfEventNodeById(candidate.id)
-                    .firstNotNullOf { neighbour ->
-                        if (neighbour.type == prop) { neighbour } else null
-                    }
-
-                scoreByValue[candidate] = propNode to simScore
-            }
-
-            if (scoreByValue.isNotEmpty()) {
-                val (simNode, simProp) = scoreByValue.maxByOrNull { it.value.second }!!
-                predictedPropertiesMap[prop] = Triple(simProp.first, simProp.second, simNode.name)
-                flag = true
-            }
-        }
-
-        if (flag) {
-            val existingPropertiesMap = existingPropertiesNodes.associate { n ->
-                n.type to n.name
-            }
-
-            val predictedPropList = mutableListOf<PredictedProperty>()
-            for ((pType, pVal) in predictedPropertiesMap) {
-                predictedPropList.add(
-                    PredictedProperty(
-                        propertyType = pType,
-                        propertyValue = pVal.first.name,
-                        simScore = pVal.second,
-                        mostSimilarKeyNode = pVal.third
-                    )
-                )
-            }
-
-            val predictMissing = PredictMissingProperties(
-                nodeId = node.id,
-                nodeDetails = NodeDetails(
-                    type = node.type,
-                    name = node.name,
-                    description = node.description,
-                    existingProperties = existingPropertiesMap
-                ),
-                predictedProperties = predictedPropList
-            )
-            predictionsList.add(predictMissing)
-        }
-    }
-
-    // Creating Edges for UI
-    val newEdges = mutableListOf<EventEdgeEntity>()
-
-    for (prediction in predictionsList) {
-        val targetNodeId = prediction.nodeId
-        for ((prop, sourceNodeName) in prediction.predictedProperties) {
-            val relationType = "Suggest-$prop"
-            val newEdge = EventEdgeEntity(
-                id = -1L,
-                firstNodeId = eventRepository.getEventNodeByNameAndType(sourceNodeName, prop)!!.id,
-                secondNodeId = targetNodeId,
-                edgeType = relationType
-            )
-            newEdges.add(newEdge)
-        }
-    }
-
-    return newEdges to PredictMissingPropertiesResponse(predictionsList)
-}
-
-/* -------------------------------------------------
-    Function 2: Provide event recommendations on input event
-    Function 3: Provide event recommendations on input property
-------------------------------------------------- */
-//fun recommendEventForEvent(
-//    newEventMap: Map<String, String>,
-//    eventRepository: EventRepository,
-//    simMatrix: Map<Pair<Long, Long>, Float>,
-//    newEventNodes: List<EventNodeEntity>,
-//    queryKey: String? = null,
-//    isQuery: Boolean
-//) : Triple<List<EventNodeEntity>, List<EventEdgeEntity>, ProvideRecommendationsResponse> {
-//
-//    val inputKeyNode = newEventNodes.single { it.type in SchemaKeyNodes }
-//
-//    var topRecommendationsByType = mutableMapOf<String, MutableList<EventNodeEntity>>()
-//
-//    // Check cache
-//    val cachedRecommendations = loadCachedRecommendations(inputKeyNode, eventRepository, queryKey)
-//    topRecommendationsByType = if (cachedRecommendations.isNotEmpty()) {
-//        cachedRecommendations
-//    } else {
-//        computeTopRecommendations(
-//            inputKeyNode = inputKeyNode,
-//            repository = eventRepository,
-//            simMatrix = simMatrix,
-//            queryKey = queryKey
-//        )
-//    }
-//
-//    // Create API response format
-//    val recList = mutableMapOf<String, List<String>>()
-//
-//    for ((type, recs) in topRecommendationsByType) {
-//        val recsByTypeList = mutableListOf<String>()
-//        for (rec in recs) { recsByTypeList.add(rec.name) }
-//        recList.put(type, recsByTypeList)
-//    }
-//
-//    val allPredictedNodeIds = topRecommendationsByType.values.flatten().map { it.id }
-//
-//    val (neighborNodes, neighborEdges) = buildGraphContext(
-//        repository = eventRepository,
-//        predictedNodeIds = allPredictedNodeIds + inputKeyNode.id,
-//        addSuggestionEdges = { edgeSet, nodeSet ->
-//            for ((type, recs) in topRecommendationsByType) {
-//                for (node in recs) {
-//                    val relationType = "Suggest-$type"
-//                    val newEdge = EventEdgeEntity(
-//                        id = -1L,
-//                        firstNodeId = node.id,
-//                        secondNodeId = inputKeyNode.id,
-//                        edgeType = relationType
-//                    )
-//                    edgeSet.add(newEdge)
-//                }
-//            }
-//        }
-//    )
-//
-//    // If not query: Update cache of input node
-//    if (!isQuery) {
-//        for ((type, recNodeList) in topRecommendationsByType) {
-//            inputKeyNode.cachedNodeIds.getOrPut(type) { mutableListOf() }
-//                .addAll(recNodeList.map { it.id })
-//        }
-//        Log.d("Cached Node", "${inputKeyNode.cachedNodeIds}")
-//    } else {
-//        // Add input nodes to list too
-//        neighborNodes.addAll(newEventNodes)
-//        for (propNode in newEventNodes) {
-//            if (propNode.type in SchemaKeyNodes) continue
-//            val relationType = SchemaEdgeLabels["${propNode.type}-${inputKeyNode.type}"]
-//            val newEdge = EventEdgeEntity(
-//                id = -1L,
-//                firstNodeId = propNode.id,
-//                secondNodeId = inputKeyNode.id,
-//                edgeType = relationType
-//            )
-//            neighborEdges.add(newEdge)
-//        }
-//    }
-//
-//    return Triple(
-//        neighborNodes.toList(),
-//        neighborEdges.toList(),
-//        ProvideRecommendationsResponse(newEventMap, recList)
-//    )
-//}
-
-suspend fun recommendEventsForProps (
-    newEventMap: Map<String, String>,
+suspend fun computeSimilarAndRelatedEvents (
+    newEventMap: Map<PropertyNames, String>,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
-    targetEventType: String? = null,
+    sourceEventType: EventType? = null,
+    targetEventType: EventType? = null,
     getTopThreeResultsOnly: Boolean = true,
     customThreshold: Float = 0.0f,
     activeNodesOnly: Boolean
@@ -244,11 +41,11 @@ suspend fun recommendEventsForProps (
 
     // Get nodes from DB / Create temporary nodes for the search
     newEventMap.entries.map { (type, value) ->
-        val nodeExist = eventRepository.getEventNodeByNameAndType(value, type)
+        val nodeExist = eventRepository.getEventNodeByNameAndType(value, type.key)
         if (nodeExist != null) {
-            eventNodesByType[type] = nodeExist
+            eventNodesByType[type.key] = nodeExist
         } else {
-            eventNodesByType[type] = eventRepository.getTemporaryEventNode(value, type, embeddingRepository)
+            eventNodesByType[type.key] = eventRepository.getTemporaryEventNode(value, type.key, embeddingRepository)
         }
     }
 
@@ -257,6 +54,7 @@ suspend fun recommendEventsForProps (
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
         newEventMap = eventNodesByType,
+        sourceEventType = sourceEventType,
         targetEventType = targetEventType,
         getTopThreeResultsOnly = getTopThreeResultsOnly,
         threshold = customThreshold,
@@ -264,7 +62,7 @@ suspend fun recommendEventsForProps (
     )
     Log.d("topRecommendationsByType","$topRecommendationsByType")
 
-    val eventsByType = mutableMapOf<String, List<EventDetails>>()
+    val eventsByType = mutableMapOf<EventType, List<EventDetails>>()
 
     for ((type, recs) in topRecommendationsByType) {
         val predictedEventsList = mutableListOf<EventDetails>()
@@ -284,7 +82,7 @@ suspend fun recommendEventsForProps (
                 )
             )
         }
-        eventsByType.put(type, predictedEventsList.toList())
+        eventsByType.put(eventTypeFromString(type)!!, predictedEventsList.toList())
     }
 
     if (topRecommendationsByType.isEmpty()) {
@@ -323,9 +121,13 @@ suspend fun recommendEventsForProps (
     )
 }
 
+/* -------------------------------------------------
+    Function 2: Predict Missing Properties
+------------------------------------------------- */
+
 
 /* -------------------------------------------------
-    Function 4: Pattern Recognition
+    Function 3: Detecting Patterns in data
 ------------------------------------------------- */
 fun findPatterns(
     eventRepository: EventRepository,
@@ -396,7 +198,7 @@ fun findPatterns(
 }
 
 /* -------------------------------------------------
-    Function 5: Detecting Same Event / Fusing Events
+    Function 4: Detecting Same Event / Fusing Events
 ------------------------------------------------- */
 suspend fun detectReplicateInput(
     newEventMap: Map<String, String>,

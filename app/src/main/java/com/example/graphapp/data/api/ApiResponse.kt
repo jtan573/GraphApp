@@ -2,6 +2,8 @@ package com.example.graphapp.data.api
 
 import android.media.metrics.Event
 import android.util.Log
+import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.backend.schema.SimilarEventTags
 import com.example.graphapp.data.db.UserNodeEntity
 
@@ -22,7 +24,6 @@ sealed class ResponseData {
     data class PatternFindingData(val payload: PatternFindingResponse) : ResponseData()
     data class DiscoverEventsData(val payload: DiscoverEventsResponse) : ResponseData()
     data class DetectReplicaEventData(val payload: ReplicaDetectionResponse) : ResponseData()
-
     data class ContactPersonnelData(val payload: ContactRelevantPersonnelResponse) : ResponseData()
     data class ThreatAlertData(val payload: ThreatAlertResponse) : ResponseData()
 }
@@ -70,8 +71,8 @@ data class ProvideRecommendationsResponse(
 
 // Function 3
 data class DiscoverEventsResponse(
-    val inputInformation: Map<String, String>,
-    val predictedEvents: Map<String, List<EventDetails>>
+    val inputInformation: Map<PropertyNames, String>,
+    val predictedEvents: Map<EventType, List<EventDetails>>
 )
 
 data class EventDetails(
@@ -119,16 +120,23 @@ data class ContactRelevantPersonnelResponse(
 )
 
 /* -------------------------------------------------
-    Use Case 1: Contact relevant personnel
+    Use Case 2/3/4: Threat Alert
 ------------------------------------------------- */
 data class ThreatAlertResponse(
     val nearbyActiveUsersMap: Map<UserNodeEntity, Int>? = null,
     val potentialImpacts: List<EventDetails>? = null,
     val potentialTasks: List<EventDetails>? = null,
     val taskAssignment: Map<String, List<UserNodeEntity>>? = null,
-    val similarIncidents: Map<String, List<EventDetails>>? = null,
-    val incidentsAffectingStations: Map<String, List<EventDetails>>? = null
+    val similarIncidents: List<EventDetails>? = null,
+    val incidentsAffectingStations: Map<DisruptionCause, List<EventDetails>>? = null
 )
+
+/* -------------------------------------------------
+    Use Case 4: Route Integrity
+------------------------------------------------- */
+enum class DisruptionCause {
+    PROXIMITY, WIND
+}
 
 /* -------------------------------------------------
     Helper Function: Build ApiResponse

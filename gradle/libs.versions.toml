@@ -4,6 +4,7 @@ androidDriverVersion = "2.1.0"
 converterGson = "2.9.0"
 gson = "2.11.0"
 guava = "33.3.1-jre"
+hiltAndroid = "2.56.2"
 kotlin = "2.0.21"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -20,6 +21,8 @@ onnxruntimeExtensionsAndroid = "0.13.0"
 retrofit = "2.11.0"
 roomRuntime = "2.7.1"
 sentenceEmbeddings = "v6"
+tensorflowLite = "2.12.0"
+tensorflowLiteSupport = "0.4.3"
 webkit = "1.14.0"
 coroutinesVersion = "1.10.2"
 dateTimeVersion = "0.6.2"
@@ -45,6 +48,8 @@ converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref
 coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqlDelight" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -78,6 +83,8 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqlDelight" }
 androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationRuntimeAndroid" }
 sentence-embeddings = { module = "io.gitlab.shubham0204:sentence-embeddings", version.ref = "sentenceEmbeddings" }
+tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
+tensorflow-lite-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tensorflowLiteSupport" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

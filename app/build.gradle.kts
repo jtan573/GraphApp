@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.sqldelightPlugin)
     id("com.google.devtools.ksp")
     id("kotlin-kapt") // Only for Kotlin projects
+    id("com.google.dagger.hilt.android")
     id("io.objectbox") // Apply last
 }
 
@@ -89,5 +90,8 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.guava)
-
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.support)
 }

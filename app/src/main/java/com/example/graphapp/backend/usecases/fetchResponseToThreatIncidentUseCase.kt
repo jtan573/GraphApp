@@ -1,10 +1,8 @@
 package com.example.graphapp.backend.usecases
 
-import com.example.graphapp.backend.dto.GraphSchema
 import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
-import com.example.graphapp.data.api.DiscoverEventsResponse
 import com.example.graphapp.data.api.EventDetailData
-import com.example.graphapp.data.api.EventDetails
+import com.example.graphapp.data.api.EventType
 import com.example.graphapp.data.api.ThreatAlertResponse
 import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
@@ -12,7 +10,7 @@ import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.repository.UserActionRepository
 
 // App response to INCIDENTS
-suspend fun findThreatResponses(
+suspend fun fetchResponseToThreatIncidentUseCase(
     eventInput: EventDetailData,
     userActionRepository: UserActionRepository,
     embeddingRepository: EmbeddingRepository,
@@ -30,34 +28,34 @@ suspend fun findThreatResponses(
 
 
     // Response 2: Similar Incidents -> What are the possible impacts?
-    val statusEventMap = mutableMapOf<String, String>()
-    eventInput.whatValue?.map { statusEventMap.put(PropertyNames.INCIDENT.key, eventInput.whatValue) }
-    eventInput.howValue?.map { statusEventMap.put(PropertyNames.HOW.key, eventInput.howValue) }
+    val statusEventMap = mutableMapOf<PropertyNames, String>()
+    eventInput.whatValue?.map { statusEventMap.put(PropertyNames.INCIDENT, eventInput.whatValue) }
+    eventInput.howValue?.map { statusEventMap.put(PropertyNames.HOW, eventInput.howValue) }
 
-    val (_, _ ,impactResults) = findRelevantEventsUseCase(
+    val (_, _ ,impactResults) = fetchRelevantEventsByTargetType(
         statusEventMap = statusEventMap,
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
-        queryKey = PropertyNames.IMPACT.key,
+        sourceEventType = EventType.INCIDENT,
+        queryKey = EventType.IMPACT,
         activeNodesOnly = false
     )
-    val potentialImpacts = if (impactResults is DiscoverEventsResponse
-        && impactResults.predictedEvents.isNotEmpty()) {
-        impactResults.predictedEvents[PropertyNames.IMPACT.key]?.map { it }
+    val potentialImpacts = if (impactResults.predictedEvents.isNotEmpty()) {
+        impactResults.predictedEvents[EventType.IMPACT]?.map { it }
     } else { null }
 
 
     // Response 3: Similar incidents -> Tasks
-    val (_, _ ,taskResults) = findRelevantEventsUseCase(
+    val (_, _ ,taskResults) = fetchRelevantEventsByTargetType(
         statusEventMap = statusEventMap,
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
-        queryKey = PropertyNames.TASK.key,
+        sourceEventType = EventType.INCIDENT,
+        queryKey = EventType.TASK,
         activeNodesOnly = false
     )
-    val potentialTasks = if (taskResults is DiscoverEventsResponse
-        && taskResults.predictedEvents.isNotEmpty()) {
-        taskResults.predictedEvents[PropertyNames.TASK.key]?.map { it }
+    val potentialTasks = if (taskResults.predictedEvents.isNotEmpty()) {
+        taskResults.predictedEvents[EventType.TASK]?.map { it }
     } else { null }
 
 

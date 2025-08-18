@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.graphapp.backend.dto.GraphSchema
 import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.data.api.DisruptionCause
 import com.example.graphapp.data.api.ThreatAlertResponse
 import com.example.graphapp.frontend.navigation.NavItem
 import java.text.DateFormat
@@ -274,97 +275,76 @@ fun QueryResultCard(
         }
 
 
-        queryResults.similarIncidents?.forEach { (type, recList) ->
-            Row (
+        queryResults.similarIncidents?.forEach { incident ->
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(vertical = 4.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Text(
-                    text = "Similar Events (by $type)",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 5.dp),
-                )
-                Button(
-                    onClick = { navController.navigate(NavItem.SuspiciousLocationScreen.route) },
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
-                ) {
-                    Text("View Detail")
-                }
-            }
-            recList.forEach { event ->
-                Card(
+                    text = "Incident: ${incident.eventName}",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Text(
-                        text = "Incident: ${event.eventName}",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp)
-                            .padding(top = 8.dp)
-                    )
-                    Text(
-                        text = "Location: ${event.eventProperties[PropertyNames.WHERE.key]}",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontStyle = FontStyle.Italic
-                        ),
-                        color = Color.DarkGray,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
-                    )
-                    event.eventProperties[PropertyNames.WHEN.key]?.let {
-                        Text(
-                            text = "Observed on: ${sdf.format(Date(it.toLong()))}",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontStyle = FontStyle.Italic
-                            ),
-                            color = Color.DarkGray,
-                            modifier = Modifier
-                                .padding(horizontal = 10.dp)
-                                .padding(bottom = 2.dp)
+                        .padding(horizontal = 10.dp)
+                        .padding(top = 8.dp)
+                )
+                Text(
+                    text = "Location: ${incident.eventProperties[PropertyNames.WHERE.key]}",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontStyle = FontStyle.Italic
+                    ),
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
+                )
+//                incident.eventProperties[PropertyNames.WHEN.key]?.let {
+//                    Text(
+//                        text = "Observed on: ${sdf.format(Date(it.toLong()))}",
+//                        style = MaterialTheme.typography.bodyMedium.copy(
+//                            fontStyle = FontStyle.Italic
+//                        ),
+//                        color = Color.DarkGray,
+//                        modifier = Modifier
+//                            .padding(horizontal = 10.dp)
+//                            .padding(bottom = 2.dp)
+//                    )
+//                }
+                Text(
+                    text = "How: ${incident.eventProperties[PropertyNames.HOW.key]}",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontStyle = FontStyle.Italic
+                    ),
+                    color = Color.DarkGray,
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                        .padding(bottom = 8.dp)
+                )
+                incident.simProperties?.forEach { propertySimTagList ->
+                    if (propertySimTagList.relevantTagsA.isNotEmpty() && propertySimTagList.relevantTagsB.isNotEmpty()) {
+                        HorizontalDivider(
+                            color = Color.LightGray.copy(alpha = 0.7f), thickness = 1.dp,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
                         )
-                    }
-                    Text(
-                        text = "How: ${event.eventProperties[PropertyNames.HOW.key]}",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontStyle = FontStyle.Italic
-                        ),
-                        color = Color.DarkGray,
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp)
-                            .padding(bottom = 8.dp)
-                    )
-                    event.simProperties?.forEach { propertySimTagList ->
-                        if (propertySimTagList.relevantTagsA.isNotEmpty() && propertySimTagList.relevantTagsB.isNotEmpty()) {
-                            HorizontalDivider(
-                                color = Color.LightGray.copy(alpha = 0.7f), thickness = 1.dp,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
-                            )
-                            Text(
-                                text = "Their similarities:",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.Medium
-                                ),
-                                modifier = Modifier
-                                    .padding(top = 6.dp, bottom = 6.dp)
-                                    .padding(horizontal = 10.dp),
-                            )
-                            TagChipRow(
-                                tags = propertySimTagList.relevantTagsA,
-                                label = "New Incident:"
-                            )
-                            TagChipRow(
-                                tags = propertySimTagList.relevantTagsB,
-                                label = "Past Incident:"
-                            )
-                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
-                        }
+                        Text(
+                            text = "Their similarities:",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Medium
+                            ),
+                            modifier = Modifier
+                                .padding(top = 6.dp, bottom = 6.dp)
+                                .padding(horizontal = 10.dp),
+                        )
+                        TagChipRow(
+                            tags = propertySimTagList.relevantTagsA,
+                            label = "New Incident:"
+                        )
+                        TagChipRow(
+                            tags = propertySimTagList.relevantTagsB,
+                            label = "Past Incident:"
+                        )
+                        Spacer(modifier = Modifier.padding(vertical = 4.dp))
                     }
                 }
             }
@@ -379,7 +359,7 @@ fun QueryResultCard(
             )
 
             queryResults.incidentsAffectingStations.forEach { (type, incidentsList) ->
-                if (type == "Proximity") {
+                if (type == DisruptionCause.PROXIMITY) {
                     Text(
                         text = "Incidents occurring within 3km radius of route:",
                         style = MaterialTheme.typography.titleMedium,

@@ -1,11 +1,31 @@
 package com.example.graphapp.data.api
 
+import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 enum class DbAction {
     CREATE, DELETE, QUERY
 }
+
+enum class EventType(val key: String) {
+    INCIDENT("Incident"),
+    TASK("Task"),
+    OUTCOME("Outcome"),
+    IMPACT("Impact");
+
+    companion object {
+        fun fromKey(key: String): EventType? =
+            entries.find { it.key.equals(key, ignoreCase = true) }
+
+        fun toKey(type: EventType): String = type.key
+    }
+}
+
+fun eventTypeFromString(key: String): EventType? {
+    return EventType.entries.find { it.name.equals(key, ignoreCase = true) }
+}
+
 
 data class ApiRequest(
     val userId: String,
@@ -20,17 +40,20 @@ sealed class RequestData {
     @Serializable
     @SerialName("EventRequestData")
     data class EventRequestData(
-        val eventType: String? = null, // change to enum
-        val details: EventDetailData? = null,
-        val metadata: EventRequestEntry? = null
+        val eventType: EventType? = null,
+        val details: EventDetailData? = null
     ) : RequestData()
 
     @Serializable
-    @SerialName("PersonnelRequestData")
-    data class PersonnelRequestData(
+    @SerialName("UserRequestData")
+    data class UserRequestData(
         val userData: UserDetailData? = null,
-        val actionData: ActionDetailData? = null,
-        val metadata: PersonnelRequestEntry? = null
+    ) : RequestData()
+
+    @Serializable
+    @SerialName("ActionRequestData")
+    data class ActionRequestData(
+        val actionData: ActionDetailData? = null
     ) : RequestData()
 }
 
@@ -44,7 +67,8 @@ data class EventDetailData(
     val whenValue: String? = null,
     val whereValue: String? = null,
     val whyValue: String? = null,
-    val howValue: String? = null
+    val howValue: String? = null,
+    val eventMap: Map<PropertyNames, String>? = null
 )
 
 @Serializable
@@ -71,6 +95,6 @@ data class ActionDetailData (
 
 @Serializable
 data class PersonnelRequestEntry (
-    val incidentDescription: String? = null,
-    val incidentLocation: String?= null
+    val description: String? = null,
+    val location: String?= null
 )

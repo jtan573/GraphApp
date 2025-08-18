@@ -13,12 +13,11 @@ import com.example.graphapp.data.db.VectorDatabase
 import com.example.graphapp.frontend.screens.MainScreen
 import com.example.graphapp.frontend.theme.GraphAppTheme
 import com.example.graphapp.frontend.viewmodels.GraphViewModel
-import com.example.graphapp.frontend.viewmodels.GraphViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val viewModel: GraphViewModel by viewModels() {
-        GraphViewModelFactory(application)
-    }
+    private val viewModel: GraphViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         VectorDatabase.init(this)

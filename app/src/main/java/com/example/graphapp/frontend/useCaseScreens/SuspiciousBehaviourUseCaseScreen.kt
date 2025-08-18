@@ -34,7 +34,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.graphapp.backend.dto.GraphSchema
 import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.backend.dto.GraphSchema.SchemaOtherNodes
 import com.example.graphapp.backend.dto.GraphSchema.SchemaPropertyNodes
@@ -117,7 +116,7 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: N
                                 withContext(Dispatchers.Main) {
                                     isLoading = true
                                 }
-                                viewModel.findDataIndicatingSuspiciousBehaviour(eventInputMap)
+                                viewModel.findSimilarSuspiciousEventsByLocationAndApproach(eventInputMap)
                                 withContext(Dispatchers.Main) {
                                     isLoading = false
                                     eventInputMap.clear()

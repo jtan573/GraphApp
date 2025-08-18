@@ -1,9 +1,10 @@
 package com.example.graphapp.backend.usecases
 
 import com.example.graphapp.data.api.EventDetails
-import com.example.graphapp.backend.core.recommendEventsForProps
-import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.core.computeSimilarAndRelatedEvents
 import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.data.api.DisruptionCause
+import com.example.graphapp.data.api.EventType
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 
@@ -12,28 +13,28 @@ suspend fun findAffectedRouteStationsByLocUseCase(
     embeddingRepository: EmbeddingRepository,
     routeStations: List<String>? = null,
     threshold: Float = 0.5f
-) : Map<String, List<EventDetails>>? {
+) : Map<DisruptionCause, List<EventDetails>>? {
 
     if (routeStations == null || routeStations.isEmpty()) {
         return null
     }
 
-    val incidentsFoundMap = mutableMapOf<String, List<EventDetails>>()
+    val incidentsFoundMap = mutableMapOf<DisruptionCause, List<EventDetails>>()
 
     val proximityIncidentsFound = mutableListOf<EventDetails>()
     routeStations.forEachIndexed { index, station ->
-        val (_, _, locationRecs) = recommendEventsForProps(
-            newEventMap = mapOf(PropertyNames.WHERE.key to station),
+        val (_, _, locationRecs) = computeSimilarAndRelatedEvents(
+            newEventMap = mapOf(PropertyNames.WHERE to station),
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
-            targetEventType = PropertyNames.INCIDENT.key,
+            targetEventType = EventType.INCIDENT,
             getTopThreeResultsOnly = true,
             customThreshold = threshold,
             activeNodesOnly = true
         )
 
         if (locationRecs.predictedEvents.isNotEmpty()) {
-            val nearbyIncidents = locationRecs.predictedEvents[PropertyNames.INCIDENT.key]
+            val nearbyIncidents = locationRecs.predictedEvents[EventType.INCIDENT]
             nearbyIncidents?.forEach { incident ->
                 val isAlreadyAdded = proximityIncidentsFound.any { it.eventId == incident.eventId }
                 if (!isAlreadyAdded) {
@@ -43,14 +44,14 @@ suspend fun findAffectedRouteStationsByLocUseCase(
         }
     }
     if (proximityIncidentsFound.isNotEmpty()) {
-        incidentsFoundMap.put("Proximity", proximityIncidentsFound)
+        incidentsFoundMap.put(DisruptionCause.PROXIMITY, proximityIncidentsFound)
     }
 
     val windIncidentsFound = predictImpactOfWindAtLocationUseCase(
         routeStations, eventRepository, embeddingRepository
     )
     if (windIncidentsFound != null && windIncidentsFound.isNotEmpty()) {
-        incidentsFoundMap.put("Wind", windIncidentsFound)
+        incidentsFoundMap.put(DisruptionCause.WIND, windIncidentsFound)
     }
 
     return incidentsFoundMap

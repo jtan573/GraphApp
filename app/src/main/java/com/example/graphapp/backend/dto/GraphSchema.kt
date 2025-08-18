@@ -69,6 +69,10 @@ object GraphSchema {
         WIND("Wind")
     }
 
+    fun propertyNameFromKey(key: String): PropertyNames? {
+        return PropertyNames.entries.find { it.key.equals(key, ignoreCase = true) }
+    }
+
     val SchemaPosTags = listOf("NN", "NNS", "NNP", "NNPS", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ")
     val SchemaNounTags = listOf("NN", "NNS", "NNP", "NNPS")
     val SchemaVerbTags = listOf("VB", "VBD", "VBG", "VBN", "VBP", "VBZ")

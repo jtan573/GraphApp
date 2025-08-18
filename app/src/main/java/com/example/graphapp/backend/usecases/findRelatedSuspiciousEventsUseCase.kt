@@ -1,15 +1,12 @@
 package com.example.graphapp.backend.usecases
 
 import com.example.graphapp.data.api.EventDetails
-import com.example.graphapp.data.api.ThreatAlertResponse
-import com.example.graphapp.backend.core.recommendEventsForProps
+import com.example.graphapp.backend.core.computeSimilarAndRelatedEvents
 import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.data.api.EventDetailData
+import com.example.graphapp.data.api.EventType
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
 
 /* --------------------------------------------------
     Function to suspicious events in database
@@ -18,64 +15,34 @@ suspend fun findRelatedSuspiciousEventsUseCase(
     eventInput: EventDetailData,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository
-) : ThreatAlertResponse {
+) : List<EventDetails> {
 
-    val similarIncidentsFound = mutableMapOf<String, List<EventDetails>>()
+    val similarIncidentsFound = mutableListOf<EventDetails>()
 
     val incidentName = eventInput.whatValue
     val incidentMethod = eventInput.howValue
-    if (incidentMethod != null || incidentName != null) {
-        val (_, _, methodRecs) = recommendEventsForProps(
-            newEventMap = buildMap<String, String> {
-                incidentName?.let { put(PropertyNames.INCIDENT.key, it) }
-                incidentMethod?.let { put(PropertyNames.HOW.key, it) }
+    val incidentLocation = eventInput.whereValue
+    if ((incidentMethod != null || incidentName != null) && incidentLocation != null) {
+        val (_, _, similarIncidents) = computeSimilarAndRelatedEvents(
+            newEventMap = buildMap<PropertyNames, String> {
+                incidentName?.let { put(PropertyNames.INCIDENT, it) }
+                incidentMethod?.let { put(PropertyNames.HOW, it) }
+                PropertyNames.WHERE to incidentLocation
             },
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
-            targetEventType = PropertyNames.INCIDENT.key,
+            sourceEventType = EventType.INCIDENT,
+            targetEventType = EventType.INCIDENT,
             activeNodesOnly = false
         )
 
-        if (methodRecs.predictedEvents.isNotEmpty()) {
-            val similarEventsByMethod = methodRecs.predictedEvents[PropertyNames.INCIDENT.key]
+        if (similarIncidents.predictedEvents.isNotEmpty()) {
+            val similarEventsByMethod = similarIncidents.predictedEvents[EventType.INCIDENT]
             if (similarEventsByMethod != null) {
-                similarIncidentsFound.put(PropertyNames.HOW.key, similarEventsByMethod)
+                similarIncidentsFound.addAll(similarEventsByMethod)
             }
         }
     }
 
-    val incidentLocation = eventInput.whereValue
-    if (incidentLocation != null) {
-        val (_, _, locationRecs) = recommendEventsForProps(
-            newEventMap = mapOf<String, String>(
-                PropertyNames.WHERE.key to incidentLocation
-            ),
-            eventRepository = eventRepository,
-            embeddingRepository = embeddingRepository,
-            targetEventType = PropertyNames.INCIDENT.key,
-            getTopThreeResultsOnly = false,
-            activeNodesOnly =  false
-        )
-
-        val locationResults = mutableListOf<EventDetails>()
-        if (locationRecs.predictedEvents.isNotEmpty()) {
-            val similarEventsByLocation = locationRecs.predictedEvents[PropertyNames.INCIDENT.key]
-            if (similarEventsByLocation != null) {
-
-                locationResults.addAll(similarEventsByLocation.sortedBy { it.eventProperties[PropertyNames.WHEN.key]!! })
-                similarIncidentsFound.put(
-                    PropertyNames.WHERE.key,
-                    similarEventsByLocation.sortedBy { it.eventProperties[PropertyNames.WHEN.key]!! }
-                )
-            }
-        }
-    }
-
-    val incidentResponse = ThreatAlertResponse(
-        similarIncidents = if (similarIncidentsFound.isNotEmpty()) {
-            similarIncidentsFound
-        } else { null }
-    )
-
-    return incidentResponse
+    return similarIncidentsFound
 }

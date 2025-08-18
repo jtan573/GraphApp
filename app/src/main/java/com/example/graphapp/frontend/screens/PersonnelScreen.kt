@@ -166,8 +166,7 @@ fun PersonnelScreen(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
-                    val personnelMap = contactState!!.personnelMap
-                    if (personnelMap != null && personnelMap.isEmpty() == true) {
+                    if (contactState?.isEmpty() == true) {
                         Text(
                             text = "No active personnel within 3000m radius is found.",
                             style = MaterialTheme.typography.bodyMedium,
@@ -183,7 +182,7 @@ fun PersonnelScreen(
                             ),
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
-                        personnelMap!!.forEach { (user, distance) ->
+                        contactState?.forEach { (user, distance) ->
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()

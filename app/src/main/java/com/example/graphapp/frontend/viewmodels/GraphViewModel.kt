@@ -1,64 +1,39 @@
 package com.example.graphapp.frontend.viewmodels
 
-import android.app.Application
-import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.graphapp.backend.AppBackend
-import com.example.graphapp.data.api.ApiRequest
-import com.example.graphapp.data.api.DbAction
-import com.example.graphapp.data.api.RequestData
-import com.example.graphapp.data.api.ResponseStatus
-import com.example.graphapp.data.repository.EventRepository
-import com.example.graphapp.data.api.buildApiResponseFromResult
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.backend.schema.UiEvent
-import com.example.graphapp.backend.core.detectReplicateInput
-import com.example.graphapp.backend.core.findPatterns
-import com.example.graphapp.backend.core.initialiseSemanticSimilarityMatrix
-import com.example.graphapp.backend.core.predictMissingProperties
 import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
-import com.example.graphapp.backend.services.ApiRouter
-import com.example.graphapp.backend.usecases.findAffectedRouteStationsByLocUseCase
-import com.example.graphapp.backend.usecases.findRelatedSuspiciousEventsUseCase
-import com.example.graphapp.backend.usecases.findRelevantPersonnelByLocationUseCase
-import com.example.graphapp.backend.usecases.findThreatResponses
-import com.example.graphapp.data.api.ApiResponse
-import com.example.graphapp.data.api.ContactRelevantPersonnelResponse
+import com.example.graphapp.backend.services.kgraph.KGraphService
+import com.example.graphapp.backend.services.kgraph.admin.AdminService
+import com.example.graphapp.backend.services.kgraph.query.QueryService
 import com.example.graphapp.data.api.EventDetailData
 import com.example.graphapp.data.api.EventDetails
-import com.example.graphapp.data.api.EventRequestEntry
-import com.example.graphapp.data.api.PersonnelRequestEntry
-import com.example.graphapp.data.api.RequestData.EventRequestData
-import com.example.graphapp.data.api.RequestData.PersonnelRequestData
-import com.example.graphapp.data.api.ResponseData.ContactPersonnelData
-import com.example.graphapp.data.api.ResponseData.ThreatAlertData
+import com.example.graphapp.data.api.EventType
 import com.example.graphapp.data.api.ThreatAlertResponse
 import com.google.gson.Gson
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlin.Float
+import javax.inject.Inject
 import kotlin.String
 import kotlin.collections.map
 import kotlin.text.isNotBlank
 
-
-class GraphViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val backend = AppBackend(application)
-
-    // Access backend repositories
-    private val embeddingRepository = backend.embeddingRepository
-    private val eventRepository = backend.eventRepository
-    private val userActionRepository = backend.userActionRepository
+@HiltViewModel
+class GraphViewModel @Inject constructor(
+    private val queryService: QueryService,
+    private val adminService: AdminService
+) : ViewModel(), KGraphService {
 
     // ---------- Graph Data States ----------
     private val _eventGraphData = MutableStateFlow<String?>(null)
@@ -69,10 +44,6 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _userGraphData = MutableStateFlow<String?>(null)
     val userGraphData: StateFlow<String?> = _userGraphData
-
-    // ---------- Graph Logic States ----------
-    private val _simMatrix = MutableStateFlow<Map<Pair<Long, Long>, Float>>(emptyMap())
-    val simMatrix: StateFlow<Map<Pair<Long, Long>, Float>> = _simMatrix
 
     // ---------- Event Query States ----------
     private val _createdEvent = MutableStateFlow(mapOf<String, String>())
@@ -100,8 +71,8 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     val suspiciousDetectionCreatedEvent: StateFlow<Map<String, String>> = _suspiciousDetectionCreatedEvent
 
     // ---------- Personnel Query States ----------
-    private val _relevantContactState = MutableStateFlow<ContactRelevantPersonnelResponse?>(null)
-    val relevantContactState: StateFlow<ContactRelevantPersonnelResponse?> = _relevantContactState
+    private val _relevantContactState = MutableStateFlow<Map<UserNodeEntity, Int>?>(null)
+    val relevantContactState: StateFlow<Map<UserNodeEntity, Int>?> = _relevantContactState
 
     private val _allActiveUsers = MutableStateFlow(listOf<UserNodeEntity>())
     val allActiveUsers: StateFlow<List<UserNodeEntity>> = _allActiveUsers
@@ -112,25 +83,21 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            backend.initialiseBackend()
 
-            _simMatrix.value = initialiseSemanticSimilarityMatrix(eventRepository, embeddingRepository)
+//            _simMatrix.value = service.initialiseSemanticSimilarityMatrix(eventRepository, embeddingRepository)
 
             // For event repository
-            val eventNodes = eventRepository.getAllEventNodesWithoutEmbedding()
-            val eventEdges = eventRepository.getAllEventEdges()
+            val (eventNodes, eventEdges) = adminService.retrieveEventNodesAndEdges()
             val eventJson = convertToJsonEvent(eventNodes, eventEdges)
             _eventGraphData.value = eventJson
 
             // For user-action repository
-            val userNodes = userActionRepository.getAllUserNodesWithoutEmbedding()
-            val actionNodes = userActionRepository.getAllActionNodesWithoutEmbedding()
-            val actionEdges = userActionRepository.getAllActionEdges()
+            val (userNodes, actionNodes, actionEdges) = adminService.retrievePersonnelNodesAndEdges()
             val userJson = convertToJsonUser(userNodes, actionNodes, actionEdges)
             _userGraphData.value = userJson
 
             // Users
-            _allActiveUsers.value = userActionRepository.getAllUserNodesWithoutEmbedding()
+            _allActiveUsers.value = adminService.retrieveAllActiveUsers()
         }
     }
 
@@ -167,18 +134,10 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun reloadEventGraphData() {
-        val nodes = eventRepository.getAllEventNodesWithoutEmbedding()
-        val edges = eventRepository.getAllEventEdges()
+        val (nodes, edges) = adminService.retrieveEventNodesAndEdges()
         val json = convertToJsonEvent(nodes, edges)
         _eventGraphData.value = json
     }
-
-//    private fun reloadSimMatrix(
-//        simMatrix: MutableMap<Pair<Long, Long>, Float>,
-//        newEventMap: Map<String, String>,
-//    ) {
-//        _simMatrix = updateSemanticSimilarityMatrix(eventRepository, embeddingRepository, simMatrix, newEventMap)
-//    }
 
     private fun createFullEventGraph(nodes: List<EventNodeEntity>, edges: List<EventEdgeEntity>) {
         val json = convertToJsonEvent(nodes, edges)
@@ -192,165 +151,108 @@ class GraphViewModel(application: Application) : AndroidViewModel(application) {
 
     // Function 1: Predict missing properties
     fun fillMissingLinks() {
-        val (newEdges, response) = predictMissingProperties(eventRepository, simMatrix.value)
-        val nodes = eventRepository.getAllEventNodes()
-        val edges = eventRepository.getAllEventEdges() + newEdges
-        createFullEventGraph(nodes, edges)
-
-        buildApiResponseFromResult(response)
-        return
+        TODO()
     }
 
     // Function 4: Find Patterns/Clusters
     fun findGraphRelations() {
-        val response = findPatterns(eventRepository, simMatrix.value)
-        buildApiResponseFromResult(response)
-        return
+        TODO()
     }
 
     // Function 5: Detect Same Event
     suspend fun detectDuplicateEvent(normalizedMap: Map<String, String>): Pair<Boolean, EventNodeEntity?> {
-        val (duplicateNode, response) = detectReplicateInput(normalizedMap, eventRepository, embeddingRepository)
-        buildApiResponseFromResult(response)
-
-        if (response.isLikelyDuplicate == true) {
-            _uiEvent.trySend(UiEvent.ShowSnackbar("Very similar event(s) found."))
-        }
-
-        return response.isLikelyDuplicate to duplicateNode
-    }
-
-    // API ROUTING
-    suspend fun callBackend(
-        requestedDbAction: DbAction,
-        inputRequest: RequestData
-    ) : ApiResponse {
-        val request = ApiRequest(
-            userId = "TEMP",
-            timestamp = System.currentTimeMillis(),
-            action = requestedDbAction,
-            inputData = inputRequest
-        )
-        val apiRes = ApiRouter.handlePredict(
-            request,
-            embeddingRepository = embeddingRepository,
-            eventRepository = eventRepository,
-            userActionRepository = userActionRepository
-        )
-        Log.d("CHECK RESULT", "apiRes: $apiRes")
-        return apiRes
+        TODO()
     }
 
     // Functions for Use Case 1: Find relevant personnel
-    fun findRelevantPersonnelOnDemand(inputLocation: String, inputDescription: String) {
+    override suspend fun findRelevantPersonnelOnDemand(inputLocation: String, inputDescription: String) {
         viewModelScope.launch {
-            val apiRes = callBackend(
-                DbAction.QUERY,
-                PersonnelRequestData(
-                    metadata = PersonnelRequestEntry(
-                        incidentLocation = inputLocation,
-                        incidentDescription = inputDescription
-                    ),
-                )
+            val response = queryService.findRelevantPersonnel(
+                inputLocation, inputDescription
             )
-
-            if (apiRes.data is ContactPersonnelData) {
-                _relevantContactState.value = apiRes.data.payload
-            }
+            _relevantContactState.value = response
         }
     }
 
     // Function for Use Case 2: Helper to get Sample Data for Threat Detection
     fun getDataForThreatDetectionUseCase(identifiers: List<String>): List<UserNodeEntity> {
-        val listOfUsers = mutableListOf<UserNodeEntity>()
-        for (id in identifiers) {
-            listOfUsers.add(userActionRepository.getUserNodeByIdentifier(id)!!)
-        }
-        return listOfUsers
-    }
-    suspend fun findThreatAlertAndResponse(inputMap: Map<String, String>) {
-            val normalizedMap = inputMap.filterValues { it.isNotBlank() }
-            if (normalizedMap.isEmpty()) { return }
-
-            val apiRes = callBackend(
-                DbAction.QUERY,
-                EventRequestData(
-                    eventType = "Incident",
-                    details = EventDetailData(
-                        whoValue = inputMap[PropertyNames.WHO.key],
-                        whatValue = inputMap[PropertyNames.INCIDENT.key],
-                        whenValue = inputMap[PropertyNames.WHEN.key],
-                        whereValue = inputMap[PropertyNames.WHERE.key],
-                        howValue = inputMap[PropertyNames.HOW.key],
-                        whyValue = inputMap[PropertyNames.WHY.key]
-                    )
-                )
-            )
-
-            if (apiRes.data is ThreatAlertData) {
-                _threatAlertResults.value = apiRes.data.payload
-                _threatAlertCreatedEvent.value = normalizedMap
-            }
+        return adminService.getDataForThreatAlertUseCase(identifiers)
     }
 
-    // Function for Use Case 3: Suspicious Behaviour Detection
-    suspend fun findDataIndicatingSuspiciousBehaviour(inputMap: Map<String, String>) {
+    override suspend fun findThreatAlertAndResponse(inputMap: Map<String, String>) {
         val normalizedMap = inputMap.filterValues { it.isNotBlank() }
         if (normalizedMap.isEmpty()) { return }
 
-        val apiRes = callBackend(
-            DbAction.QUERY,
-            EventRequestData(
-                eventType = "Incident",
-                details = EventDetailData(
-                    whoValue = inputMap[PropertyNames.WHO.key],
-                    whatValue = inputMap[PropertyNames.INCIDENT.key],
-                    whenValue = inputMap[PropertyNames.WHEN.key],
-                    whereValue = inputMap[PropertyNames.WHERE.key],
-                    howValue = inputMap[PropertyNames.HOW.key],
-                    whyValue = inputMap[PropertyNames.WHY.key]
-                )
+        val response = queryService.findThreatAlertAndResponse(
+            eventInput = EventDetailData(
+                whoValue = inputMap[PropertyNames.WHO.key],
+                whatValue = inputMap[PropertyNames.INCIDENT.key],
+                whenValue = inputMap[PropertyNames.WHEN.key],
+                whereValue = inputMap[PropertyNames.WHERE.key],
+                howValue = inputMap[PropertyNames.HOW.key],
+                whyValue = inputMap[PropertyNames.WHY.key],
             )
         )
+        _threatAlertResults.value = response
+        _threatAlertCreatedEvent.value = normalizedMap
+    }
 
-        if (apiRes.data is ThreatAlertData) {
-            _suspiciousDetectionResults.value = apiRes.data.payload
-            _suspiciousDetectionCreatedEvent.value = normalizedMap
-        }
+    // Function for Use Case 3: Suspicious Behaviour Detection
+    override suspend fun findSimilarSuspiciousEventsByLocationAndApproach(inputMap: Map<String, String>) {
+        val normalizedMap = inputMap.filterValues { it.isNotBlank() }
+        if (normalizedMap.isEmpty()) { return }
+
+        val response = queryService.findSuspiciousEventsQuery(
+            event = EventDetailData(
+                whoValue = inputMap[PropertyNames.WHO.key],
+                whatValue = inputMap[PropertyNames.INCIDENT.key],
+                whenValue = inputMap[PropertyNames.WHEN.key],
+                whereValue = inputMap[PropertyNames.WHERE.key],
+                howValue = inputMap[PropertyNames.HOW.key],
+                whyValue = inputMap[PropertyNames.WHY.key],
+            )
+        )
+        _suspiciousDetectionResults.value = ThreatAlertResponse(similarIncidents = response)
+        _suspiciousDetectionCreatedEvent.value = normalizedMap
     }
 
     fun getDataForSuspiciousBehaviourUseCase(events: List<String>): List<Map<String, String>> {
-        val listOfEvents = mutableListOf<Map<String, String>>()
-        for (eventName in events) {
-            val eventMap = mutableMapOf<String, String>()
-            val eventNode = eventRepository.getEventNodeByNameAndType(eventName, PropertyNames.INCIDENT.key)
-            if (eventNode != null) {
-                eventMap.put(eventNode.type, eventNode.name)
-                val neighbours = eventRepository.getNeighborsOfEventNodeById(eventNode.id)
-                neighbours.forEach { neighbour ->
-                    eventMap.put(neighbour.type, neighbour.name)
-                }
-            }
-            listOfEvents.add(eventMap)
-        }
-        return listOfEvents
+        return adminService.getDataForSuspiciousEventDetectionUseCase(events)
     }
 
     // Function for Use Case 4: Route Integrity Check
-    suspend fun findAffectedRouteStationsByLocation(locations: List<String>) {
+    override suspend fun findAffectedRouteStationsByLocation(locations: List<String>) {
         if (locations.isNotEmpty()) {
-            val apiRes = callBackend(
-                DbAction.QUERY,
-                EventRequestData(
-                    metadata = EventRequestEntry(routeCoordinates = locations)
-                )
-            )
-            if (apiRes.data is ThreatAlertData) {
-                _routeIntegrityResults.value = apiRes.data.payload
-            }
+            val response = queryService.checkRouteIntegrity(locations)
+            _routeIntegrityResults.value = ThreatAlertResponse(incidentsAffectingStations = response)
         }
     }
 
+    override suspend fun findSimilarEvents(
+        givenEventType: EventType,
+        targetEventType: EventType?,
+        eventDetails: EventDetailData,
+    ): Map<EventType, List<EventDetails>> {
+        return queryService.querySimilarEvents(
+            eventType = givenEventType,
+            eventDetails = eventDetails,
+            targetEventType = targetEventType
+        )
+    }
+
+    override suspend fun findSimilarEventsByProperty(
+        inputEventType: EventType?,
+        targetSimilarityProperty: QueryService.InsightCategory?,
+        inputPropertyValue: String,
+        targetEventType: EventType?
+    ): Map<EventType, List<EventDetails>> {
+        return queryService.querySimilarEventsByCategory(
+            eventType = inputEventType,
+            inputPropertyType = targetSimilarityProperty,
+            inputValue = inputPropertyValue,
+            targetEventType = targetEventType
+        )
+    }
 
     /* ----------------------------
                 EXTRAS
