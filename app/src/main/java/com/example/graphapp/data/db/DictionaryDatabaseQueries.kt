@@ -1,8 +1,5 @@
 package com.example.graphapp.data.db
 
-import android.util.Log
-import com.example.graphapp.backend.dto.GraphSchema
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import io.objectbox.kotlin.boxFor
 
 class DictionaryDatabaseQueries() {

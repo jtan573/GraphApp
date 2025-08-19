@@ -1,4 +1,4 @@
-package com.example.graphapp.frontend.useCaseScreens
+package com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -34,11 +36,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.dto.GraphSchema.SchemaOtherNodes
 import com.example.graphapp.backend.dto.GraphSchema.SchemaPropertyNodes
 import com.example.graphapp.frontend.components.QueryResultCard
 import com.example.graphapp.frontend.components.eventForms.IncidentForm
+import com.example.graphapp.frontend.navigation.NavItem
 import com.example.graphapp.frontend.viewmodels.GraphViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,10 +49,9 @@ import kotlinx.coroutines.withContext
 import kotlin.collections.set
 
 @Composable
-fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: NavController) {
-
-    val suspiciousDetectionResults by viewModel.suspiciousDetectionResults.collectAsState()
-    val eventAdded by viewModel.suspiciousDetectionCreatedEvent.collectAsState()
+fun ThreatDetectionAnalysisScreen(viewModel: GraphViewModel, navController: NavController) {
+    val threatAlertResults by viewModel.threatAlertResults.collectAsState()
+    val eventAdded by viewModel.threatAlertCreatedEvent.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
     var showForm by remember { mutableStateOf(false) }
@@ -63,30 +65,29 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: N
     }
 
     LaunchedEffect(Unit) {
-        eventInputMap[PropertyNames.INCIDENT.key] = "Subject lurking around the area, trying to avoid cameras"
-        eventInputMap[PropertyNames.WHERE.key] = "1.3425,103.6897"
+        eventInputMap[SchemaEventTypeNames.INCIDENT.key] = "Mid-flight drone propeller failure"
+        eventInputMap[SchemaEventTypeNames.WHEN.key] = "1723897200000"
+        eventInputMap[SchemaEventTypeNames.WHERE.key] = "1.3901,103.8072"
+        eventInputMap[SchemaEventTypeNames.HOW.key] = "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent"
     }
 
     // Data for showcase purposes
-    val testData = viewModel.getDataForSuspiciousBehaviourUseCase(listOf<String>(
-        "Subject loiters near restricted zone appearing to scan the area",
-        "Subject spotted wandering aimlessly along perimeter fencing",
-        "Person discreetly writing or sketching near checkpoint structure",
-        "Unusual handoff of item occurs at public bench with minimal interaction",
-        "Small group appears to annotate or inspect public utility fixture"
-    ))
+    val testData = viewModel.getDataForThreatDetectionUseCase(
+        listOf<String>("SSG-007", "CPT-006", "SGT-001")
+    )
 
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Suspicious Events Detection",
+                text = "Threat Alert & Response",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 64.dp, bottom = 8.dp)
@@ -95,8 +96,28 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: N
                 CircularProgressIndicator(
                     color = Color.DarkGray,
                     strokeWidth = 2.dp,
-                    modifier = Modifier.size(40.dp).padding(10.dp),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .padding(10.dp),
                 )
+            }
+        }
+
+        // ALERT SCREEN
+        Card(
+            onClick = { navController.navigate(NavItem.AlertTroopersScreen.route) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    "ALERT TROOPERS",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(Modifier.height(4.dp))
             }
         }
 
@@ -108,7 +129,7 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: N
             ) {
                 // Show form only if visible
                 AnimatedVisibility(visible = showForm) {
-                    IncidentForm (
+                    IncidentForm(
                         fieldKeys = threatFieldKeys,
                         eventInputMap = eventInputMap,
                         onQuery = {
@@ -116,7 +137,7 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: N
                                 withContext(Dispatchers.Main) {
                                     isLoading = true
                                 }
-                                viewModel.findSimilarSuspiciousEventsByLocationAndApproach(eventInputMap)
+                                viewModel.findThreatAlertAndResponse(eventInputMap)
                                 withContext(Dispatchers.Main) {
                                     isLoading = false
                                     eventInputMap.clear()
@@ -128,43 +149,41 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: N
                         onCancel = { showForm = false }
                     )
                 }
-                suspiciousDetectionResults?.let { QueryResultCard(eventAdded, it, navController) }
+                threatAlertResults?.let { QueryResultCard(eventAdded, it, navController) }
 
                 Text(
-                    text = "List Of Incidents Reported:",
+                    text = "List Of Active Users:",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
 
-                testData.forEach { incident ->
+                testData.forEach { user ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Text(
-                            text = "Incident: ${incident[PropertyNames.INCIDENT.key]}",
+                            text = "${user.identifier}: ${user.role}",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold
                             ),
-                            modifier = Modifier.padding(top = 8.dp).padding(horizontal = 10.dp)
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .padding(horizontal = 10.dp)
                         )
                         Text(
-                            text = "How: ${incident[PropertyNames.HOW.key]}",
-                            modifier = Modifier.padding(horizontal = 10.dp).padding(top = 4.dp),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.DarkGray,
-                        )
-                        Text(
-                            text = "Observed on: ${incident[PropertyNames.WHEN.key]}",
+                            text = "Specialisation: ${user.specialisation}",
                             modifier = Modifier.padding(vertical = 4.dp, horizontal = 10.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray,
                         )
                         Text(
-                            text = "Location: ${incident[PropertyNames.WHERE.key]}",
-                            modifier = Modifier.padding(bottom = 8.dp).padding(horizontal = 10.dp),
+                            text = "Location: ${user.currentLocation}",
+                            modifier = Modifier
+                                .padding(bottom = 8.dp)
+                                .padding(horizontal = 10.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray,
                         )
@@ -175,7 +194,9 @@ fun SuspiciousBehaviourUseCaseScreen(viewModel: GraphViewModel, navController: N
             if (!showForm) {
                 Button(
                     onClick = { showForm = true },
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
 
                     ) {

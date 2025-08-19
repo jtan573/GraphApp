@@ -4,19 +4,21 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.example.graphapp.frontend.imageScreens.AlertNearbyTroopersScreen
-import com.example.graphapp.frontend.imageScreens.AssignTaskToTroopersScreen
+import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.AlertNearbyTroopersScreen
+import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.AssignTaskToTroopersScreen
 import com.example.graphapp.frontend.imageScreens.ContactPersonnelMapScreen
-import com.example.graphapp.frontend.imageScreens.ReRouteIntegrityAnnotatedMapScreen
-import com.example.graphapp.frontend.imageScreens.ReceivedTaskScreen
-import com.example.graphapp.frontend.imageScreens.RouteIntegrityAnnotatedMapScreen
-import com.example.graphapp.frontend.imageScreens.SuspiciousActivityByLocationScreen
+import com.example.graphapp.frontend.useCaseScreens.routeIntegrityScreens.ReRouteIntegrityAnnotatedMapScreen
+import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.ReceivedTaskScreen
+import com.example.graphapp.frontend.useCaseScreens.routeIntegrityScreens.RouteIntegrityAnnotatedMapScreen
+import com.example.graphapp.frontend.useCaseScreens.suspiciousBehaviourScreens.SuspiciousActivityByLocationScreen
 import com.example.graphapp.frontend.screens.GraphViewScreen
 import com.example.graphapp.frontend.screens.PersonnelScreen
 import com.example.graphapp.frontend.screens.UseCaseScreen
-import com.example.graphapp.frontend.useCaseScreens.RouteIntegrityUseCaseScreen
-import com.example.graphapp.frontend.useCaseScreens.SuspiciousBehaviourUseCaseScreen
-import com.example.graphapp.frontend.useCaseScreens.ThreatDetectionUseCaseScreen
+import com.example.graphapp.frontend.useCaseScreens.routeIntegrityScreens.RouteIntegrityMainScreen
+import com.example.graphapp.frontend.useCaseScreens.suspiciousBehaviourScreens.SuspiciousBehaviourUseCaseScreen
+import com.example.graphapp.frontend.useCaseScreens.suspiciousBehaviourScreens.SuspiciousEventsDetailsScreen
+import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.TaskInstructionsScreen
+import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.ThreatDetectionMainScreen
 import com.example.graphapp.frontend.viewmodels.GraphViewModel
 
 @Composable
@@ -38,13 +40,13 @@ fun AppNavigation (
             UseCaseScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.ThreatDetectionUseCase.route) {
-            ThreatDetectionUseCaseScreen(viewModel = viewModel, navController = navController)
+            ThreatDetectionMainScreen(navController = navController)
         }
         composable(NavItem.SuspiciousPatternUseCase.route) {
             SuspiciousBehaviourUseCaseScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.RouteIntegrityUseCase.route) {
-            RouteIntegrityUseCaseScreen(viewModel = viewModel, navController = navController)
+            RouteIntegrityMainScreen(navController = navController)
         }
 
         // Demo Purposes
@@ -58,16 +60,22 @@ fun AppNavigation (
             ReRouteIntegrityAnnotatedMapScreen(navController)
         }
         composable(NavItem.AlertTroopersScreen.route) {
-            AlertNearbyTroopersScreen(navController)
+            AlertNearbyTroopersScreen()
         }
         composable(NavItem.AssignTaskScreen.route) {
             AssignTaskToTroopersScreen(navController = navController)
         }
         composable(NavItem.ReceivedTaskScreen.route) {
-            ReceivedTaskScreen()
+            ReceivedTaskScreen(navController = navController)
+        }
+        composable(NavItem.TaskInstructionsScreen.route) {
+            TaskInstructionsScreen()
         }
         composable(NavItem.SuspiciousLocationScreen.route) {
-            SuspiciousActivityByLocationScreen()
+            SuspiciousActivityByLocationScreen(navController = navController)
+        }
+        composable(NavItem.SuspiciousEventsDetailScreen.route) {
+            SuspiciousEventsDetailsScreen()
         }
     }
 }

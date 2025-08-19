@@ -74,6 +74,7 @@ fun PersonnelScreen(
     val uiEventFlow = viewModel.uiEvent
 
     LaunchedEffect(Unit) {
+        viewModel.createFullPersonnelGraph()
         uiEventFlow.collect { event ->
             when (event) {
                 is UiEvent.ShowSnackbar -> {

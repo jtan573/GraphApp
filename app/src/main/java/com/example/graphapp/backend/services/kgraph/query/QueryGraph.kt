@@ -1,8 +1,8 @@
 package com.example.graphapp.backend.services.kgraph.query
 
 import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.services.kgraph.GraphAccess
-import com.example.graphapp.backend.services.kgraph.nlp.NlpService
 import com.example.graphapp.backend.services.kgraph.query.QueryService.InsightCategory
 import com.example.graphapp.backend.usecases.fetchRelevantEventsByTargetType
 import com.example.graphapp.backend.usecases.fetchResponseToThreatIncidentUseCase
@@ -12,39 +12,40 @@ import com.example.graphapp.backend.usecases.findRelevantPersonnelByLocationUseC
 import com.example.graphapp.data.api.DisruptionCause
 import com.example.graphapp.data.api.EventDetailData
 import com.example.graphapp.data.api.EventDetails
-import com.example.graphapp.data.api.EventType
 import com.example.graphapp.data.api.ThreatAlertResponse
 import com.example.graphapp.data.db.UserNodeEntity
 import jakarta.inject.Inject
 
 class QueryGraph @Inject constructor(
     private val graph: GraphAccess,          // reuse repositories here
-    private val nlpManager: NlpService // keep this for parsing, expansion, ranking, etc.
+//    private val nlpManager: NlpService // keep this for parsing, expansion, ranking, etc.
 ) : QueryService {
+
+    override suspend fun ensureReady() = graph.awaitReady()
 
     override fun queryNaturalLanguage(query: String): Map<String, Float> {
         TODO("Not yet implemented")
     }
 
     override suspend fun querySimilarEvents(
-        eventType: EventType,
+        eventType: SchemaKeyEventTypeNames,
         eventDetails: EventDetailData,
-        targetEventType: EventType?
-    ):  Map<EventType, List<EventDetails>> {
+        targetEventType: SchemaKeyEventTypeNames?
+    ):  Map<SchemaKeyEventTypeNames, List<EventDetails>> {
 
         val response = fetchRelevantEventsByTargetType(
-            statusEventMap = buildMap<GraphSchema.PropertyNames, String> {
+            statusEventMap = buildMap<GraphSchema.SchemaEventTypeNames, String> {
                 when (eventType) {
-                    EventType.INCIDENT -> put(GraphSchema.PropertyNames.INCIDENT, eventDetails.whatValue ?: "")
-                    EventType.IMPACT -> put(GraphSchema.PropertyNames.IMPACT, eventDetails.whatValue ?: "")
-                    EventType.TASK -> put(GraphSchema.PropertyNames.TASK, eventDetails.whatValue ?: "")
-                    EventType.OUTCOME -> put(GraphSchema.PropertyNames.OUTCOME, eventDetails.whatValue ?: "")
+                    SchemaKeyEventTypeNames.INCIDENT -> put(GraphSchema.SchemaEventTypeNames.INCIDENT, eventDetails.whatValue ?: "")
+                    SchemaKeyEventTypeNames.IMPACT -> put(GraphSchema.SchemaEventTypeNames.IMPACT, eventDetails.whatValue ?: "")
+                    SchemaKeyEventTypeNames.TASK -> put(GraphSchema.SchemaEventTypeNames.TASK, eventDetails.whatValue ?: "")
+                    SchemaKeyEventTypeNames.OUTCOME -> put(GraphSchema.SchemaEventTypeNames.OUTCOME, eventDetails.whatValue ?: "")
                 }
-                GraphSchema.PropertyNames.WHO to (eventDetails.whoValue ?: "")
-                GraphSchema.PropertyNames.WHEN to (eventDetails.whenValue ?: "")
-                GraphSchema.PropertyNames.WHERE to (eventDetails.whereValue ?: "")
-                GraphSchema.PropertyNames.WHY to (eventDetails.whyValue ?: "")
-                GraphSchema.PropertyNames.HOW to (eventDetails.howValue ?: "")
+                GraphSchema.SchemaEventTypeNames.WHO to (eventDetails.whoValue ?: "")
+                GraphSchema.SchemaEventTypeNames.WHEN to (eventDetails.whenValue ?: "")
+                GraphSchema.SchemaEventTypeNames.WHERE to (eventDetails.whereValue ?: "")
+                GraphSchema.SchemaEventTypeNames.WHY to (eventDetails.whyValue ?: "")
+                GraphSchema.SchemaEventTypeNames.HOW to (eventDetails.howValue ?: "")
             },
             eventRepository = graph.eventRepository,
             embeddingRepository = graph.embeddingRepository,
@@ -57,28 +58,28 @@ class QueryGraph @Inject constructor(
     }
 
     override suspend fun querySimilarEventsByCategory(
-        eventType: EventType?,
+        eventType: SchemaKeyEventTypeNames?,
         inputPropertyType: InsightCategory?,
         inputValue: String,
-        targetEventType: EventType?
-    ): Map<EventType, List<EventDetails>> {
+        targetEventType: SchemaKeyEventTypeNames?
+    ): Map<SchemaKeyEventTypeNames, List<EventDetails>> {
         val response = fetchRelevantEventsByTargetType(
-            statusEventMap = buildMap<GraphSchema.PropertyNames, String> {
+            statusEventMap = buildMap<GraphSchema.SchemaEventTypeNames, String> {
                 if (eventType != null) {
                     when (eventType) {
-                        EventType.INCIDENT -> put(GraphSchema.PropertyNames.INCIDENT, inputValue)
-                        EventType.IMPACT -> put(GraphSchema.PropertyNames.IMPACT, inputValue)
-                        EventType.TASK -> put(GraphSchema.PropertyNames.TASK, inputValue)
-                        EventType.OUTCOME -> put(GraphSchema.PropertyNames.OUTCOME, inputValue)
+                        SchemaKeyEventTypeNames.INCIDENT -> put(GraphSchema.SchemaEventTypeNames.INCIDENT, inputValue)
+                        SchemaKeyEventTypeNames.IMPACT -> put(GraphSchema.SchemaEventTypeNames.IMPACT, inputValue)
+                        SchemaKeyEventTypeNames.TASK -> put(GraphSchema.SchemaEventTypeNames.TASK, inputValue)
+                        SchemaKeyEventTypeNames.OUTCOME -> put(GraphSchema.SchemaEventTypeNames.OUTCOME, inputValue)
                     }
                 } else {
                     if (inputPropertyType != null) {
                         when (inputPropertyType) {
-                            InsightCategory.WHO -> put(GraphSchema.PropertyNames.WHO, inputValue)
-                            InsightCategory.WHEN -> put(GraphSchema.PropertyNames.WHEN, inputValue)
-                            InsightCategory.WHERE -> put(GraphSchema.PropertyNames.WHERE, inputValue)
-                            InsightCategory.WHY -> put(GraphSchema.PropertyNames.WHY, inputValue)
-                            InsightCategory.HOW -> put(GraphSchema.PropertyNames.HOW, inputValue)
+                            InsightCategory.WHO -> put(GraphSchema.SchemaEventTypeNames.WHO, inputValue)
+                            InsightCategory.WHEN -> put(GraphSchema.SchemaEventTypeNames.WHEN, inputValue)
+                            InsightCategory.WHERE -> put(GraphSchema.SchemaEventTypeNames.WHERE, inputValue)
+                            InsightCategory.WHY -> put(GraphSchema.SchemaEventTypeNames.WHY, inputValue)
+                            InsightCategory.HOW -> put(GraphSchema.SchemaEventTypeNames.HOW, inputValue)
                         }
                     }
                 }
@@ -98,7 +99,7 @@ class QueryGraph @Inject constructor(
             threatLocation = inputLoc,
             threatDescription = inputDesc,
             radiusInMeters = 3000f
-        )
+        )?.associate { it.first to it.second }
         return contactsFound
     }
 

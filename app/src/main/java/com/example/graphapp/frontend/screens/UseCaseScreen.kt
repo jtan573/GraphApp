@@ -47,7 +47,7 @@ fun UseCaseScreen(
                 }
             } },
         "Suspicious Behaviour Prediction" to {
-            navController.navigate(NavItem.SuspiciousPatternUseCase.route) {
+            navController.navigate(NavItem.SuspiciousLocationScreen.route) {
                 launchSingleTop = true
                 restoreState = true
                 popUpTo(navController.graph.startDestinationId) {

@@ -1,9 +1,6 @@
 package com.example.graphapp.data.repository
 
 import android.content.Context
-import android.media.metrics.Event
-import android.util.Log
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
 import com.example.graphapp.data.db.DictionaryDatabaseQueries
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.embedding.SentenceEmbedding

@@ -2,82 +2,95 @@ package com.example.graphapp.backend.dto
 
 object GraphSchema {
     val SchemaEdgeLabels = mapOf(
-        "Entity-Task" to "Who",
-        "Method-Task" to "How",
-        "DateTime-Task" to "When",
-        "Location-Task" to "Where",
-        "Motive-Task" to "Why",
+        "PEOPLEINVOLVED-TASK" to "WHO",
+        "APPROACH-TASK" to "HOW",
+        "DATETIME-TASK" to "WHEN",
+        "LOCATION-TASK" to "WHERE",
+        "OBJECTIVE-TASK" to "WHY",
 
-        "Entity-Incident" to "Who",
-        "Method-Incident" to "How",
-        "DateTime-Incident" to "When",
-        "Location-Incident" to "Where",
-        "Motive-Incident" to "Why",
+        "PEOPLEINVOLVED-INCIDENT" to "WHO",
+        "APPROACH-INCIDENT" to "HOW",
+        "DATETIME-INCIDENT" to "WHEN",
+        "LOCATION-INCIDENT" to "WHERE",
+        "OBJECTIVE-INCIDENT" to "WHY",
 
-        "Entity-Outcome" to "Who",
-        "Method-Outcome" to "How",
-        "DateTime-Outcome" to "When",
-        "Location-Outcome" to "Where",
-        "Motive-Outcome" to "Why",
+        "PEOPLEINVOLVED-OUTCOME" to "WHO",
+        "APPROACH-OUTCOME" to "HOW",
+        "DATETIME-OUTCOME" to "WHEN",
+        "LOCATION-OUTCOME" to "WHERE",
+        "OBJECTIVE-OUTCOME" to "WHY",
 
-        "Entity-Impact" to "Who",
-        "Method-Impact" to "How",
-        "DateTime-Impact" to "When",
-        "Location-Impact" to "Where",
-        "Motive-Impact" to "Why",
+        "PEOPLEINVOLVED-IMPACT" to "WHO",
+        "APPROACH-IMPACT" to "HOW",
+        "DATETIME-IMPACT" to "WHEN",
+        "LOCATION-IMPACT" to "WHERE",
+        "OBJECTIVE-IMPACT" to "WHY",
 
-        "Task-Incident" to "Resolves",
-        "Outcome-Incident" to "Outcome_Of",
-        "Impact-Incident" to "Impact_Of",
-//        "Description-Entity" to "Description",
-//        "Description-Method" to "Description",
+        "TASK-INCIDENT" to "Resolves",
+        "OUTCOME-INCIDENT" to "Outcome_Of",
+        "IMPACT-INCIDENT" to "Impact_Of",
+//        "Description-PEOPLEINVOLVED" to "Description",
+//        "Description-APPROACH" to "Description",
 
-        "Location-Wind" to "Where",
-        "DateTime-Wind" to "When",
+        "LOCATION-WIND" to "WHERE",
+        "DATETIME-WIND" to "WHEN",
     )
 
     val SchemaKeyNodes = listOf(
-        "Task", "Incident", "Outcome", "Impact"
+        "TASK", "INCIDENT", "OUTCOME", "IMPACT"
     )
 
     val SchemaPropertyNodes = listOf(
-        "Entity", "Method", "Location", "Motive"
+        "PEOPLEINVOLVED", "APPROACH", "LOCATION", "OBJECTIVE"
     )
 
     val SchemaSemanticPropertyNodes = listOf(
-        "Entity", "Method", "Motive", "Task", "Incident", "Outcome", "Impact"
+        "PEOPLEINVOLVED", "APPROACH", "OBJECTIVE", "TASK", "INCIDENT", "OUTCOME", "IMPACT"
     )
 
     val SchemaComputedPropertyNodes = listOf(
-        "Location",
+        "LOCATION",
     )
 
     val SchemaOtherNodes = listOf(
-        "DateTime", "Description"
+        "DATETIME", "DESCRIPTION"
     )
 
-    enum class PropertyNames(val key: String) {
-        WHO("Entity"),
-        WHEN("DateTime"),
-        WHERE("Location"),
-        WHY("Motive"),
-        HOW("Method"),
-        TASK("Task"),
-        INCIDENT("Incident"),
-        OUTCOME("Outcome"),
-        IMPACT("Impact"),
-        WIND("Wind")
+    enum class SchemaEventTypeNames(val key: String) {
+        WHO("PEOPLEINVOLVED"),
+        WHEN("DATETIME"),
+        WHERE("LOCATION"),
+        WHY("OBJECTIVE"),
+        HOW("APPROACH"),
+        TASK("TASK"),
+        INCIDENT("INCIDENT"),
+        OUTCOME("OUTCOME"),
+        IMPACT("IMPACT"),
+        DESCRIPTION("DESCRIPTION"),
+        WIND("WIND");
+
+        companion object {
+            fun fromKey(key: String): SchemaEventTypeNames? =
+                entries.find { it.key.equals(key, ignoreCase = true) }
+
+            fun toKey(type: SchemaEventTypeNames): String = type.key
+        }
     }
 
-    fun propertyNameFromKey(key: String): PropertyNames? {
-        return PropertyNames.entries.find { it.key.equals(key, ignoreCase = true) }
+    enum class SchemaKeyEventTypeNames(val key: String) {
+        INCIDENT("INCIDENT"),
+        TASK("TASK"),
+        OUTCOME("OUTCOME"),
+        IMPACT("IMPACT");
+
+        companion object {
+            fun fromKey(key: String): SchemaKeyEventTypeNames? =
+                entries.find { it.key.equals(key, ignoreCase = true) }
+
+            fun toKey(type: SchemaKeyEventTypeNames): String = type.key
+        }
     }
+
 
     val SchemaPosTags = listOf("NN", "NNS", "NNP", "NNPS", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ")
-    val SchemaNounTags = listOf("NN", "NNS", "NNP", "NNPS")
-    val SchemaVerbTags = listOf("VB", "VBD", "VBG", "VBN", "VBP", "VBZ")
-
-    enum class DictionaryTypes {
-        NOUN, VERB, SUSPICIOUS
-    }
 }

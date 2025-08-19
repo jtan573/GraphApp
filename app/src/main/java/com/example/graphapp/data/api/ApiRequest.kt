@@ -1,38 +1,9 @@
 package com.example.graphapp.data.api
 
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-
-enum class DbAction {
-    CREATE, DELETE, QUERY
-}
-
-enum class EventType(val key: String) {
-    INCIDENT("Incident"),
-    TASK("Task"),
-    OUTCOME("Outcome"),
-    IMPACT("Impact");
-
-    companion object {
-        fun fromKey(key: String): EventType? =
-            entries.find { it.key.equals(key, ignoreCase = true) }
-
-        fun toKey(type: EventType): String = type.key
-    }
-}
-
-fun eventTypeFromString(key: String): EventType? {
-    return EventType.entries.find { it.name.equals(key, ignoreCase = true) }
-}
-
-
-data class ApiRequest(
-    val userId: String,
-    val timestamp: Long = System.currentTimeMillis(),
-    val action: DbAction,
-    val inputData: RequestData
-)
 
 @Serializable
 sealed class RequestData {
@@ -40,7 +11,7 @@ sealed class RequestData {
     @Serializable
     @SerialName("EventRequestData")
     data class EventRequestData(
-        val eventType: EventType? = null,
+        val eventType: SchemaKeyEventTypeNames? = null,
         val details: EventDetailData? = null
     ) : RequestData()
 
@@ -68,7 +39,7 @@ data class EventDetailData(
     val whereValue: String? = null,
     val whyValue: String? = null,
     val howValue: String? = null,
-    val eventMap: Map<PropertyNames, String>? = null
+    val eventMap: Map<SchemaEventTypeNames, String>? = null
 )
 
 @Serializable

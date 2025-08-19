@@ -1,12 +1,10 @@
 package com.example.graphapp.backend.services.kgraph
 
+import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.services.kgraph.query.QueryService
-import com.example.graphapp.data.api.DisruptionCause
 import com.example.graphapp.data.api.EventDetailData
 import com.example.graphapp.data.api.EventDetails
-import com.example.graphapp.data.api.EventType
 import com.example.graphapp.data.api.ThreatAlertResponse
-import com.example.graphapp.data.db.UserNodeEntity
 
 interface KGraphService {
 
@@ -26,10 +24,10 @@ interface KGraphService {
      * @return List of events with high similarity to the given event.
      */
     suspend fun findSimilarEvents(
-        givenEventType: EventType,
-        targetEventType: EventType?,
+        givenEventType: SchemaKeyEventTypeNames,
+        targetEventType: SchemaKeyEventTypeNames?,
         eventDetails: EventDetailData,
-    ): Map<EventType, List<EventDetails>>
+    ): Map<SchemaKeyEventTypeNames, List<EventDetails>>
 
     /**
      * Retrieves events that are similar in a specific aspect (overall similarity).
@@ -40,11 +38,11 @@ interface KGraphService {
      * @return List of events with high similarity to the given event.
      */
     suspend fun findSimilarEventsByProperty(
-        inputEventType: EventType?,
+        inputEventType: SchemaKeyEventTypeNames?,
         targetSimilarityProperty: QueryService.InsightCategory?,
         inputPropertyValue: String,
-        targetEventType: EventType?
-    ): Map<EventType, List<EventDetails>>
+        targetEventType: SchemaKeyEventTypeNames?
+    ): Map<SchemaKeyEventTypeNames, List<EventDetails>>
 
     /**
      * Retrieves personnel who are within a 3km radius (configurable) from the specified location

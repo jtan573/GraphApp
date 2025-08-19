@@ -9,6 +9,8 @@ import com.example.graphapp.data.db.UserNodeEntity
 
 interface AdminService {
 
+    suspend fun ensureReady()
+
     suspend fun addEventToDatabase(inputData: RequestData.EventRequestData): Boolean
     suspend fun addUserToDatabase(inputData: RequestData.UserRequestData): Boolean
     suspend fun addActionToDatabase(inputData: RequestData.ActionRequestData): Boolean

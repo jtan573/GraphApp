@@ -11,7 +11,7 @@ suspend fun findRelevantPersonnelByLocationUseCase(
    threatLocation: String? = null,
    threatDescription: String? = null,
    radiusInMeters: Float,
-): Map<UserNodeEntity, Int>? {
+): List<Triple<UserNodeEntity, Int, Float>>? {
 
     if (threatLocation == null) {
         return null
@@ -40,9 +40,7 @@ suspend fun findRelevantPersonnelByLocationUseCase(
         }
     }
 
-    return nearbyPersonnel.sortedBy { it.second }.sortedByDescending { it.third }.associate {
-        it.first to it.second
-    }
+    return nearbyPersonnel.sortedBy { it.second }.sortedByDescending { it.third }
 }
 
 fun restoreLocationFromString(coordinates: String): Location {

@@ -3,9 +3,9 @@ package com.example.graphapp.backend.usecases
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.backend.core.computeSimilarAndRelatedEvents
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.data.api.DiscoverEventsResponse
-import com.example.graphapp.data.api.EventType
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 
@@ -13,11 +13,11 @@ import com.example.graphapp.data.repository.EventRepository
     Function to query for relevant incidents (Default Incidents)
 ------------------------------------------------------------------ */
 suspend fun fetchRelevantEventsByTargetType(
-    statusEventMap: Map<PropertyNames, String>,
+    statusEventMap: Map<SchemaEventTypeNames, String>,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
-    sourceEventType: EventType? = null,
-    queryKey: EventType? = null,
+    sourceEventType: SchemaKeyEventTypeNames? = null,
+    queryKey: SchemaKeyEventTypeNames? = null,
     activeNodesOnly: Boolean
 ): Triple<List<EventNodeEntity>, List<EventEdgeEntity>, DiscoverEventsResponse> {
 

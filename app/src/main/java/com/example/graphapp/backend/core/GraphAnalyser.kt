@@ -1,7 +1,9 @@
 package com.example.graphapp.backend.core
 
 import android.util.Log
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.api.DiscoverEventsResponse
 import com.example.graphapp.data.api.EventDetails
@@ -15,8 +17,6 @@ import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.backend.dto.GraphSchema.SchemaOtherNodes
 import com.example.graphapp.backend.dto.GraphSchema.SchemaPropertyNodes
-import com.example.graphapp.data.api.EventType
-import com.example.graphapp.data.api.eventTypeFromString
 //import com.example.graphdb.Edge
 //import com.example.graphdb.Node
 import kotlin.collections.component1
@@ -27,11 +27,11 @@ import kotlin.collections.iterator
     FUNCTION 1: Find similar events
 ------------------------------------------------- */
 suspend fun computeSimilarAndRelatedEvents (
-    newEventMap: Map<PropertyNames, String>,
+    newEventMap: Map<SchemaEventTypeNames, String>,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
-    sourceEventType: EventType? = null,
-    targetEventType: EventType? = null,
+    sourceEventType: SchemaKeyEventTypeNames? = null,
+    targetEventType: SchemaKeyEventTypeNames? = null,
     getTopThreeResultsOnly: Boolean = true,
     customThreshold: Float = 0.0f,
     activeNodesOnly: Boolean
@@ -62,7 +62,7 @@ suspend fun computeSimilarAndRelatedEvents (
     )
     Log.d("topRecommendationsByType","$topRecommendationsByType")
 
-    val eventsByType = mutableMapOf<EventType, List<EventDetails>>()
+    val eventsByType = mutableMapOf<SchemaKeyEventTypeNames, List<EventDetails>>()
 
     for ((type, recs) in topRecommendationsByType) {
         val predictedEventsList = mutableListOf<EventDetails>()
@@ -82,7 +82,7 @@ suspend fun computeSimilarAndRelatedEvents (
                 )
             )
         }
-        eventsByType.put(eventTypeFromString(type)!!, predictedEventsList.toList())
+        eventsByType.put(SchemaKeyEventTypeNames.fromKey(type)!!, predictedEventsList.toList())
     }
 
     if (topRecommendationsByType.isEmpty()) {
@@ -211,7 +211,7 @@ suspend fun detectReplicateInput(
     val inputEmbeddings = newEventMap.entries.associate { (type, value) ->
         type to embeddingRepository.getTextEmbeddings(value)
     }
-    val keyEventType = inputEmbeddings.keys.intersect(SchemaKeyNodes)
+    val keyEventType = inputEmbeddings.keys.intersect(GraphSchema.SchemaKeyEventTypeNames.entries)
 
     val allNodes = eventRepository.getAllEventNodes()
 

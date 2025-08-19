@@ -33,7 +33,7 @@ fun EventForm(
     onCancel: () -> Unit
 ) {
 
-    val eventTypes = GraphSchema.SchemaKeyNodes
+    val eventTypes = GraphSchema.SchemaKeyEventTypeNames.entries.map { it.key.toString() }
     val selectedTab = remember { mutableStateOf(0) }
 
     // Keep event type in input map

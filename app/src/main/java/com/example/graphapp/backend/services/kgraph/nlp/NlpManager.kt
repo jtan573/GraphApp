@@ -1,5 +1,7 @@
 package com.example.graphapp.backend.services.kgraph.nlp
 
+/* FUTURE USE
+
 import android.content.Context
 import org.tensorflow.lite.DataType
 import java.io.FileInputStream
@@ -91,3 +93,5 @@ class NlpManager(private val context: Context): NlpService {
         return tokens.map { token -> vocab[token] ?: unkId }.toIntArray()
     }
 }
+
+ */

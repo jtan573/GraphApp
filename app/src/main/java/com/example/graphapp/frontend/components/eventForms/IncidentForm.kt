@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.graphapp.backend.dto.GraphSchema
 import kotlin.collections.set
 
 @Composable
@@ -29,7 +30,7 @@ fun IncidentForm(
         modifier = Modifier.fillMaxWidth().background(Color(0xFFcce4eb)).padding(horizontal = 16.dp)
     ) {
 
-        val inputKeys = listOf<String>("Incident") + fieldKeys
+        val inputKeys = listOf<String>(GraphSchema.SchemaKeyEventTypeNames.INCIDENT.key) + fieldKeys
 
         Text(
             text = "Insert an Incident:",

@@ -1,5 +1,6 @@
-package com.example.graphapp.frontend.imageScreens
+package com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,27 +18,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.R
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
 
 @Composable
-fun AlertNearbyTroopersScreen(
-    navController: NavController
-) {
+fun AlertNearbyTroopersScreen() {
     val alertDetails = mapOf<String, String>(
-        PropertyNames.INCIDENT.key to "Mid-Flight Drone Propeller Failure",
-        PropertyNames.HOW.key to "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent",
-        PropertyNames.WHEN.key to "1723897200000",
-        PropertyNames.WHERE.key to "1.3901,103.8072"
-    )
-
-    val likelyImpacts = listOf<String>(
-        "Personnel Injuries",
-        "High Risk of Secondary Detonation"
+        SchemaEventTypeNames.INCIDENT.key to "Mid-Flight Drone Propeller Failure",
+        SchemaEventTypeNames.HOW.key to "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent",
+        SchemaEventTypeNames.WHEN.key to "1723897200000",
+        SchemaEventTypeNames.WHERE.key to "1.3901,103.8072"
     )
 
     Column(
@@ -84,5 +80,12 @@ fun AlertNearbyTroopersScreen(
                 )
             }
         }
+
+        Image(
+            painter = painterResource(id = R.drawable.alert_trooper_page),
+            contentDescription = "PNG display",
+            modifier = Modifier.fillMaxWidth(),
+            contentScale = ContentScale.Fit
+        )
     }
 }

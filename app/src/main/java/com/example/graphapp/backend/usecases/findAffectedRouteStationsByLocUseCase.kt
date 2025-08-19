@@ -2,9 +2,9 @@ package com.example.graphapp.backend.usecases
 
 import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.backend.core.computeSimilarAndRelatedEvents
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.data.api.DisruptionCause
-import com.example.graphapp.data.api.EventType
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 
@@ -24,17 +24,17 @@ suspend fun findAffectedRouteStationsByLocUseCase(
     val proximityIncidentsFound = mutableListOf<EventDetails>()
     routeStations.forEachIndexed { index, station ->
         val (_, _, locationRecs) = computeSimilarAndRelatedEvents(
-            newEventMap = mapOf(PropertyNames.WHERE to station),
+            newEventMap = mapOf(SchemaEventTypeNames.WHERE to station),
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
-            targetEventType = EventType.INCIDENT,
+            targetEventType = SchemaKeyEventTypeNames.INCIDENT,
             getTopThreeResultsOnly = true,
             customThreshold = threshold,
             activeNodesOnly = true
         )
 
         if (locationRecs.predictedEvents.isNotEmpty()) {
-            val nearbyIncidents = locationRecs.predictedEvents[EventType.INCIDENT]
+            val nearbyIncidents = locationRecs.predictedEvents[SchemaKeyEventTypeNames.INCIDENT]
             nearbyIncidents?.forEach { incident ->
                 val isAlreadyAdded = proximityIncidentsFound.any { it.eventId == incident.eventId }
                 if (!isAlreadyAdded) {

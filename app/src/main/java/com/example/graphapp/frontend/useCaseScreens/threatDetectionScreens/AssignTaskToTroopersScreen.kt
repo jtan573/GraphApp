@@ -1,4 +1,4 @@
-package com.example.graphapp.frontend.imageScreens
+package com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement

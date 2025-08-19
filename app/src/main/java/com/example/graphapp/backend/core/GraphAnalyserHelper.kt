@@ -1,15 +1,14 @@
 package com.example.graphapp.backend.core
 
 import android.util.Log
-import androidx.compose.runtime.key
-import androidx.room.util.query
 import com.example.graphapp.backend.dto.GraphSchema
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.backend.dto.GraphSchema.SchemaComputedPropertyNodes
+import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.backend.dto.GraphSchema.SchemaSemanticPropertyNodes
 import com.example.graphapp.backend.schema.EventEmbeddingSet
@@ -18,7 +17,6 @@ import com.example.graphapp.backend.schema.EventStatus
 import com.example.graphapp.backend.schema.ExplainedSimilarityWithScores
 import com.example.graphapp.backend.schema.SimilarEventTags
 import com.example.graphapp.backend.usecases.restoreLocationFromString
-import com.example.graphapp.data.api.EventType
 import kotlin.collections.iterator
 import kotlin.math.ln
 
@@ -145,7 +143,7 @@ suspend fun computeSemanticSimilarity(
             val v2 = e2.computedProps[prop]
             if (v1?.eventName == null || v2?.eventName == null) continue
 
-            if (prop == PropertyNames.WHERE.key) {
+            if (prop == SchemaEventTypeNames.WHERE.key) {
                 val distance = restoreLocationFromString(v1.eventName).distanceTo(restoreLocationFromString(v2.eventName))
                 if (distance < 3000f) {
                     similarities.add(1f - (distance / thresholdDistance!!))
@@ -195,8 +193,8 @@ suspend fun computeSemanticSimilarEventsForProps(
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
     newEventMap: Map<String, EventNodeEntity>,
-    sourceEventType: EventType? = null,
-    targetEventType: EventType? = null,
+    sourceEventType: SchemaKeyEventTypeNames? = null,
+    targetEventType: SchemaKeyEventTypeNames? = null,
     getTopThreeResultsOnly: Boolean = true,
     threshold: Float = 0.0f,
     activeNodesOnly: Boolean
@@ -275,7 +273,8 @@ suspend fun computeSemanticSimilarEventsForProps(
             val simNodesIds = if (targetEventType != null) {
                 mainNodes.filter{ it.type.lowercase() == targetEventType.toString().lowercase() }.map { it.type to it.id}
             } else {
-                mainNodes.filter{ it.type in SchemaKeyNodes }.map { it.type to it.id}
+                mainNodes.filter{ node -> GraphSchema.SchemaKeyEventTypeNames.fromKey(node.type) != null }
+                    .map { it.type to it.id}
             }
 
             simNodesIds.forEach { (type, nodeId) ->

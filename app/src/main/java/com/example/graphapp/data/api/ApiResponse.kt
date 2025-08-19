@@ -1,9 +1,8 @@
 package com.example.graphapp.data.api
 
-import android.media.metrics.Event
 import android.util.Log
 import com.example.graphapp.backend.dto.GraphSchema
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.schema.SimilarEventTags
 import com.example.graphapp.data.db.UserNodeEntity
 
@@ -71,8 +70,8 @@ data class ProvideRecommendationsResponse(
 
 // Function 3
 data class DiscoverEventsResponse(
-    val inputInformation: Map<PropertyNames, String>,
-    val predictedEvents: Map<EventType, List<EventDetails>>
+    val inputInformation: Map<SchemaEventTypeNames, String>,
+    val predictedEvents: Map<GraphSchema.SchemaKeyEventTypeNames, List<EventDetails>>
 )
 
 data class EventDetails(

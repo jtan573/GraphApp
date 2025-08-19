@@ -1,7 +1,7 @@
 package com.example.graphapp.backend.usecases
 
 import android.util.Log
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
@@ -17,15 +17,15 @@ suspend fun predictImpactOfWindAtLocationUseCase(
     embeddingRepository: EmbeddingRepository
 ): List<EventDetails>? {
 
-    val windNode = eventRepository.getEventNodesByType(PropertyNames.WIND.key)?.first()
+    val windNode = eventRepository.getEventNodesByType(SchemaEventTypeNames.WIND.key)?.first()
     if (windNode == null) return null
 
-    val incidentNodes = eventRepository.getEventNodesByType(PropertyNames.INCIDENT.key)
+    val incidentNodes = eventRepository.getEventNodesByType(SchemaEventTypeNames.INCIDENT.key)
 
     val incidentsList = mutableListOf<EventDetails>()
     incidentNodes?.forEach { incident ->
         val incidentLoc = eventRepository.getNeighborsOfEventNodeById(incident.id)
-            .firstOrNull { it.type == PropertyNames.WHERE.key }?.name
+            .firstOrNull { it.type == SchemaEventTypeNames.WHERE.key }?.name
         if (incidentLoc == null) return@forEach
 
         val checkWind = shouldCheckWind(incident.name, embeddingRepository)

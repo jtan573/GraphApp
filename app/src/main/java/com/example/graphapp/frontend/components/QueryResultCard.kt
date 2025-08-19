@@ -7,12 +7,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,20 +22,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.graphapp.backend.dto.GraphSchema
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.data.api.DisruptionCause
 import com.example.graphapp.data.api.ThreatAlertResponse
 import com.example.graphapp.frontend.navigation.NavItem
-import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import kotlin.time.Duration.Companion.parse
 
 @Composable
 fun QueryResultCard(
@@ -54,7 +46,7 @@ fun QueryResultCard(
         .padding(horizontal = 16.dp)
     ) {
         Text(
-            text = "Incident: ${eventAdded[PropertyNames.INCIDENT.key]}",
+            text = "Incident: ${eventAdded[SchemaEventTypeNames.INCIDENT.key]}",
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.Black
             ),
@@ -62,10 +54,10 @@ fun QueryResultCard(
             color = Color(0xFF2E4E8C)
         )
         eventAdded.forEach { (inputType, inputString) ->
-            if (inputType == PropertyNames.INCIDENT.key) return@forEach
+            if (inputType == SchemaEventTypeNames.INCIDENT.key) return@forEach
 
             var updatedString: String = inputString
-            if (inputType == PropertyNames.WHEN.key) {
+            if (inputType == SchemaEventTypeNames.WHEN.key) {
                 updatedString = sdf.format(Date(inputString.toLong()))
             }
             Text(
@@ -292,7 +284,7 @@ fun QueryResultCard(
                         .padding(top = 8.dp)
                 )
                 Text(
-                    text = "Location: ${incident.eventProperties[PropertyNames.WHERE.key]}",
+                    text = "Location: ${incident.eventProperties[SchemaEventTypeNames.WHERE.key]}",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontStyle = FontStyle.Italic
                     ),
@@ -312,7 +304,7 @@ fun QueryResultCard(
 //                    )
 //                }
                 Text(
-                    text = "How: ${incident.eventProperties[PropertyNames.HOW.key]}",
+                    text = "How: ${incident.eventProperties[SchemaEventTypeNames.HOW.key]}",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontStyle = FontStyle.Italic
                     ),
@@ -389,7 +381,7 @@ fun QueryResultCard(
                                 .padding(top = 8.dp)
                         )
                         Text(
-                            text = "Location: ${incident.eventProperties[PropertyNames.WHERE.key]}",
+                            text = "Location: ${incident.eventProperties[SchemaEventTypeNames.WHERE.key]}",
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontStyle = FontStyle.Italic
                             ),
@@ -399,7 +391,7 @@ fun QueryResultCard(
                                 vertical = 2.dp
                             )
                         )
-                        incident.eventProperties[PropertyNames.WHEN.key]?.let {
+                        incident.eventProperties[SchemaEventTypeNames.WHEN.key]?.let {
                             Text(
                                 text = "Observed on: ${sdf.format(Date(it.toLong()))}",
                                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -411,7 +403,7 @@ fun QueryResultCard(
                                     .padding(bottom = 2.dp)
                             )
                         }
-                        incident.eventProperties[PropertyNames.HOW.key]?.let {
+                        incident.eventProperties[SchemaEventTypeNames.HOW.key]?.let {
                             Text(
                                 text = "How: $it",
                                 style = MaterialTheme.typography.bodyMedium.copy(

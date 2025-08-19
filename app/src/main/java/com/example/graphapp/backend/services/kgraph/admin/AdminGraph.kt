@@ -1,11 +1,9 @@
 package com.example.graphapp.backend.services.kgraph.admin
 
 import com.example.graphapp.backend.dto.GraphSchema
+import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.services.kgraph.GraphAccess
-import com.example.graphapp.data.api.ApiResponse
-import com.example.graphapp.data.api.EventType
 import com.example.graphapp.data.api.RequestData
-import com.example.graphapp.data.api.ResponseStatus
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
 import com.example.graphapp.data.db.EventEdgeEntity
@@ -21,6 +19,8 @@ import java.util.concurrent.TimeUnit
 class AdminGraph @Inject constructor(
     private val graph: GraphAccess
 ) : AdminService {
+
+    override suspend fun ensureReady() = graph.awaitReady()
 
     /* ------------------------------------------
         CUD OPERATIONS
@@ -61,18 +61,18 @@ class AdminGraph @Inject constructor(
         if (inputData.eventType != null && inputData.details?.whatValue != null) {
             val toNodeId = graph.eventRepository.insertEventNodeIntoDb(
                 inputName = inputData.details.whatValue,
-                inputType = EventType.Companion.toKey(inputData.eventType)
+                inputType = SchemaKeyEventTypeNames.Companion.toKey(inputData.eventType)
             )
             keyNode = graph.eventRepository.getEventNodeById(toNodeId)
         }
 
         val fromNodeList = mutableListOf<EventNodeEntity>()
         listOf(
-            GraphSchema.PropertyNames.WHO.key to inputData.details?.whoValue,
-            GraphSchema.PropertyNames.WHEN.key to inputData.details?.whenValue,
-            GraphSchema.PropertyNames.WHERE.key to inputData.details?.whereValue,
-            GraphSchema.PropertyNames.WHY.key to inputData.details?.whyValue,
-            GraphSchema.PropertyNames.HOW.key to inputData.details?.howValue,
+            GraphSchema.SchemaEventTypeNames.WHO.key to inputData.details?.whoValue,
+            GraphSchema.SchemaEventTypeNames.WHEN.key to inputData.details?.whenValue,
+            GraphSchema.SchemaEventTypeNames.WHERE.key to inputData.details?.whereValue,
+            GraphSchema.SchemaEventTypeNames.WHY.key to inputData.details?.whyValue,
+            GraphSchema.SchemaEventTypeNames.HOW.key to inputData.details?.howValue,
         ).forEach { (key, value) ->
             if (value != null) {
                 val nodeId = graph.eventRepository.insertEventNodeIntoDb(
@@ -135,7 +135,7 @@ class AdminGraph @Inject constructor(
         if (inputData.eventType != null && inputData.details?.whatValue != null) {
             val nodeId = graph.eventRepository.getEventNodeByNameAndType(
                 inputName = inputData.details.whatValue,
-                inputType = EventType.toKey(inputData.eventType)
+                inputType = SchemaKeyEventTypeNames.toKey(inputData.eventType)
             )?.id
             if (nodeId != null) {
                 graph.eventRepository.removeNodeById(nodeId)
@@ -191,7 +191,7 @@ class AdminGraph @Inject constructor(
         val listOfEvents = mutableListOf<Map<String, String>>()
         for (eventName in events) {
             val eventMap = mutableMapOf<String, String>()
-            val eventNode = graph.eventRepository.getEventNodeByNameAndType(eventName, GraphSchema.PropertyNames.INCIDENT.key)
+            val eventNode = graph.eventRepository.getEventNodeByNameAndType(eventName, GraphSchema.SchemaEventTypeNames.INCIDENT.key)
             if (eventNode != null) {
                 eventMap.put(eventNode.type, eventNode.name)
                 val neighbours = graph.eventRepository.getNeighborsOfEventNodeById(eventNode.id)

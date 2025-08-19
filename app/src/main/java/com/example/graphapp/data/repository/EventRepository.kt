@@ -1,17 +1,12 @@
 package com.example.graphapp.data.repository
 
 import android.util.Log
-import com.example.graphapp.data.embedding.SentenceEmbedding
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.db.EventDatabaseQueries
 import com.example.graphapp.backend.dto.GraphSchema
-import com.example.graphapp.backend.dto.GraphSchema.DictionaryTypes
-import com.example.graphapp.backend.dto.GraphSchema.PropertyNames
-import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyNodes
-import com.example.graphapp.backend.dto.GraphSchema.SchemaComputedPropertyNodes
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.dto.GraphSchema.SchemaSemanticPropertyNodes
-import com.example.graphapp.backend.usecases.predictImpactOfWindAtLocationUseCase
 import com.example.graphapp.backend.usecases.restoreLocationFromString
 
 class EventRepository(
@@ -56,7 +51,7 @@ class EventRepository(
 
             val nodeId = queries.addNodeIntoDbQuery(
                 name = inputName,
-                type = inputType,
+                type = inputType.uppercase(),
                 description = inputDescription,
                 frequency = inputFrequency,
                 embedding = embeddingRepository.getTextEmbeddings(inputName.lowercase()),
@@ -197,7 +192,7 @@ class EventRepository(
         location: String
     ): List<EventNodeEntity> {
         val relevantNodes = mutableListOf<EventNodeEntity>()
-        val allNodes = getAllEventNodes().filter{ it.type == PropertyNames.WHERE.key }
+        val allNodes = getAllEventNodes().filter{ it.type == SchemaEventTypeNames.WHERE.key }
         allNodes.forEach { locationNode ->
             val distance = restoreLocationFromString(location).distanceTo(restoreLocationFromString(locationNode.name))
             if (distance < 5000f) {
@@ -212,1011 +207,1052 @@ class EventRepository(
     suspend fun initialiseEventRepository() {
 
         // --- Entities ---
-        insertEventNodeIntoDb("Alpha Company", "Entity")
-        insertEventNodeIntoDb("Bravo Company", "Entity")
-        insertEventNodeIntoDb("Charlie Squadron", "Entity")
-        insertEventNodeIntoDb("Delta Platoon", "Entity")
-        insertEventNodeIntoDb("Echo Unit", "Entity")
-        insertEventNodeIntoDb("Enemy Forces", "Entity")
-        insertEventNodeIntoDb("Enemy Group", "Entity")
-        insertEventNodeIntoDb("Enemy Anonymous", "Entity")
-        insertEventNodeIntoDb("Joint Task Force Command", "Entity")
-        insertEventNodeIntoDb("Insurgent Cell", "Entity")
-        insertEventNodeIntoDb("Hostile Militia", "Entity")
-        insertEventNodeIntoDb("Opposing Battalion", "Entity")
-        insertEventNodeIntoDb("Rival Faction", "Entity")
-        insertEventNodeIntoDb("Support Platoon", "Entity")
-        insertEventNodeIntoDb("Engineering Corps", "Entity")
-        insertEventNodeIntoDb("Medical Detachment", "Entity")
-        insertEventNodeIntoDb("Logistics Division", "Entity")
+        insertEventNodeIntoDb("Alpha Company", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Bravo Company", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Charlie Squadron", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Delta Platoon", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Echo Unit", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Enemy Forces", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Enemy Group", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Enemy Anonymous", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Joint Task Force Command", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Insurgent Cell", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Hostile Militia", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Opposing Battalion", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Rival Faction", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Support Platoon", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Engineering Corps", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Medical Detachment", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Logistics Division", SchemaEventTypeNames.WHO.key)
 
 
 // --- Locations ---
-        insertEventNodeIntoDb("1.3521,103.8198", "Location")
-        insertEventNodeIntoDb("1.1344,104.0495", "Location")
-        insertEventNodeIntoDb("1.4765,103.7636", "Location")
-        insertEventNodeIntoDb("1.4250,103.8500", "Location")
-        insertEventNodeIntoDb("1.3600,103.7500", "Location")
-        insertEventNodeIntoDb("1.3300,103.9200", "Location")
-        insertEventNodeIntoDb("1.4100,103.7600", "Location")
-        insertEventNodeIntoDb("1.1155,104.0421", "Location")
-        insertEventNodeIntoDb("1.3000,103.9000", "Location")
-        insertEventNodeIntoDb("1.3530,103.7200", "Location")
+        insertEventNodeIntoDb("1.3521,103.8198", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("1.1344,104.0495", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("1.4765,103.7636", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("1.4250,103.8500", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("1.3600,103.7500", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("1.3300,103.9200", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("1.4100,103.7600", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("1.1155,104.0421", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("1.3000,103.9000", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("1.3530,103.7200", SchemaEventTypeNames.WHERE.key)
 
 // --- Methods ---
-        insertEventNodeIntoDb("Foot patrol with UAV support", "Method")
-        insertEventNodeIntoDb("Armored convoy", "Method")
-        insertEventNodeIntoDb("Helicopter insertion", "Method")
-        insertEventNodeIntoDb("IED detonation", "Method")
-        insertEventNodeIntoDb("Small arms engagement", "Method")
-        insertEventNodeIntoDb("MEDEVAC extraction", "Method")
-        insertEventNodeIntoDb("Casualty extraction", "Method")
-        insertEventNodeIntoDb("Sniper overwatch", "Method")
-        insertEventNodeIntoDb("Drone surveillance", "Method")
-        insertEventNodeIntoDb("Night vision assault", "Method")
-        insertEventNodeIntoDb("Night operations", "Method")
-        insertEventNodeIntoDb("Precision drone strike", "Method")
+        insertEventNodeIntoDb("Foot patrol with UAV support", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("Armored convoy", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("Helicopter insertion", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("IED detonation", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("Small arms engagement", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("MEDEVAC extraction", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("Casualty extraction", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("Sniper overwatch", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("Drone surveillance", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("Night vision assault", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("Night operations", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("Precision drone strike", SchemaEventTypeNames.HOW.key)
 
 // --- Motives ---
-        insertEventNodeIntoDb("Gather enemy intel", "Motive")
-        insertEventNodeIntoDb("Secure supply route", "Motive")
-        insertEventNodeIntoDb("Disrupt enemy logistics", "Motive")
-        insertEventNodeIntoDb("Respond to threat", "Motive")
-        insertEventNodeIntoDb("Establish forward base", "Motive")
-        insertEventNodeIntoDb("Retaliate against attack", "Motive")
-        insertEventNodeIntoDb("Secure high-value target", "Motive")
-        insertEventNodeIntoDb("Protect civilian population", "Motive")
-        insertEventNodeIntoDb("Enemy information acquisition", "Motive")
+        insertEventNodeIntoDb("Gather enemy intel", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Secure supply route", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Disrupt enemy logistics", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Respond to threat", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Establish forward base", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Retaliate against attack", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Secure high-value target", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Protect civilian population", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Enemy information acquisition", SchemaEventTypeNames.WHY.key)
 
 // --- DateTimes (unique) ---
-        insertEventNodeIntoDb("1694757600000", "DateTime") //1
-        insertEventNodeIntoDb("1694766600000", "DateTime") //2
-//        insertNodeIntoDb("2023-09-15T09:15Z", "DateTime") //3
-        insertEventNodeIntoDb("1694861100000", "DateTime") //4
-        insertEventNodeIntoDb("1694876400000", "DateTime") //5
-        insertEventNodeIntoDb("1694937000000", "DateTime") //6
-        insertEventNodeIntoDb("1694983200000", "DateTime") //7
-        insertEventNodeIntoDb("1695019200000", "DateTime") //8
-        insertEventNodeIntoDb("1695048000000", "DateTime") //9
-        insertEventNodeIntoDb("1695118200000", "DateTime") //10
-        insertEventNodeIntoDb("1695186000000", "DateTime") //11
-        insertEventNodeIntoDb("1695296700000", "DateTime") //12
-        insertEventNodeIntoDb("1695348900000", "DateTime") //13
-        insertEventNodeIntoDb("1695443400000", "DateTime") //14
-        insertEventNodeIntoDb("1695529200000", "DateTime") //15
-        insertEventNodeIntoDb("1695634800000", "DateTime") //16
-        insertEventNodeIntoDb("1695705600000", "DateTime") //17
-        insertEventNodeIntoDb("1695894600000", "DateTime") //19
-        insertEventNodeIntoDb("1696002300000", "DateTime") //20
+        insertEventNodeIntoDb("1694757600000", SchemaEventTypeNames.WHEN.key) //1
+        insertEventNodeIntoDb("1694766600000", SchemaEventTypeNames.WHEN.key) //2
+//        insertNodeIntoDb("2023-09-15T09:15Z", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.WHEN.key) //3
+        insertEventNodeIntoDb("1694861100000", SchemaEventTypeNames.WHEN.key) //4
+        insertEventNodeIntoDb("1694876400000", SchemaEventTypeNames.WHEN.key) //5
+        insertEventNodeIntoDb("1694937000000", SchemaEventTypeNames.WHEN.key) //6
+        insertEventNodeIntoDb("1694983200000", SchemaEventTypeNames.WHEN.key) //7
+        insertEventNodeIntoDb("1695019200000", SchemaEventTypeNames.WHEN.key) //8
+        insertEventNodeIntoDb("1695048000000", SchemaEventTypeNames.WHEN.key) //9
+        insertEventNodeIntoDb("1695118200000", SchemaEventTypeNames.WHEN.key) //10
+        insertEventNodeIntoDb("1695186000000", SchemaEventTypeNames.WHEN.key) //11
+        insertEventNodeIntoDb("1695296700000", SchemaEventTypeNames.WHEN.key) //12
+        insertEventNodeIntoDb("1695348900000", SchemaEventTypeNames.WHEN.key) //13
+        insertEventNodeIntoDb("1695443400000", SchemaEventTypeNames.WHEN.key) //14
+        insertEventNodeIntoDb("1695529200000", SchemaEventTypeNames.WHEN.key) //15
+        insertEventNodeIntoDb("1695634800000", SchemaEventTypeNames.WHEN.key) //16
+        insertEventNodeIntoDb("1695705600000", SchemaEventTypeNames.WHEN.key) //17
+        insertEventNodeIntoDb("1695894600000", SchemaEventTypeNames.WHEN.key) //19
+        insertEventNodeIntoDb("1696002300000", SchemaEventTypeNames.WHEN.key) //20
 
         // Event Nodes
-        insertEventNodeIntoDb("Reconnaissance Patrol", "Task")
-        insertEventNodeIntoDb("Convoy Escort", "Task")
-        insertEventNodeIntoDb("Forward Observation", "Task")
-        insertEventNodeIntoDb("Resupply Mission", "Task")
-        insertEventNodeIntoDb("Quick Reaction Deployment", "Task")
-        insertEventNodeIntoDb("Area Surveillance Operation", "Task")
-        insertEventNodeIntoDb("Supply Convoy Security", "Task")
+        insertEventNodeIntoDb("Reconnaissance Patrol", SchemaEventTypeNames.TASK.key)
+        insertEventNodeIntoDb("Convoy Escort", SchemaEventTypeNames.TASK.key)
+        insertEventNodeIntoDb("Forward Observation", SchemaEventTypeNames.TASK.key)
+        insertEventNodeIntoDb("Resupply Mission", SchemaEventTypeNames.TASK.key)
+        insertEventNodeIntoDb("Quick Reaction Deployment", SchemaEventTypeNames.TASK.key)
+        insertEventNodeIntoDb("Area Surveillance Operation", SchemaEventTypeNames.TASK.key)
+        insertEventNodeIntoDb("Supply Convoy Security", SchemaEventTypeNames.TASK.key)
 
-        insertEventNodeIntoDb("Ambush", "Incident")
-        insertEventNodeIntoDb("Roadside Bombing", "Incident")
-        insertEventNodeIntoDb("Sniper Attack", "Incident")
-        insertEventNodeIntoDb("Vehicle Breakdown", "Incident")
-        insertEventNodeIntoDb("Airstrike Misfire", "Incident")
-        insertEventNodeIntoDb("Surprise Attack", "Incident")
-        insertEventNodeIntoDb("Improvised Explosive Strike", "Incident")
+        insertEventNodeIntoDb("Ambush", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Roadside Bombing", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Sniper Attack", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Vehicle Breakdown", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Airstrike Misfire", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Surprise Attack", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Improvised Explosive Strike", SchemaEventTypeNames.INCIDENT.key)
 
-        insertEventNodeIntoDb("Extraction Completed", "Outcome")
-        insertEventNodeIntoDb("Objective Secured", "Outcome")
-        insertEventNodeIntoDb("Casualty Evacuation", "Outcome")
-        insertEventNodeIntoDb("Mission Delay", "Outcome")
-        insertEventNodeIntoDb("Equipment Loss", "Outcome")
-        insertEventNodeIntoDb("Evacuation Finalized", "Outcome")
-        insertEventNodeIntoDb("Target Area Secured", "Outcome")
+        insertEventNodeIntoDb("Extraction Completed", SchemaEventTypeNames.OUTCOME.key)
+        insertEventNodeIntoDb("Objective Secured", SchemaEventTypeNames.OUTCOME.key)
+        insertEventNodeIntoDb("Casualty Evacuation", SchemaEventTypeNames.OUTCOME.key)
+        insertEventNodeIntoDb("Mission Delay", SchemaEventTypeNames.OUTCOME.key)
+        insertEventNodeIntoDb("Equipment Loss", SchemaEventTypeNames.OUTCOME.key)
+        insertEventNodeIntoDb("Evacuation Finalized", SchemaEventTypeNames.OUTCOME.key)
+        insertEventNodeIntoDb("Target Area Secured", SchemaEventTypeNames.OUTCOME.key)
 
-        insertEventNodeIntoDb("Operational Delay", "Impact")
-        insertEventNodeIntoDb("Intel Gap Created", "Impact")
-        insertEventNodeIntoDb("Resource Shortage", "Impact")
-        insertEventNodeIntoDb("Increased Hostilities", "Impact")
-        insertEventNodeIntoDb("Strategic Advantage Lost", "Impact")
-        insertEventNodeIntoDb("Mission Timeline Extended", "Impact")
+        insertEventNodeIntoDb("Operational Delay", SchemaEventTypeNames.IMPACT.key)
+        insertEventNodeIntoDb("Intel Gap Created", SchemaEventTypeNames.IMPACT.key)
+        insertEventNodeIntoDb("Resource Shortage", SchemaEventTypeNames.IMPACT.key)
+        insertEventNodeIntoDb("Increased Hostilities", SchemaEventTypeNames.IMPACT.key)
+        insertEventNodeIntoDb("Strategic Advantage Lost", SchemaEventTypeNames.IMPACT.key)
+        insertEventNodeIntoDb("Mission Timeline Extended", SchemaEventTypeNames.IMPACT.key)
 
 // --- Tasks (unique properties per Task) ---
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Alpha Company", "Entity"),
-            getEventNodeByNameAndType("Reconnaissance Patrol", "Task")
+            getEventNodeByNameAndType("Alpha Company", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Reconnaissance Patrol", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Gather enemy intel", "Motive"),
-            getEventNodeByNameAndType("Reconnaissance Patrol", "Task")
+            getEventNodeByNameAndType("Gather enemy intel", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Reconnaissance Patrol", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694757600000", "DateTime"),
-            getEventNodeByNameAndType("Reconnaissance Patrol", "Task")
+            getEventNodeByNameAndType("1694757600000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Reconnaissance Patrol", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3521,103.8198", "Location"),
-            getEventNodeByNameAndType("Reconnaissance Patrol", "Task")
+            getEventNodeByNameAndType("1.3521,103.8198", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Reconnaissance Patrol", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Foot patrol with UAV support", "Method"),
-            getEventNodeByNameAndType("Reconnaissance Patrol", "Task")
+            getEventNodeByNameAndType("Foot patrol with UAV support", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Reconnaissance Patrol", SchemaEventTypeNames.TASK.key)
         )
 
-        insertEventNodeIntoDb("2023-09-15T07:00Z", "DateTime")
+        insertEventNodeIntoDb("2023-09-15T07:00Z", SchemaEventTypeNames.WHEN.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Alpha Company", "Entity"),
-            getEventNodeByNameAndType("Area Surveillance Operation", "Task")
+            getEventNodeByNameAndType("Alpha Company", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Area Surveillance Operation", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Enemy information acquisition", "Motive"),
-            getEventNodeByNameAndType("Area Surveillance Operation", "Task")
+            getEventNodeByNameAndType("Enemy information acquisition", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Area Surveillance Operation", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-15T07:00Z", "DateTime"),
-            getEventNodeByNameAndType("Area Surveillance Operation", "Task")
+            getEventNodeByNameAndType("2023-09-15T07:00Z", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Area Surveillance Operation", SchemaEventTypeNames.TASK.key)
         )
-//        insertEdgeIntoDB(getNodeByNameAndType("1.3521,103.8198", "Location"), getNodeByNameAndType("Area Surveillance Operation", "Task"))
-//        insertEdgeIntoDB(getNodeByNameAndType("Foot patrol", "Method"), getNodeByNameAndType("Area Surveillance Operation", "Task"))
-
-
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Bravo Company", "Entity"),
-            getEventNodeByNameAndType("Convoy Escort", "Task")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Secure supply route", "Motive"),
-            getEventNodeByNameAndType("Convoy Escort", "Task")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694861100000", "DateTime"),
-            getEventNodeByNameAndType("Convoy Escort", "Task")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.1155,104.0421", "Location"),
-            getEventNodeByNameAndType("Convoy Escort", "Task")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Armored convoy", "Method"),
-            getEventNodeByNameAndType("Convoy Escort", "Task")
-        )
-
-        insertEventNodeIntoDb("Defend transport route", "Motive")
-        insertEventNodeIntoDb("Protected convoy", "Method")
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Bravo Company", "Entity"),
-            getEventNodeByNameAndType("Supply Convoy Security", "Task")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Defend transport route", "Motive"),
-            getEventNodeByNameAndType("Supply Convoy Security", "Task")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694861100000", "DateTime"),
-            getEventNodeByNameAndType("Supply Convoy Security", "Task")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.1155,104.0421", "Location"),
-            getEventNodeByNameAndType("Supply Convoy Security", "Task")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Protected convoy", "Method"),
-            getEventNodeByNameAndType("Supply Convoy Security", "Task")
-        )
+//        insertEdgeIntoDB(getNodeByNameAndType("1.3521,103.8198", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Area Surveillance Operation", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.TASK.key))
+//        insertEdgeIntoDB(getNodeByNameAndType("Foot patrol", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.HOW.key), getNodeByNameAndType("Area Surveillance Operation", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.TASK.key))
 
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Charlie Squadron", "Entity"),
-            getEventNodeByNameAndType("Forward Observation", "Task")
+            getEventNodeByNameAndType("Bravo Company", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Convoy Escort", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Secure high-value target", "Motive"),
-            getEventNodeByNameAndType("Forward Observation", "Task")
+            getEventNodeByNameAndType("Secure supply route", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Convoy Escort", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694937000000", "DateTime"),
-            getEventNodeByNameAndType("Forward Observation", "Task")
+            getEventNodeByNameAndType("1694861100000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Convoy Escort", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.4765,103.7636", "Location"),
-            getEventNodeByNameAndType("Forward Observation", "Task")
+            getEventNodeByNameAndType("1.1155,104.0421", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Convoy Escort", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Helicopter insertion", "Method"),
-            getEventNodeByNameAndType("Forward Observation", "Task")
+            getEventNodeByNameAndType("Armored convoy", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Convoy Escort", SchemaEventTypeNames.TASK.key)
+        )
+
+        insertEventNodeIntoDb("Defend transport route", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Protected convoy", SchemaEventTypeNames.HOW.key)
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Bravo Company", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Supply Convoy Security", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Defend transport route", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Supply Convoy Security", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1694861100000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Supply Convoy Security", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1.1155,104.0421", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Supply Convoy Security", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Protected convoy", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Supply Convoy Security", SchemaEventTypeNames.TASK.key)
+        )
+
+
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Charlie Squadron", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Forward Observation", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Secure high-value target", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Forward Observation", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1694937000000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Forward Observation", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1.4765,103.7636", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Forward Observation", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Helicopter insertion", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Forward Observation", SchemaEventTypeNames.TASK.key)
         )
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Delta Platoon", "Entity"),
-            getEventNodeByNameAndType("Resupply Mission", "Task")
+            getEventNodeByNameAndType("Delta Platoon", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Resupply Mission", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Protect civilian population", "Motive"),
-            getEventNodeByNameAndType("Resupply Mission", "Task")
+            getEventNodeByNameAndType("Protect civilian population", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Resupply Mission", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695186000000", "DateTime"),
-            getEventNodeByNameAndType("Resupply Mission", "Task")
+            getEventNodeByNameAndType("1695186000000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Resupply Mission", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.4100,103.7600", "Location"),
-            getEventNodeByNameAndType("Resupply Mission", "Task")
+            getEventNodeByNameAndType("1.4100,103.7600", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Resupply Mission", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Armored convoy", "Method"),
-            getEventNodeByNameAndType("Resupply Mission", "Task")
+            getEventNodeByNameAndType("Armored convoy", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Resupply Mission", SchemaEventTypeNames.TASK.key)
         )
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Echo Unit", "Entity"),
-            getEventNodeByNameAndType("Quick Reaction Deployment", "Task")
+            getEventNodeByNameAndType("Echo Unit", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Quick Reaction Deployment", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Retaliate against attack", "Motive"),
-            getEventNodeByNameAndType("Quick Reaction Deployment", "Task")
+            getEventNodeByNameAndType("Retaliate against attack", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Quick Reaction Deployment", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695296700000", "DateTime"),
-            getEventNodeByNameAndType("Quick Reaction Deployment", "Task")
+            getEventNodeByNameAndType("1695296700000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Quick Reaction Deployment", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3000,103.9000", "Location"),
-            getEventNodeByNameAndType("Quick Reaction Deployment", "Task")
+            getEventNodeByNameAndType("1.3000,103.9000", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Quick Reaction Deployment", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Night vision assault", "Method"),
-            getEventNodeByNameAndType("Quick Reaction Deployment", "Task")
+            getEventNodeByNameAndType("Night vision assault", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Quick Reaction Deployment", SchemaEventTypeNames.TASK.key)
         )
 
 
 // --- Incidents (unique DateTimes, varied properties) ---
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Enemy Forces", "Entity"),
-            getEventNodeByNameAndType("Ambush", "Incident")
+            getEventNodeByNameAndType("Enemy Forces", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Ambush", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Retaliate against attack", "Motive"),
-            getEventNodeByNameAndType("Ambush", "Incident")
+            getEventNodeByNameAndType("Retaliate against attack", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Ambush", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694766600000", "DateTime"),
-            getEventNodeByNameAndType("Ambush", "Incident")
+            getEventNodeByNameAndType("1694766600000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Ambush", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.1344,104.0495", "Location"),
-            getEventNodeByNameAndType("Ambush", "Incident")
+            getEventNodeByNameAndType("1.1344,104.0495", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Ambush", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("IED detonation", "Method"),
-            getEventNodeByNameAndType("Ambush", "Incident")
+            getEventNodeByNameAndType("IED detonation", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Ambush", SchemaEventTypeNames.INCIDENT.key)
         )
 
-        insertEventNodeIntoDb("Enemies", "Entity")
-        insertEventNodeIntoDb("Counterattack", "Motive")
-        insertEventNodeIntoDb("2023-09-15T10:50Z", "DateTime")
+        insertEventNodeIntoDb("Enemies", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Counterattack", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("2023-09-15T10:50Z", SchemaEventTypeNames.WHEN.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Enemies", "Entity"),
-            getEventNodeByNameAndType("Surprise Attack", "Incident")
+            getEventNodeByNameAndType("Enemies", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Surprise Attack", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Counterattack", "Motive"),
-            getEventNodeByNameAndType("Surprise Attack", "Incident")
+            getEventNodeByNameAndType("Counterattack", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Surprise Attack", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-15T10:50Z", "DateTime"),
-            getEventNodeByNameAndType("Surprise Attack", "Incident")
+            getEventNodeByNameAndType("2023-09-15T10:50Z", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Surprise Attack", SchemaEventTypeNames.INCIDENT.key)
         )
-//        insertEdgeIntoDB(getNodeByNameAndType("1.1344,104.0495", "Location"), getNodeByNameAndType("Surprise Attack", "Incident"))
+//        insertEdgeIntoDB(getNodeByNameAndType("1.1344,104.0495", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Surprise Attack", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("IED detonation", "Method"),
-            getEventNodeByNameAndType("Surprise Attack", "Incident")
+            getEventNodeByNameAndType("IED detonation", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Surprise Attack", SchemaEventTypeNames.INCIDENT.key)
         )
 
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Enemy Group", "Entity"),
-            getEventNodeByNameAndType("Roadside Bombing", "Incident")
+            getEventNodeByNameAndType("Enemy Group", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Roadside Bombing", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Disrupt enemy logistics", "Motive"),
-            getEventNodeByNameAndType("Roadside Bombing", "Incident")
+            getEventNodeByNameAndType("Disrupt enemy logistics", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Roadside Bombing", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694876400000", "DateTime"),
-            getEventNodeByNameAndType("Roadside Bombing", "Incident")
+            getEventNodeByNameAndType("1694876400000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Roadside Bombing", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.1155,104.0421", "Location"),
-            getEventNodeByNameAndType("Roadside Bombing", "Incident")
+            getEventNodeByNameAndType("1.1155,104.0421", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Roadside Bombing", SchemaEventTypeNames.INCIDENT.key)
         )
-//        insertEdgeIntoDB(getNodeByNameAndType("IED explosion", "Method"), getNodeByNameAndType("Roadside Bombing", "Incident"))
+//        insertEdgeIntoDB(getNodeByNameAndType("IED explosion", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.HOW.key), getNodeByNameAndType("Roadside Bombing", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
 
-        insertEventNodeIntoDb("Interfere with enemy supply lines", "Motive")
-        insertEventNodeIntoDb("Explosion of IED", "Method")
-        insertEventNodeIntoDb("2023-09-16T15:42Z", "DateTime")
-//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemy Group", "Entity"), getEventNodeByNameAndType("Improvised Explosive Strike", "Incident"))
+        insertEventNodeIntoDb("Interfere with enemy supply lines", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Explosion of IED", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("2023-09-16T15:42Z", SchemaEventTypeNames.WHEN.key)
+//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemy Group", SchemaEventTypeNames.WHO.key), getEventNodeByNameAndType("Improvised Explosive Strike", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
                 "Interfere with enemy supply lines",
-                "Motive"
-            ), getEventNodeByNameAndType("Improvised Explosive Strike", "Incident")
+                SchemaEventTypeNames.WHY.key
+            ), getEventNodeByNameAndType("Improvised Explosive Strike", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-16T15:42Z", "DateTime"),
-            getEventNodeByNameAndType("Improvised Explosive Strike", "Incident")
+            getEventNodeByNameAndType("2023-09-16T15:42Z", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Improvised Explosive Strike", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3530,103.7200", "Location"),
-            getEventNodeByNameAndType("Improvised Explosive Strike", "Incident")
+            getEventNodeByNameAndType("1.3530,103.7200", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Improvised Explosive Strike", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Explosion of IED", "Method"),
-            getEventNodeByNameAndType("Improvised Explosive Strike", "Incident")
-        )
-
-
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Enemy Anonymous", "Entity"),
-            getEventNodeByNameAndType("Sniper Attack", "Incident")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Secure high-value target", "Motive"),
-            getEventNodeByNameAndType("Sniper Attack", "Incident")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694983200000", "DateTime"),
-            getEventNodeByNameAndType("Sniper Attack", "Incident")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.4765,103.7636", "Location"),
-            getEventNodeByNameAndType("Sniper Attack", "Incident")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Sniper overwatch", "Method"),
-            getEventNodeByNameAndType("Sniper Attack", "Incident")
+            getEventNodeByNameAndType("Explosion of IED", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Improvised Explosive Strike", SchemaEventTypeNames.INCIDENT.key)
         )
 
+
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Hostile Militia", "Entity"),
-            getEventNodeByNameAndType("Vehicle Breakdown", "Incident")
+            getEventNodeByNameAndType("Enemy Anonymous", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Sniper Attack", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Secure supply route", "Motive"),
-            getEventNodeByNameAndType("Vehicle Breakdown", "Incident")
+            getEventNodeByNameAndType("Secure high-value target", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Sniper Attack", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695019200000", "DateTime"),
-            getEventNodeByNameAndType("Vehicle Breakdown", "Incident")
+            getEventNodeByNameAndType("1694983200000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Sniper Attack", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3600,103.7500", "Location"),
-            getEventNodeByNameAndType("Vehicle Breakdown", "Incident")
+            getEventNodeByNameAndType("1.4765,103.7636", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Sniper Attack", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Armored convoy", "Method"),
-            getEventNodeByNameAndType("Vehicle Breakdown", "Incident")
+            getEventNodeByNameAndType("Sniper overwatch", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Sniper Attack", SchemaEventTypeNames.INCIDENT.key)
         )
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Rival Faction", "Entity"),
-            getEventNodeByNameAndType("Airstrike Misfire", "Incident")
+            getEventNodeByNameAndType("Hostile Militia", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Vehicle Breakdown", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Protect civilian population", "Motive"),
-            getEventNodeByNameAndType("Airstrike Misfire", "Incident")
+            getEventNodeByNameAndType("Secure supply route", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Vehicle Breakdown", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695348900000", "DateTime"),
-            getEventNodeByNameAndType("Airstrike Misfire", "Incident")
+            getEventNodeByNameAndType("1695019200000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Vehicle Breakdown", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.4100,103.7600", "Location"),
-            getEventNodeByNameAndType("Airstrike Misfire", "Incident")
+            getEventNodeByNameAndType("1.3600,103.7500", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Vehicle Breakdown", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Precision drone strike", "Method"),
-            getEventNodeByNameAndType("Airstrike Misfire", "Incident")
+            getEventNodeByNameAndType("Armored convoy", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Vehicle Breakdown", SchemaEventTypeNames.INCIDENT.key)
+        )
+
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Rival Faction", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Airstrike Misfire", SchemaEventTypeNames.INCIDENT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Protect civilian population", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Airstrike Misfire", SchemaEventTypeNames.INCIDENT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1695348900000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Airstrike Misfire", SchemaEventTypeNames.INCIDENT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1.4100,103.7600", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Airstrike Misfire", SchemaEventTypeNames.INCIDENT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Precision drone strike", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Airstrike Misfire", SchemaEventTypeNames.INCIDENT.key)
         )
 
 
         // --- Outcomes (unique DateTimes, varied properties) ---
-//        insertEdgeIntoDB(getNodeByNameAndType("Echo Unit", "Entity"), getNodeByNameAndType("Extraction Completed", "Outcome"))
+//        insertEdgeIntoDB(getNodeByNameAndType("Echo Unit", SchemaEventTypeNames.WHO.key), getNodeByNameAndType("Extraction Completed", SchemaEventTypeNames.OUTCOME.key))
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Protect civilian population", "Motive"),
-            getEventNodeByNameAndType("Extraction Completed", "Outcome")
+            getEventNodeByNameAndType("Protect civilian population", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Extraction Completed", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695443400000", "DateTime"),
-            getEventNodeByNameAndType("Extraction Completed", "Outcome")
+            getEventNodeByNameAndType("1695443400000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Extraction Completed", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3300,103.9200", "Location"),
-            getEventNodeByNameAndType("Extraction Completed", "Outcome")
+            getEventNodeByNameAndType("1.3300,103.9200", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Extraction Completed", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("MEDEVAC extraction", "Method"),
-            getEventNodeByNameAndType("Extraction Completed", "Outcome")
-        )
-
-        insertEventNodeIntoDb("Guard general public", "Motive")
-//        insertEventNodeIntoDb("1695443400000", "DateTime")
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Echo Unit", "Entity"),
-            getEventNodeByNameAndType("Evacuation Finalized", "Outcome")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Guard general public", "Motive"),
-            getEventNodeByNameAndType("Evacuation Finalized", "Outcome")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695443400000", "DateTime"),
-            getEventNodeByNameAndType("Evacuation Finalized", "Outcome")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3300,103.9200", "Location"),
-            getEventNodeByNameAndType("Evacuation Finalized", "Outcome")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("MEDEVAC extraction", "Method"),
-            getEventNodeByNameAndType("Evacuation Finalized", "Outcome")
+            getEventNodeByNameAndType("MEDEVAC extraction", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Extraction Completed", SchemaEventTypeNames.OUTCOME.key)
         )
 
-
+        insertEventNodeIntoDb("Guard general public", SchemaEventTypeNames.WHY.key)
+//        insertEventNodeIntoDb("1695443400000", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.WHEN.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Bravo Company", "Entity"),
-            getEventNodeByNameAndType("Objective Secured", "Outcome")
+            getEventNodeByNameAndType("Echo Unit", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Evacuation Finalized", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Establish forward base", "Motive"),
-            getEventNodeByNameAndType("Objective Secured", "Outcome")
+            getEventNodeByNameAndType("Guard general public", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Evacuation Finalized", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695529200000", "DateTime"),
-            getEventNodeByNameAndType("Objective Secured", "Outcome")
+            getEventNodeByNameAndType("1695443400000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Evacuation Finalized", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3000,103.9000", "Location"),
-            getEventNodeByNameAndType("Objective Secured", "Outcome")
+            getEventNodeByNameAndType("1.3300,103.9200", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Evacuation Finalized", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Night vision assault", "Method"),
-            getEventNodeByNameAndType("Objective Secured", "Outcome")
-        )
-
-        insertEventNodeIntoDb("Create advanced base", "Motive")
-        insertEventNodeIntoDb("1695882000000", "DateTime")
-        insertEventNodeIntoDb("Nighttime offensive", "Method")
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Bravo Company", "Entity"),
-            getEventNodeByNameAndType("Target Area Secured", "Outcome")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Create advanced base", "Motive"),
-            getEventNodeByNameAndType("Target Area Secured", "Outcome")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695882000000", "DateTime"),
-            getEventNodeByNameAndType("Target Area Secured", "Outcome")
-        )
-//        insertEdgeIntoDB(getNodeByNameAndType("1.3000,103.9000", "Location"), getNodeByNameAndType("Target Area Secured", "Outcome"))
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Nighttime offensive", "Method"),
-            getEventNodeByNameAndType("Target Area Secured", "Outcome")
+            getEventNodeByNameAndType("MEDEVAC extraction", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Evacuation Finalized", SchemaEventTypeNames.OUTCOME.key)
         )
 
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Medical Detachment", "Entity"),
-            getEventNodeByNameAndType("Casualty Evacuation", "Outcome")
+            getEventNodeByNameAndType("Bravo Company", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Objective Secured", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Respond to threat", "Motive"),
-            getEventNodeByNameAndType("Casualty Evacuation", "Outcome")
+            getEventNodeByNameAndType("Establish forward base", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Objective Secured", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695634800000", "DateTime"),
-            getEventNodeByNameAndType("Casualty Evacuation", "Outcome")
+            getEventNodeByNameAndType("1695529200000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Objective Secured", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3300,103.9200", "Location"),
-            getEventNodeByNameAndType("Casualty Evacuation", "Outcome")
+            getEventNodeByNameAndType("1.3000,103.9000", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Objective Secured", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Casualty extraction", "Method"),
-            getEventNodeByNameAndType("Casualty Evacuation", "Outcome")
+            getEventNodeByNameAndType("Night vision assault", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Objective Secured", SchemaEventTypeNames.OUTCOME.key)
+        )
+
+        insertEventNodeIntoDb("Create advanced base", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("1695882000000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("Nighttime offensive", SchemaEventTypeNames.HOW.key)
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Bravo Company", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Target Area Secured", SchemaEventTypeNames.OUTCOME.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Create advanced base", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Target Area Secured", SchemaEventTypeNames.OUTCOME.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1695882000000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Target Area Secured", SchemaEventTypeNames.OUTCOME.key)
+        )
+//        insertEdgeIntoDB(getNodeByNameAndType("1.3000,103.9000", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Target Area Secured", SchemaEventTypeNames.OUTCOME.key))
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Nighttime offensive", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Target Area Secured", SchemaEventTypeNames.OUTCOME.key)
+        )
+
+
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Medical Detachment", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Casualty Evacuation", SchemaEventTypeNames.OUTCOME.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Respond to threat", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Casualty Evacuation", SchemaEventTypeNames.OUTCOME.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1695634800000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Casualty Evacuation", SchemaEventTypeNames.OUTCOME.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1.3300,103.9200", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Casualty Evacuation", SchemaEventTypeNames.OUTCOME.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Casualty extraction", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Casualty Evacuation", SchemaEventTypeNames.OUTCOME.key)
         )
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Delta Platoon", "Entity"),
-            getEventNodeByNameAndType("Mission Delay", "Outcome")
+            getEventNodeByNameAndType("Delta Platoon", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Mission Delay", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Disrupt enemy logistics", "Motive"),
-            getEventNodeByNameAndType("Mission Delay", "Outcome")
+            getEventNodeByNameAndType("Disrupt enemy logistics", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Mission Delay", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695705600000", "DateTime"),
-            getEventNodeByNameAndType("Mission Delay", "Outcome")
+            getEventNodeByNameAndType("1695705600000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Mission Delay", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.4765,103.7636", "Location"),
-            getEventNodeByNameAndType("Mission Delay", "Outcome")
+            getEventNodeByNameAndType("1.4765,103.7636", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Mission Delay", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Drone surveillance", "Method"),
-            getEventNodeByNameAndType("Mission Delay", "Outcome")
+            getEventNodeByNameAndType("Drone surveillance", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Mission Delay", SchemaEventTypeNames.OUTCOME.key)
         )
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Support Platoon", "Entity"),
-            getEventNodeByNameAndType("Equipment Loss", "Outcome")
+            getEventNodeByNameAndType("Support Platoon", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Equipment Loss", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Retaliate against attack", "Motive"),
-            getEventNodeByNameAndType("Equipment Loss", "Outcome")
+            getEventNodeByNameAndType("Retaliate against attack", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Equipment Loss", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695806100000", "DateTime"),
-            getEventNodeByNameAndType("Equipment Loss", "Outcome")
+            getEventNodeByNameAndType("1695806100000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Equipment Loss", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3600,103.7500", "Location"),
-            getEventNodeByNameAndType("Equipment Loss", "Outcome")
+            getEventNodeByNameAndType("1.3600,103.7500", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Equipment Loss", SchemaEventTypeNames.OUTCOME.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Small arms engagement", "Method"),
-            getEventNodeByNameAndType("Equipment Loss", "Outcome")
+            getEventNodeByNameAndType("Small arms engagement", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Equipment Loss", SchemaEventTypeNames.OUTCOME.key)
         )
 
 // --- Impacts (unique DateTimes, varied properties) ---
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Joint Task Force Command", "Entity"),
-            getEventNodeByNameAndType("Operational Delay", "Impact")
+            getEventNodeByNameAndType("Joint Task Force Command", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Operational Delay", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Gather enemy intel", "Motive"),
-            getEventNodeByNameAndType("Operational Delay", "Impact")
+            getEventNodeByNameAndType("Gather enemy intel", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Operational Delay", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695894600000", "DateTime"),
-            getEventNodeByNameAndType("Operational Delay", "Impact")
+            getEventNodeByNameAndType("1695894600000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Operational Delay", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.4250,103.8500", "Location"),
-            getEventNodeByNameAndType("Operational Delay", "Impact")
+            getEventNodeByNameAndType("1.4250,103.8500", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Operational Delay", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Drone surveillance", "Method"),
-            getEventNodeByNameAndType("Operational Delay", "Impact")
-        )
-
-        insertEventNodeIntoDb("Gather enemy information", "Motive")
-        insertEventNodeIntoDb("Drone monitoring", "Method")
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Joint Task Force Command", "Entity"),
-            getEventNodeByNameAndType("Mission Timeline Extended", "Impact")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Gather enemy information", "Motive"),
-            getEventNodeByNameAndType("Mission Timeline Extended", "Impact")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695894600000", "DateTime"),
-            getEventNodeByNameAndType("Mission Timeline Extended", "Impact")
-        )
-//        insertEdgeIntoDB(getNodeByNameAndType("1.4250,103.8500", "Location"), getNodeByNameAndType("Mission Timeline Extended", "Impact"))
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Drone monitoring", "Method"),
-            getEventNodeByNameAndType("Mission Timeline Extended", "Impact")
+            getEventNodeByNameAndType("Drone surveillance", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Operational Delay", SchemaEventTypeNames.IMPACT.key)
         )
 
+        insertEventNodeIntoDb("Gather enemy information", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Drone monitoring", SchemaEventTypeNames.HOW.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Engineering Corps", "Entity"),
-            getEventNodeByNameAndType("Intel Gap Created", "Impact")
+            getEventNodeByNameAndType("Joint Task Force Command", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Mission Timeline Extended", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Secure high-value target", "Motive"),
-            getEventNodeByNameAndType("Intel Gap Created", "Impact")
+            getEventNodeByNameAndType("Gather enemy information", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Mission Timeline Extended", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1696002300000", "DateTime"),
-            getEventNodeByNameAndType("Intel Gap Created", "Impact")
+            getEventNodeByNameAndType("1695894600000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Mission Timeline Extended", SchemaEventTypeNames.IMPACT.key)
         )
+//        insertEdgeIntoDB(getNodeByNameAndType("1.4250,103.8500", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Mission Timeline Extended", SchemaEventTypeNames.IMPACT.key))
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3000,103.9000", "Location"),
-            getEventNodeByNameAndType("Intel Gap Created", "Impact")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Precision drone strike", "Method"),
-            getEventNodeByNameAndType("Intel Gap Created", "Impact")
+            getEventNodeByNameAndType("Drone monitoring", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Mission Timeline Extended", SchemaEventTypeNames.IMPACT.key)
         )
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Support Platoon", "Entity"),
-            getEventNodeByNameAndType("Resource Shortage", "Impact")
+            getEventNodeByNameAndType("Engineering Corps", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Intel Gap Created", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Disrupt enemy logistics", "Motive"),
-            getEventNodeByNameAndType("Resource Shortage", "Impact")
+            getEventNodeByNameAndType("Secure high-value target", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Intel Gap Created", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695118200000", "DateTime"),
-            getEventNodeByNameAndType("Resource Shortage", "Impact")
+            getEventNodeByNameAndType("1696002300000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Intel Gap Created", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.4100,103.7600", "Location"),
-            getEventNodeByNameAndType("Resource Shortage", "Impact")
+            getEventNodeByNameAndType("1.3000,103.9000", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Intel Gap Created", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Armored convoy", "Method"),
-            getEventNodeByNameAndType("Resource Shortage", "Impact")
-        )
-
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Enemy Anonymous", "Entity"),
-            getEventNodeByNameAndType("Increased Hostilities", "Impact")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Retaliate against attack", "Motive"),
-            getEventNodeByNameAndType("Increased Hostilities", "Impact")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695048000000", "DateTime"),
-            getEventNodeByNameAndType("Increased Hostilities", "Impact")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.1155,104.0421", "Location"),
-            getEventNodeByNameAndType("Increased Hostilities", "Impact")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Small arms engagement", "Method"),
-            getEventNodeByNameAndType("Increased Hostilities", "Impact")
+            getEventNodeByNameAndType("Precision drone strike", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Intel Gap Created", SchemaEventTypeNames.IMPACT.key)
         )
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Joint Task Force Command", "Entity"),
-            getEventNodeByNameAndType("Strategic Advantage Lost", "Impact")
+            getEventNodeByNameAndType("Support Platoon", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Resource Shortage", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Establish forward base", "Motive"),
-            getEventNodeByNameAndType("Strategic Advantage Lost", "Impact")
+            getEventNodeByNameAndType("Disrupt enemy logistics", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Resource Shortage", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694937000000", "DateTime"),
-            getEventNodeByNameAndType("Strategic Advantage Lost", "Impact")
+            getEventNodeByNameAndType("1695118200000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Resource Shortage", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.4765,103.7636", "Location"),
-            getEventNodeByNameAndType("Strategic Advantage Lost", "Impact")
+            getEventNodeByNameAndType("1.4100,103.7600", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Resource Shortage", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Night operations", "Method"),
-            getEventNodeByNameAndType("Strategic Advantage Lost", "Impact")
+            getEventNodeByNameAndType("Armored convoy", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Resource Shortage", SchemaEventTypeNames.IMPACT.key)
+        )
+
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Enemy Anonymous", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Increased Hostilities", SchemaEventTypeNames.IMPACT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Retaliate against attack", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Increased Hostilities", SchemaEventTypeNames.IMPACT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1695048000000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Increased Hostilities", SchemaEventTypeNames.IMPACT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1.1155,104.0421", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Increased Hostilities", SchemaEventTypeNames.IMPACT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Small arms engagement", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Increased Hostilities", SchemaEventTypeNames.IMPACT.key)
+        )
+
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Joint Task Force Command", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Strategic Advantage Lost", SchemaEventTypeNames.IMPACT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Establish forward base", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Strategic Advantage Lost", SchemaEventTypeNames.IMPACT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1694937000000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Strategic Advantage Lost", SchemaEventTypeNames.IMPACT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1.4765,103.7636", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Strategic Advantage Lost", SchemaEventTypeNames.IMPACT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Night operations", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Strategic Advantage Lost", SchemaEventTypeNames.IMPACT.key)
         )
 
         // --- Edges between Events ---
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Reconnaissance Patrol", "Task"),
-            getEventNodeByNameAndType("Ambush", "Incident")
+            getEventNodeByNameAndType("Reconnaissance Patrol", SchemaEventTypeNames.TASK.key),
+            getEventNodeByNameAndType("Ambush", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Convoy Escort", "Task"),
-            getEventNodeByNameAndType("Roadside Bombing", "Incident")
+            getEventNodeByNameAndType("Convoy Escort", SchemaEventTypeNames.TASK.key),
+            getEventNodeByNameAndType("Roadside Bombing", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Forward Observation", "Task"),
-            getEventNodeByNameAndType("Sniper Attack", "Incident")
+            getEventNodeByNameAndType("Forward Observation", SchemaEventTypeNames.TASK.key),
+            getEventNodeByNameAndType("Sniper Attack", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Resupply Mission", "Task"),
-            getEventNodeByNameAndType("Vehicle Breakdown", "Incident")
-        )
-
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Reconnaissance Patrol", "Outcome"),
-            getEventNodeByNameAndType("Extraction Completed", "Task")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Convoy Escort", "Outcome"),
-            getEventNodeByNameAndType("Objective Secured", "Task")
-        )
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Forward Observation", "Outcome"),
-            getEventNodeByNameAndType("Casualty Evacuation", "Task")
+            getEventNodeByNameAndType("Resupply Mission", SchemaEventTypeNames.TASK.key),
+            getEventNodeByNameAndType("Vehicle Breakdown", SchemaEventTypeNames.INCIDENT.key)
         )
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Operational Delay", "Impact"),
-            getEventNodeByNameAndType("Ambush", "Incident")
+            getEventNodeByNameAndType("Reconnaissance Patrol", SchemaEventTypeNames.OUTCOME.key),
+            getEventNodeByNameAndType("Extraction Completed", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Resource Shortage", "Impact"),
-            getEventNodeByNameAndType("Roadside Bombing", "Incident")
+            getEventNodeByNameAndType("Convoy Escort", SchemaEventTypeNames.OUTCOME.key),
+            getEventNodeByNameAndType("Objective Secured", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Increased Hostilities", "Impact"),
-            getEventNodeByNameAndType("Sniper Attack", "Incident")
+            getEventNodeByNameAndType("Forward Observation", SchemaEventTypeNames.OUTCOME.key),
+            getEventNodeByNameAndType("Casualty Evacuation", SchemaEventTypeNames.TASK.key)
+        )
+
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Operational Delay", SchemaEventTypeNames.IMPACT.key),
+            getEventNodeByNameAndType("Ambush", SchemaEventTypeNames.INCIDENT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Resource Shortage", SchemaEventTypeNames.IMPACT.key),
+            getEventNodeByNameAndType("Roadside Bombing", SchemaEventTypeNames.INCIDENT.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Increased Hostilities", SchemaEventTypeNames.IMPACT.key),
+            getEventNodeByNameAndType("Sniper Attack", SchemaEventTypeNames.INCIDENT.key)
         )
 
         /*-----------------------------------------
         |    FOR THREAT DETECTION USE CASE        |
         -----------------------------------------*/
-        insertEventNodeIntoDb("Drone Battery Ignition During Patrol", "Incident")
-        insertEventNodeIntoDb("Aerial Perimeter Recon", "Motive")
+        insertEventNodeIntoDb("Drone Battery Ignition During Patrol", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Aerial Perimeter Recon", SchemaEventTypeNames.WHY.key)
         insertEventNodeIntoDb(
             "Battery thermal runaway mid-air caused fireball and crash in vegetation zone",
-            "Method"
+            SchemaEventTypeNames.HOW.key
         )
-        insertEventNodeIntoDb("1737177600000", "DateTime")
-        insertEventNodeIntoDb("1.3331,103.8198", "Location")
+        insertEventNodeIntoDb("1737177600000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3331,103.8198", SchemaEventTypeNames.WHERE.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Aerial Perimeter Recon", "Motive"),
-            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident")
+            getEventNodeByNameAndType("Aerial Perimeter Recon", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
                 "Battery thermal runaway mid-air caused fireball and crash in vegetation zone",
-                "Method"
-            ), getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident")
+                SchemaEventTypeNames.HOW.key
+            ), getEventNodeByNameAndType("Drone Battery Ignition During Patrol",
+                SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1737177600000", "DateTime"),
-            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident")
+            getEventNodeByNameAndType("1737177600000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3331,103.8198", "Location"),
-            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident")
+            getEventNodeByNameAndType("1.3331,103.8198", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", SchemaEventTypeNames.INCIDENT.key)
         )
 
-        insertEventNodeIntoDb("Drone Communication Loss Over Fire Zone", "Incident")
-        insertEventNodeIntoDb("Fire Perimeter Scouting", "Motive")
+        insertEventNodeIntoDb("Drone Communication Loss Over Fire Zone", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Fire Perimeter Scouting", SchemaEventTypeNames.WHY.key)
         insertEventNodeIntoDb(
             "Thermal interference disrupted uplink, causing drone to hover erratically before crash-landing near treeline",
-            "Method"
+            SchemaEventTypeNames.HOW.key
         )
-        insertEventNodeIntoDb("1737187500000", "DateTime")
-        insertEventNodeIntoDb("1.3683,103.8454", "Location")
+        insertEventNodeIntoDb("1737187500000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3683,103.8454", SchemaEventTypeNames.WHERE.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Fire Perimeter Scouting", "Motive"),
-            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident")
+            getEventNodeByNameAndType("Fire Perimeter Scouting", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone",
+                SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
                 "Thermal interference disrupted uplink, causing drone to hover erratically before crash-landing near treeline",
-                "Method"
-            ), getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident")
+                SchemaEventTypeNames.HOW.key
+            ), getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone",
+                SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1737187500000", "DateTime"),
-            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident")
+            getEventNodeByNameAndType("1737187500000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone",
+                SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3683,103.8454", "Location"),
-            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident")
+            getEventNodeByNameAndType("1.3683,103.8454", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone",
+                SchemaEventTypeNames.INCIDENT.key)
         )
 
-        insertEventNodeIntoDb("Drone Rotor Jammed During Lift-Off", "Incident")
-        insertEventNodeIntoDb("Pre-Deployment Check", "Motive")
-        insertEventNodeIntoDb(
-            "Dust ingress in rotor hub stalled motor mid-ascent, causing drone to crash near fire truck",
-            "Method"
-        )
-        insertEventNodeIntoDb("1737196800000", "DateTime")
-        insertEventNodeIntoDb("1.3012,103.7880", "Location")
+        insertEventNodeIntoDb("Drone Rotor Jammed During Lift-Off", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Pre-Deployment Check", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Dust ingress in rotor hub stalled motor mid-ascent, causing drone to crash near fire truck", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("1737196800000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3012,103.7880", SchemaEventTypeNames.WHERE.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Pre-Deployment Check", "Motive"),
-            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident")
+            getEventNodeByNameAndType("Pre-Deployment Check", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
-                "Dust ingress in rotor hub stalled motor mid-ascent, causing drone to crash near fire truck",
-                "Method"
-            ), getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident")
+                "Dust ingress in rotor hub stalled motor mid-ascent, causing drone to crash near fire truck", SchemaEventTypeNames.HOW.key
+            ), getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1737196800000", "DateTime"),
-            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident")
+            getEventNodeByNameAndType("1737196800000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3012,103.7880", "Location"),
-            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident")
+            getEventNodeByNameAndType("1.3012,103.7880", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", SchemaEventTypeNames.INCIDENT.key)
         )
 
-        insertEventNodeIntoDb("Isolate Crash Zone and Suppress Ember Spread", "Task")
+        // task
+        insertEventNodeIntoDb("Isolate Crash Zone and Suppress Ember Spread", SchemaEventTypeNames.TASK.key)
+        insertEventNodeIntoDb("Prevent vegetation ignition from battery combustion debris", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Deploy foam suppressant around crash area and establish ember watch perimeter", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("1737177900000", SchemaEventTypeNames.WHEN.key)
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Prevent vegetation ignition from battery combustion debris", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Deploy foam suppressant around crash area and establish ember watch perimeter", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread",SchemaEventTypeNames.TASK.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1737177900000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread",SchemaEventTypeNames.TASK.key)
+        )
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("1.3331,103.8198", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread",SchemaEventTypeNames.TASK.key)
+        )
+        // crash fire chief, explosive ordinance disposal technician, military police squad leader
         insertEventNodeIntoDb(
-            "Prevent vegetation ignition from battery combustion debris",
-            "Motive"
-        )
-        insertEventNodeIntoDb(
-            "Deploy foam suppressant around crash area and establish ember watch perimeter",
-            "Method"
-        )
-        insertEventNodeIntoDb("1737177900000", "DateTime")
-        insertEventEdgeIntoDb(
-            getEventNodeByNameAndType(
-                "Prevent vegetation ignition from battery combustion debris",
-                "Motive"
-            ), getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task")
+            inputName = "Crash Fire Chief", inputType = SchemaEventTypeNames.WHO.key,
+            inputDescription = "Controls exclusion zones, coordinates perimeter checkpoints, and delivers PA evacuation instructions during ordnance/ordinance incidents."
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType(
-                "Deploy foam suppressant around crash area and establish ember watch perimeter",
-                "Method"
-            ), getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task")
+            getEventNodeByNameAndType("Crash Fire Chief", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", SchemaEventTypeNames.TASK.key)
         )
+        insertEventNodeIntoDb(inputName = "Explosive Ordnance Disposal Technician", inputType = SchemaEventTypeNames.WHO.key,
+            inputDescription = "Specialist trained to identify and neutralize explosive hazards present in the crash zone.")
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1737177900000", "DateTime"),
-            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task")
+            getEventNodeByNameAndType("Explosive Ordnance Disposal Technician", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", SchemaEventTypeNames.TASK.key)
         )
+        insertEventNodeIntoDb(inputName = "Foam Suppression Technician", inputType = SchemaEventTypeNames.WHO.key,
+            inputDescription = "Deploys aerial foam blankets, maintains ember perimeter suppression and hot-spot knockdown, and enforces crash-zone foam safety protocols with CFR guidance.")
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3331,103.8198", "Location"),
-            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task")
+            getEventNodeByNameAndType("Foam Suppression Technician", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", SchemaEventTypeNames.TASK.key)
         )
 
-        insertEventNodeIntoDb("Retrieve Drone Wreck and Reset Uplink Protocols", "Task")
-        insertEventNodeIntoDb("Resume safe flight control over surveillance drones", "Motive")
-        insertEventNodeIntoDb(
-            "Track last known GPS path, recover wreckage, and reconfigure thermal-resistant signal repeater",
-            "Method"
-        )
-        insertEventNodeIntoDb("1737187800000", "DateTime")
-        insertEventNodeIntoDb("1.3684,103.8454", "Location")
+        // task
+        insertEventNodeIntoDb("Retrieve Drone Wreck and Reset Uplink Protocols", SchemaEventTypeNames.TASK.key)
+        insertEventNodeIntoDb("Resume safe flight control over surveillance drones", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Track last known GPS path, recover wreckage, and reconfigure thermal-resistant signal repeater", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("1737187800000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3684,103.8454", SchemaEventTypeNames.WHERE.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType(
-                "Resume safe flight control over surveillance drones",
-                "Motive"
-            ), getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task")
+            getEventNodeByNameAndType("Resume safe flight control over surveillance drones", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType(
-                "Track last known GPS path, recover wreckage, and reconfigure thermal-resistant signal repeater",
-                "Method"
-            ), getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task")
+            getEventNodeByNameAndType("Track last known GPS path, recover wreckage, and reconfigure thermal-resistant signal repeater", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1737187800000", "DateTime"),
-            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task")
+            getEventNodeByNameAndType("1737187800000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3684,103.8454", "Location"),
-            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task")
+            getEventNodeByNameAndType("1.3684,103.8454", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", SchemaEventTypeNames.TASK.key)
+        )
+        // uav recovery specialist, signals officer, electronic warfare operator
+        insertEventNodeIntoDb(inputName = "Drone Recovery Specialist", inputType = SchemaEventTypeNames.WHO.key,
+            inputDescription = "Locates and retrieves downed UAVs, secures components, and supports data uplink reinitialisation post-crash.")
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Drone Recovery Specialist", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventNodeIntoDb(inputName = "Signal Systems Engineer", inputType = SchemaEventTypeNames.WHO.key,
+            inputDescription = "Restores drone communication/uplink by configuring repeater systems, analysing interference logs, and validating protocol resets.")
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Signal Systems Engineer", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventNodeIntoDb(inputName = "Electronic Warfare Operator", inputType = SchemaEventTypeNames.WHO.key,
+            inputDescription = "Oversees launch pad readiness and pre-flight mechanical integrity checks for UAV fleets; assists post-incident inspection and safe recovery handling.")
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Electronic Warfare Operator", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", SchemaEventTypeNames.TASK.key)
         )
 
-        insertEventNodeIntoDb("Clear Launch Pad and Inspect Fleet", "Task")
-        insertEventNodeIntoDb(
-            "Prevent launch delays and rule out drone batch-wide mechanical faults",
-            "Motive"
-        )
-        insertEventNodeIntoDb(
-            "Clear debris from lift pad and conduct rotor health scan across nearby UAVs",
-            "Method"
-        )
-        insertEventNodeIntoDb("1737196860000", "DateTime")
-        insertEventNodeIntoDb("1.3013,103.7880", "Location")
+        // task
+        insertEventNodeIntoDb("Clear Launch Pad and Inspect Fleet", SchemaEventTypeNames.TASK.key)
+        insertEventNodeIntoDb("Prevent launch delays and rule out drone batch-wide mechanical faults", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("Clear debris from lift pad and conduct rotor health scan across nearby UAVs", SchemaEventTypeNames.HOW.key)
+        insertEventNodeIntoDb("1737196860000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3013,103.7880", SchemaEventTypeNames.WHERE.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType(
-                "Prevent launch delays and rule out drone batch-wide mechanical faults",
-                "Motive"
-            ), getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task")
+            getEventNodeByNameAndType("Prevent launch delays and rule out drone batch-wide mechanical faults", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType(
-                "Clear debris from lift pad and conduct rotor health scan across nearby UAVs",
-                "Method"
-            ), getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task")
+            getEventNodeByNameAndType("Clear debris from lift pad and conduct rotor health scan across nearby UAVs", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1737196860000", "DateTime"),
-            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task")
+            getEventNodeByNameAndType("1737196860000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3013,103.7880", "Location"),
-            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task")
+            getEventNodeByNameAndType("1.3013,103.7880", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", SchemaEventTypeNames.TASK.key)
+        )
+        // crew chief, ordinance technician, maintenance quality inspector
+        insertEventNodeIntoDb(inputName = "Crew Chief", inputType = SchemaEventTypeNames.WHO.key,
+            inputDescription = "Aircraft maintainer in charge of coordinating launch pad operations and overall readiness of airframes.")
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Crew Chief", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventNodeIntoDb(inputName = "Ordnance Technician", inputType = SchemaEventTypeNames.WHO.key,
+            inputDescription = "Specialist responsible for safe handling, installation, and inspection of aircraft munitions and ordnance systems.")
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Ordnance Technician", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", SchemaEventTypeNames.TASK.key)
+        )
+        insertEventNodeIntoDb(inputName = "Maintenance Quality Inspector", inputType = SchemaEventTypeNames.WHO.key,
+            inputDescription = "Performs debris removal, conducts fine-grain diagnostics on rotor assemblies, and validates lift-off safety protocols.")
+        insertEventEdgeIntoDb(
+            getEventNodeByNameAndType("Maintenance Quality Inspector", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", SchemaEventTypeNames.TASK.key)
         )
 
-        insertEventNodeIntoDb("Unmanned Zone Lost Visual Coverage", "Impact")
-        insertEventNodeIntoDb("Fire Line Command Unit", "Entity")
+        // impact
+        insertEventNodeIntoDb("Unmanned Zone Lost Visual Coverage", SchemaEventTypeNames.IMPACT.key)
+        insertEventNodeIntoDb("Fire Line Command Unit", SchemaEventTypeNames.WHO.key)
         insertEventNodeIntoDb(
             "Uplink loss triggered blackout over 400m stretch of fire line, delaying spread estimation",
-            "Method"
+            SchemaEventTypeNames.HOW.key
         )
-        insertEventNodeIntoDb("1737197100000", "DateTime")
+        insertEventNodeIntoDb("1737197100000", SchemaEventTypeNames.WHEN.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Fire Line Command Unit", "Entity"),
-            getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact")
+            getEventNodeByNameAndType("Fire Line Command Unit", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
                 "Uplink loss triggered blackout over 400m stretch of fire line, delaying spread estimation",
-                "Method"
-            ), getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact")
+                SchemaEventTypeNames.HOW.key
+            ), getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1737197100000", "DateTime"),
-            getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact")
+            getEventNodeByNameAndType("1737197100000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3012,103.7880", "Location"),
-            getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact")
+            getEventNodeByNameAndType("1.3012,103.7880", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", SchemaEventTypeNames.IMPACT.key)
         )
 
-        insertEventNodeIntoDb("Small-Scale Fire Ignited in Crash Radius", "Impact")
-        insertEventNodeIntoDb("Drone Patrol Zone Crew", "Entity")
+        insertEventNodeIntoDb("Small-Scale Fire Ignited in Crash Radius", SchemaEventTypeNames.IMPACT.key)
+        insertEventNodeIntoDb("Drone Patrol Zone Crew", SchemaEventTypeNames.WHO.key)
         insertEventNodeIntoDb(
             "Battery fragments landed in brush, igniting localized ground fire before suppression team arrived",
-            "Method"
+            SchemaEventTypeNames.HOW.key
         )
-        insertEventNodeIntoDb("1737177660000", "DateTime")
-        insertEventNodeIntoDb("1.3531,103.8178", "Location")
+        insertEventNodeIntoDb("1737177660000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3531,103.8178", SchemaEventTypeNames.WHERE.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Drone Patrol Zone Crew", "Entity"),
-            getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact")
+            getEventNodeByNameAndType("Drone Patrol Zone Crew", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
                 "Battery fragments landed in brush, igniting localized ground fire before suppression team arrived",
-                "Method"
-            ), getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact")
+                SchemaEventTypeNames.HOW.key
+            ), getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1737177660000", "DateTime"),
-            getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact")
+            getEventNodeByNameAndType("1737177660000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3531,103.8178", "Location"),
-            getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact")
+            getEventNodeByNameAndType("1.3531,103.8178", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", SchemaEventTypeNames.IMPACT.key)
         )
 
-        insertEventNodeIntoDb("Launch Operations Temporarily Suspended", "Impact")
-        insertEventNodeIntoDb("UAV Ground Control Team", "Entity")
+        insertEventNodeIntoDb("Launch Operations Temporarily Suspended", SchemaEventTypeNames.IMPACT.key)
+        insertEventNodeIntoDb("UAV Ground Control Team", SchemaEventTypeNames.WHO.key)
         insertEventNodeIntoDb(
             "Pad debris and rotor jam caused a 30-minute hold on drone launch queue",
-            "Method"
+            SchemaEventTypeNames.HOW.key
         )
-        insertEventNodeIntoDb("1737187560000", "DateTime")
-        insertEventNodeIntoDb("1.3685,103.8454", "Location")
+        insertEventNodeIntoDb("1737187560000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3685,103.8454", SchemaEventTypeNames.WHERE.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("UAV Ground Control Team", "Entity"),
-            getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact")
+            getEventNodeByNameAndType("UAV Ground Control Team", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Launch Operations Temporarily Suspended", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
                 "Pad debris and rotor jam caused a 30-minute hold on drone launch queue",
-                "Method"
-            ), getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact")
+                SchemaEventTypeNames.HOW.key
+            ), getEventNodeByNameAndType("Launch Operations Temporarily Suspended", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1737187560000", "DateTime"),
-            getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact")
+            getEventNodeByNameAndType("1737187560000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Launch Operations Temporarily Suspended", SchemaEventTypeNames.IMPACT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3685,103.8454", "Location"),
-            getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact")
+            getEventNodeByNameAndType("1.3685,103.8454", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Launch Operations Temporarily Suspended", SchemaEventTypeNames.IMPACT.key)
         )
 
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread", "Task"),
-            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident")
+            getEventNodeByNameAndType("Isolate Crash Zone and Suppress Ember Spread",
+                SchemaEventTypeNames.TASK.key),
+            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols", "Task"),
-            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident")
+            getEventNodeByNameAndType("Retrieve Drone Wreck and Reset Uplink Protocols",
+                SchemaEventTypeNames.TASK.key),
+            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone",
+                SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", "Task"),
-            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident")
+            getEventNodeByNameAndType("Clear Launch Pad and Inspect Fleet", SchemaEventTypeNames.TASK.key),
+            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", "Impact"),
-            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", "Incident")
+            getEventNodeByNameAndType("Small-Scale Fire Ignited in Crash Radius", SchemaEventTypeNames.IMPACT.key),
+            getEventNodeByNameAndType("Drone Battery Ignition During Patrol", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", "Impact"),
-            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone", "Incident")
+            getEventNodeByNameAndType("Unmanned Zone Lost Visual Coverage", SchemaEventTypeNames.IMPACT.key),
+            getEventNodeByNameAndType("Drone Communication Loss Over Fire Zone",
+                SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Launch Operations Temporarily Suspended", "Impact"),
-            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", "Incident")
+            getEventNodeByNameAndType("Launch Operations Temporarily Suspended", SchemaEventTypeNames.IMPACT.key),
+            getEventNodeByNameAndType("Drone Rotor Jammed During Lift-Off", SchemaEventTypeNames.INCIDENT.key)
         )
 
         /*-----------------------------------------
@@ -1224,186 +1260,186 @@ class EventRepository(
         -----------------------------------------*/
         insertEventNodeIntoDb(
             "Subject loiters near restricted zone appearing to scan the area",
-            "Incident"
+            SchemaEventTypeNames.INCIDENT.key
         )
-        insertEventNodeIntoDb("Unidentified Male", "Entity")
-        insertEventNodeIntoDb("1694335500000", "DateTime")
-        insertEventNodeIntoDb("1.3500,103.6999", "Location")
-        insertEventNodeIntoDb("Loitering with camera", "Method")
+        insertEventNodeIntoDb("Unidentified Male", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("1694335500000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3500,103.6999", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("Loitering with camera", SchemaEventTypeNames.HOW.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Unidentified Male", "Entity"),
+            getEventNodeByNameAndType("Unidentified Male", SchemaEventTypeNames.WHO.key),
             getEventNodeByNameAndType(
                 "Subject loiters near restricted zone appearing to scan the area",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694335500000", "DateTime"),
+            getEventNodeByNameAndType("1694335500000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType(
                 "Subject loiters near restricted zone appearing to scan the area",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3500,103.6999", "Location"),
+            getEventNodeByNameAndType("1.3500,103.6999", SchemaEventTypeNames.WHERE.key),
             getEventNodeByNameAndType(
                 "Subject loiters near restricted zone appearing to scan the area",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Loitering with camera", "Method"),
+            getEventNodeByNameAndType("Loitering with camera", SchemaEventTypeNames.HOW.key),
             getEventNodeByNameAndType(
                 "Subject loiters near restricted zone appearing to scan the area",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
 
         insertEventNodeIntoDb(
             "Subject spotted wandering aimlessly along perimeter fencing",
-            "Incident"
+            SchemaEventTypeNames.INCIDENT.key
         )
-        insertEventNodeIntoDb("Middle-aged Woman", "Entity")
-        insertEventNodeIntoDb("1694427120000", "DateTime")
-        insertEventNodeIntoDb("1.3453,103.6000", "Location")
-        insertEventNodeIntoDb("Walking in circles", "Method")
+        insertEventNodeIntoDb("Middle-aged Woman", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("1694427120000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3453,103.6000", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("Walking in circles", SchemaEventTypeNames.HOW.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Middle-aged Woman", "Entity"),
+            getEventNodeByNameAndType("Middle-aged Woman", SchemaEventTypeNames.WHO.key),
             getEventNodeByNameAndType(
                 "Subject spotted wandering aimlessly along perimeter fencing",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694427120000", "DateTime"),
+            getEventNodeByNameAndType("1694427120000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType(
                 "Subject spotted wandering aimlessly along perimeter fencing",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3453,103.6000", "Location"),
+            getEventNodeByNameAndType("1.3453,103.6000", SchemaEventTypeNames.WHERE.key),
             getEventNodeByNameAndType(
                 "Subject spotted wandering aimlessly along perimeter fencing",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Walking in circles", "Method"),
+            getEventNodeByNameAndType("Walking in circles", SchemaEventTypeNames.HOW.key),
             getEventNodeByNameAndType(
                 "Subject spotted wandering aimlessly along perimeter fencing",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
 
         insertEventNodeIntoDb(
             "Person discreetly writing or sketching near checkpoint structure",
-            "Incident"
+            SchemaEventTypeNames.INCIDENT.key
         )
-        insertEventNodeIntoDb("Unidentified Youth", "Entity")
-        insertEventNodeIntoDb("1694502300000", "DateTime")
-        insertEventNodeIntoDb("1.3425,103.6897", "Location")
-        insertEventNodeIntoDb("Taking notes discreetly", "Method")
+        insertEventNodeIntoDb("Unidentified Youth", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("1694502300000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3425,103.6897", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("Taking notes discreetly", SchemaEventTypeNames.HOW.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Unidentified Youth", "Entity"),
+            getEventNodeByNameAndType("Unidentified Youth", SchemaEventTypeNames.WHO.key),
             getEventNodeByNameAndType(
                 "Person discreetly writing or sketching near checkpoint structure",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694502300000", "DateTime"),
+            getEventNodeByNameAndType("1694502300000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType(
                 "Person discreetly writing or sketching near checkpoint structure",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3425,103.6897", "Location"),
+            getEventNodeByNameAndType("1.3425,103.6897", SchemaEventTypeNames.WHERE.key),
             getEventNodeByNameAndType(
                 "Person discreetly writing or sketching near checkpoint structure",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Taking notes discreetly", "Method"),
+            getEventNodeByNameAndType("Taking notes discreetly", SchemaEventTypeNames.HOW.key),
             getEventNodeByNameAndType(
                 "Person discreetly writing or sketching near checkpoint structure",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
 
         insertEventNodeIntoDb(
             "Unusual handoff of item occurs at public bench with minimal interaction",
-            "Incident"
+            SchemaEventTypeNames.INCIDENT.key
         )
-        insertEventNodeIntoDb("Two Individuals", "Entity")
-        insertEventNodeIntoDb("1694612220000", "DateTime")
-        insertEventNodeIntoDb("1.3456,103.6902", "Location")
-        insertEventNodeIntoDb("Briefcase handover", "Method")
+        insertEventNodeIntoDb("Two Individuals", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("1694612220000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3456,103.6902", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("Briefcase handover", SchemaEventTypeNames.HOW.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Two Individuals", "Entity"),
+            getEventNodeByNameAndType("Two Individuals", SchemaEventTypeNames.WHO.key),
             getEventNodeByNameAndType(
                 "Unusual handoff of item occurs at public bench with minimal interaction",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694612220000", "DateTime"),
+            getEventNodeByNameAndType("1694612220000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType(
                 "Unusual handoff of item occurs at public bench with minimal interaction",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3456,103.6902", "Location"),
+            getEventNodeByNameAndType("1.3456,103.6902", SchemaEventTypeNames.WHERE.key),
             getEventNodeByNameAndType(
                 "Unusual handoff of item occurs at public bench with minimal interaction",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Briefcase handover", "Method"),
+            getEventNodeByNameAndType("Briefcase handover", SchemaEventTypeNames.HOW.key),
             getEventNodeByNameAndType(
                 "Unusual handoff of item occurs at public bench with minimal interaction",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
 
         insertEventNodeIntoDb(
             "Small group appears to annotate or inspect public utility fixture",
-            "Incident"
+            SchemaEventTypeNames.INCIDENT.key
         )
-        insertEventNodeIntoDb("Small Group", "Entity")
-        insertEventNodeIntoDb("1694685300000", "DateTime")
-        insertEventNodeIntoDb("1.3409,103.6885", "Location")
-        insertEventNodeIntoDb("Use of chalk/paint marking", "Method")
+        insertEventNodeIntoDb("Small Group", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("1694685300000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3409,103.6885", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("Use of chalk/paint marking", SchemaEventTypeNames.HOW.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Small Group", "Entity"),
+            getEventNodeByNameAndType("Small Group", SchemaEventTypeNames.WHO.key),
             getEventNodeByNameAndType(
                 "Small group appears to annotate or inspect public utility fixture",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694685300000", "DateTime"),
+            getEventNodeByNameAndType("1694685300000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType(
                 "Small group appears to annotate or inspect public utility fixture",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3409,103.6885", "Location"),
+            getEventNodeByNameAndType("1.3409,103.6885", SchemaEventTypeNames.WHERE.key),
             getEventNodeByNameAndType(
                 "Small group appears to annotate or inspect public utility fixture",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Use of chalk/paint marking", "Method"),
+            getEventNodeByNameAndType("Use of chalk/paint marking", SchemaEventTypeNames.HOW.key),
             getEventNodeByNameAndType(
                 "Small group appears to annotate or inspect public utility fixture",
-                "Incident"
+                SchemaEventTypeNames.INCIDENT.key
             )
         )
 
@@ -1412,149 +1448,149 @@ class EventRepository(
         |    FOR ROUTE INTEGRITY USE CASE         |
         -----------------------------------------*/
         // Incident 1: Bombing at Urban Supply Depot (near route index 21)
-        insertEventNodeIntoDb("Bombing at Urban Supply Depot", "Incident")
-        insertEventNodeIntoDb("Unknown Operative", "Entity")
-        insertEventNodeIntoDb("Disrupt supply lines", "Motive")
-        insertEventNodeIntoDb("1694589600000", "DateTime")
-        insertEventNodeIntoDb("1.3250,103.8098", "Location")
-        insertEventNodeIntoDb("Explosive Charges", "Method")
+        insertEventNodeIntoDb("Bombing at Urban Supply Depot", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Unknown Operative", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Disrupt supply lines", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("1694589600000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3250,103.8098", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("Explosive Charges", SchemaEventTypeNames.HOW.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Unknown Operative", "Entity"),
-            getEventNodeByNameAndType("Bombing at Urban Supply Depot", "Incident")
+            getEventNodeByNameAndType("Unknown Operative", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Bombing at Urban Supply Depot", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Disrupt supply lines", "Motive"),
-            getEventNodeByNameAndType("Bombing at Urban Supply Depot", "Incident")
+            getEventNodeByNameAndType("Disrupt supply lines", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Bombing at Urban Supply Depot", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694589600000", "DateTime"),
-            getEventNodeByNameAndType("Bombing at Urban Supply Depot", "Incident")
+            getEventNodeByNameAndType("1694589600000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Bombing at Urban Supply Depot", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3250,103.8098", "Location"),
-            getEventNodeByNameAndType("Bombing at Urban Supply Depot", "Incident")
+            getEventNodeByNameAndType("1.3250,103.8098", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Bombing at Urban Supply Depot", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Explosive Charges", "Method"),
-            getEventNodeByNameAndType("Bombing at Urban Supply Depot", "Incident")
+            getEventNodeByNameAndType("Explosive Charges", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Bombing at Urban Supply Depot", SchemaEventTypeNames.INCIDENT.key)
         )
 
 // Incident 2: Sniper Nest Detected on Ridge (near route index 37)
-        insertEventNodeIntoDb("Sniper Nest Detected on Ridge", "Incident")
-        insertEventNodeIntoDb("Hostile Marksman", "Entity")
-        insertEventNodeIntoDb("Target high-ranking officer", "Motive")
-        insertEventNodeIntoDb("1694590320000", "DateTime")
-        insertEventNodeIntoDb("1.3010,103.7845", "Location")
-        insertEventNodeIntoDb("Scoped Rifle from Elevated Cover", "Method")
+        insertEventNodeIntoDb("Sniper Nest Detected on Ridge", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Hostile Marksman", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Target high-ranking officer", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("1694590320000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3010,103.7845", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("Scoped Rifle from Elevated Cover", SchemaEventTypeNames.HOW.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Hostile Marksman", "Entity"),
-            getEventNodeByNameAndType("Sniper Nest Detected on Ridge", "Incident")
+            getEventNodeByNameAndType("Hostile Marksman", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Sniper Nest Detected on Ridge", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Target high-ranking officer", "Motive"),
-            getEventNodeByNameAndType("Sniper Nest Detected on Ridge", "Incident")
+            getEventNodeByNameAndType("Target high-ranking officer", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Sniper Nest Detected on Ridge", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694590320000", "DateTime"),
-            getEventNodeByNameAndType("Sniper Nest Detected on Ridge", "Incident")
+            getEventNodeByNameAndType("1694590320000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Sniper Nest Detected on Ridge", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3010,103.7845", "Location"),
-            getEventNodeByNameAndType("Sniper Nest Detected on Ridge", "Incident")
+            getEventNodeByNameAndType("1.3010,103.7845", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Sniper Nest Detected on Ridge", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
                 "Scoped Rifle from Elevated Cover",
-                "Method"
-            ), getEventNodeByNameAndType("Sniper Nest Detected on Ridge", "Incident")
+                SchemaEventTypeNames.HOW.key
+            ), getEventNodeByNameAndType("Sniper Nest Detected on Ridge", SchemaEventTypeNames.INCIDENT.key)
         )
 
 // Incident 3: Sabotage at Communications Relay (near route index 43)
-        insertEventNodeIntoDb("Sabotage at Communications Relay", "Incident")
-        insertEventNodeIntoDb("Insider Threat", "Entity")
-        insertEventNodeIntoDb("Blind surveillance systems", "Motive")
-        insertEventNodeIntoDb("1694590800000", "DateTime")
-        insertEventNodeIntoDb("1.2859,103.7298", "Location")
-        insertEventNodeIntoDb("Signal Jammer Deployment", "Method")
+        insertEventNodeIntoDb("Sabotage at Communications Relay", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Insider Threat", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Blind surveillance systems", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("1694590800000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.2859,103.7298", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("Signal Jammer Deployment", SchemaEventTypeNames.HOW.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Insider Threat", "Entity"),
-            getEventNodeByNameAndType("Sabotage at Communications Relay", "Incident")
+            getEventNodeByNameAndType("Insider Threat", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Sabotage at Communications Relay", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Blind surveillance systems", "Motive"),
-            getEventNodeByNameAndType("Sabotage at Communications Relay", "Incident")
+            getEventNodeByNameAndType("Blind surveillance systems", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Sabotage at Communications Relay", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694590800000", "DateTime"),
-            getEventNodeByNameAndType("Sabotage at Communications Relay", "Incident")
+            getEventNodeByNameAndType("1694590800000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Sabotage at Communications Relay", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.2859,103.7298", "Location"),
-            getEventNodeByNameAndType("Sabotage at Communications Relay", "Incident")
+            getEventNodeByNameAndType("1.2859,103.7298", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Sabotage at Communications Relay", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Signal Jammer Deployment", "Method"),
-            getEventNodeByNameAndType("Sabotage at Communications Relay", "Incident")
+            getEventNodeByNameAndType("Signal Jammer Deployment", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Sabotage at Communications Relay", SchemaEventTypeNames.INCIDENT.key)
         )
 
 // Incident 4: Enemy Encampment Spotted in Jungle (near route index 44)
-        insertEventNodeIntoDb("Enemy Encampment Spotted in Jungle", "Incident")
-        insertEventNodeIntoDb("Militant Group Foxtrot", "Entity")
-        insertEventNodeIntoDb("Staging ground for ambush", "Motive")
-        insertEventNodeIntoDb("1694591580000", "DateTime")
-        insertEventNodeIntoDb("1.2948,103.0221", "Location")
-        insertEventNodeIntoDb("Camouflaged Tent Setup", "Method")
+        insertEventNodeIntoDb("Enemy Encampment Spotted in Jungle", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Militant Group Foxtrot", SchemaEventTypeNames.WHO.key)
+        insertEventNodeIntoDb("Staging ground for ambush", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("1694591580000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.2948,103.0221", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("Camouflaged Tent Setup", SchemaEventTypeNames.HOW.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Militant Group Foxtrot", "Entity"),
-            getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident")
+            getEventNodeByNameAndType("Militant Group Foxtrot", SchemaEventTypeNames.WHO.key),
+            getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Staging ground for ambush", "Motive"),
-            getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident")
+            getEventNodeByNameAndType("Staging ground for ambush", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1694591580000", "DateTime"),
-            getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident")
+            getEventNodeByNameAndType("1694591580000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.2948,103.0221", "Location"),
-            getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident")
+            getEventNodeByNameAndType("1.2948,103.0221", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Camouflaged tent setup", "Method"),
-            getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", "Incident")
+            getEventNodeByNameAndType("Camouflaged tent setup", SchemaEventTypeNames.HOW.key),
+            getEventNodeByNameAndType("Enemy Encampment Spotted in Jungle", SchemaEventTypeNames.INCIDENT.key)
         )
 
         // Testing direction of airflow thing
-        insertEventNodeIntoDb("Chemical release into air", "Incident")
-        insertEventNodeIntoDb("Malicious intent", "Motive")
-        insertEventNodeIntoDb("1695507300000", "DateTime")
-        insertEventNodeIntoDb("1.3521,103.7927", "Location")
-        insertEventNodeIntoDb("Release of toxic materials from factory", "Method")
-//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown Source", "Entity"), getEventNodeByNameAndType("Chemical release into air", "Incident"))
+        insertEventNodeIntoDb("Chemical release into air", SchemaEventTypeNames.INCIDENT.key)
+        insertEventNodeIntoDb("Malicious intent", SchemaEventTypeNames.WHY.key)
+        insertEventNodeIntoDb("1695507300000", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1.3521,103.7927", SchemaEventTypeNames.WHERE.key)
+        insertEventNodeIntoDb("Release of toxic materials from factory", SchemaEventTypeNames.HOW.key)
+//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown Source", SchemaEventTypeNames.WHO.key), getEventNodeByNameAndType("Chemical release into air", com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("Malicious intent", "Motive"),
-            getEventNodeByNameAndType("Chemical release into air", "Incident")
+            getEventNodeByNameAndType("Malicious intent", SchemaEventTypeNames.WHY.key),
+            getEventNodeByNameAndType("Chemical release into air", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695507300000", "DateTime"),
-            getEventNodeByNameAndType("Chemical release into air", "Incident")
+            getEventNodeByNameAndType("1695507300000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("Chemical release into air", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1.3521,103.7927", "Location"),
-            getEventNodeByNameAndType("Chemical release into air", "Incident")
+            getEventNodeByNameAndType("1.3521,103.7927", SchemaEventTypeNames.WHERE.key),
+            getEventNodeByNameAndType("Chemical release into air", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
                 "Release of toxic materials from factory",
-                "Method"
-            ), getEventNodeByNameAndType("Chemical release into air", "Incident")
+                SchemaEventTypeNames.HOW.key
+            ), getEventNodeByNameAndType("Chemical release into air", SchemaEventTypeNames.INCIDENT.key)
         )
 
-        insertEventNodeIntoDb("SE", "Wind")
+        insertEventNodeIntoDb("SE", SchemaEventTypeNames.WIND.key)
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("1695507300000", "DateTime"),
-            getEventNodeByNameAndType("SE", "Wind")
+            getEventNodeByNameAndType("1695507300000", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("SE", SchemaEventTypeNames.WIND.key)
         )
 
         Log.d("INITIALISE DATABASE", "Data initialised.")

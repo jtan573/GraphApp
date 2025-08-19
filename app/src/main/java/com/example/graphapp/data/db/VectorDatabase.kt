@@ -1,10 +1,10 @@
 package com.example.graphapp.data.db
 
 import android.content.Context
+import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.schema.EventStatus
 import io.objectbox.BoxStore
 import io.objectbox.BoxStoreBuilder
-import io.objectbox.annotation.Backlink
 import io.objectbox.annotation.Convert
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.HnswIndex
@@ -145,6 +145,28 @@ class StatusConverter : PropertyConverter<EventStatus?, Int?> {
 
     override fun convertToDatabaseValue(entityProperty: EventStatus?): Int? {
         return entityProperty?.id
+    }
+}
+
+class EventTypeConverter : PropertyConverter<SchemaEventTypeNames?, String?> {
+    override fun convertToDatabaseValue(entityProperty: SchemaEventTypeNames?): String {
+        return entityProperty?.key ?: throw IllegalArgumentException(
+            "EventTypeConverter: null enum cannot be saved"
+        )
+    }
+
+    override fun convertToEntityProperty(databaseValue: String?): SchemaEventTypeNames {
+        if (databaseValue == null) {
+            throw IllegalArgumentException("EventTypeConverter: null value in DB")
+        }
+        return try {
+            SchemaEventTypeNames.valueOf(databaseValue)
+        } catch (e: IllegalArgumentException) {
+            throw IllegalArgumentException(
+                "EventTypeConverter: unknown value '$databaseValue' in DB",
+                e
+            )
+        }
     }
 }
 
