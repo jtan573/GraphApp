@@ -148,32 +148,6 @@ fun TaskInstructionsScreen() {
                     }
                 }
             }
-            Card(
-                onClick = {  },
-                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFFFB9B9) // light red background
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "RESULTS ANALYSIS",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowRight,
-                        contentDescription = "Arrow Right",
-                        tint = Color.Black
-                    )
-                }
-            }
         }
     }
 }

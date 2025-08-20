@@ -66,7 +66,7 @@ fun RouteIntegrityMainScreen(navController: NavController){
                 contentColor = Color.White                   // text/icon color
             )
         ) {
-            Text("Check if route is operational >", fontSize = 12.sp)
+            Text("Check if route is operational >", fontSize = 16.sp)
         }
     }
 }

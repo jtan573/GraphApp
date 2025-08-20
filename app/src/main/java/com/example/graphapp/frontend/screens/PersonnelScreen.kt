@@ -56,19 +56,9 @@ fun PersonnelScreen(
     navController: NavController
 ) {
     val graphJson by viewModel.userGraphData.collectAsState()
-    val contactState by viewModel.relevantContactState.collectAsState()
     val activeUsers by viewModel.allActiveUsers.collectAsState()
     val selectedFilter = "All"
-
-    val coroutineScope = rememberCoroutineScope()
-    var showForm by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-    var localUserQueryDescription by remember { mutableStateOf("Looking for support with ground and drone surveillance in a high-risk zone.") }
-    var localUserQueryLocation by remember { mutableStateOf("1.3580,103.6900") }
     var viewMode by remember { mutableStateOf("list") } // or "graph"
-
-    var lastSubmittedDescription by remember { mutableStateOf("") }
-    var lastSubmittedLocation by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val uiEventFlow = viewModel.uiEvent
@@ -104,123 +94,6 @@ fun PersonnelScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 64.dp),
                 )
-                Button(
-                    onClick = { showForm = !showForm },
-                    enabled = !isLoading,
-                    modifier = Modifier.padding(end = 3.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            text = if (showForm) "Hide" else "Search",
-                            fontSize = 12.sp
-                        )
-                    }
-                }
-            }
-
-            AnimatedVisibility(visible = showForm) {
-                PersonnelSearchForm(
-                    description = localUserQueryDescription,
-                    onDescriptionChange = { localUserQueryDescription = it },
-                    location = localUserQueryLocation,
-                    onLocationChange = { localUserQueryLocation = it },
-                    onSubmit = {
-                        coroutineScope.launch {
-                            isLoading = true
-                            lastSubmittedDescription = localUserQueryDescription
-                            lastSubmittedLocation = localUserQueryLocation
-                            viewModel.findRelevantPersonnelOnDemand(
-                                inputLocation = localUserQueryLocation,
-                                inputDescription = localUserQueryDescription
-                            )
-                            isLoading = false
-                            showForm = false
-                        }
-                    }
-                )
-            }
-
-            contactState?.let {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFF95b0db))
-                        .padding(16.dp)
-                ) {
-                    val queryString = if (lastSubmittedDescription == "") {
-                        "No input description."
-                    } else { lastSubmittedDescription }
-                    Text(
-                        text = "Query: $queryString",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    Text(
-                        text = "User's Location: $lastSubmittedLocation",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    if (contactState?.isEmpty() == true) {
-                        Text(
-                            text = "No active personnel within 3000m radius is found.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .padding(horizontal = 10.dp)
-                        )
-                    } else {
-                        Text(
-                            text = "Nearby Active Users Found:",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontStyle = FontStyle.Italic
-                            ),
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                        contactState?.forEach { (user, distance) ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                            ) {
-                                Text(
-                                    text = "(${distance}m away) ${user.identifier}: ${user.role}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier
-                                        .padding(top = 8.dp)
-                                        .padding(horizontal = 10.dp)
-                                )
-                                Text(
-                                    text = user.specialisation,
-                                    modifier = Modifier
-                                        .padding(bottom = 8.dp)
-                                        .padding(horizontal = 10.dp),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = Color.DarkGray,
-                                )
-                            }
-                        }
-                    }
-                    Row (
-                        modifier = Modifier.padding(vertical = 6.dp),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Button(
-                            onClick = { navController.navigate(NavItem.PersonnelMapImage.route) },
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
-                        ) {
-                            Text("Show Map")
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(6.dp))
             }
 
             if (viewMode == "graph") {

@@ -6,7 +6,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.AlertNearbyTroopersScreen
 import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.AssignTaskToTroopersScreen
-import com.example.graphapp.frontend.imageScreens.ContactPersonnelMapScreen
 import com.example.graphapp.frontend.useCaseScreens.routeIntegrityScreens.ReRouteIntegrityAnnotatedMapScreen
 import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.ReceivedTaskScreen
 import com.example.graphapp.frontend.useCaseScreens.routeIntegrityScreens.RouteIntegrityAnnotatedMapScreen
@@ -14,6 +13,7 @@ import com.example.graphapp.frontend.useCaseScreens.suspiciousBehaviourScreens.S
 import com.example.graphapp.frontend.screens.GraphViewScreen
 import com.example.graphapp.frontend.screens.PersonnelScreen
 import com.example.graphapp.frontend.screens.UseCaseScreen
+import com.example.graphapp.frontend.useCaseScreens.relevantPersonnelScreens.RelevantPersonnelMainScreen
 import com.example.graphapp.frontend.useCaseScreens.routeIntegrityScreens.RouteIntegrityMainScreen
 import com.example.graphapp.frontend.useCaseScreens.suspiciousBehaviourScreens.SuspiciousBehaviourUseCaseScreen
 import com.example.graphapp.frontend.useCaseScreens.suspiciousBehaviourScreens.SuspiciousEventsDetailsScreen
@@ -39,6 +39,9 @@ fun AppNavigation (
         composable(NavItem.UseCase.route) {
             UseCaseScreen(viewModel = viewModel, navController = navController)
         }
+        composable(NavItem.RelevantPersonnelUseCase.route) {
+            RelevantPersonnelMainScreen(viewModel = viewModel, navController = navController)
+        }
         composable(NavItem.ThreatDetectionUseCase.route) {
             ThreatDetectionMainScreen(navController = navController)
         }
@@ -50,9 +53,6 @@ fun AppNavigation (
         }
 
         // Demo Purposes
-        composable(NavItem.PersonnelMapImage.route) {
-            ContactPersonnelMapScreen()
-        }
         composable(NavItem.RouteIntegrityImage.route) {
             RouteIntegrityAnnotatedMapScreen(navController)
         }
@@ -75,7 +75,7 @@ fun AppNavigation (
             SuspiciousActivityByLocationScreen(navController = navController)
         }
         composable(NavItem.SuspiciousEventsDetailScreen.route) {
-            SuspiciousEventsDetailsScreen()
+            SuspiciousEventsDetailsScreen(viewModel = viewModel)
         }
     }
 }

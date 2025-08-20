@@ -55,7 +55,7 @@ fun RouteIntegrityAnnotatedMapScreen(
                 contentColor = Color.White                   // text/icon color
             )
         ) {
-            Text("Reroute to avoid disruptions", fontSize = 12.sp)
+            Text("Reroute to avoid disruptions", fontSize = 16.sp)
         }
     }
 }

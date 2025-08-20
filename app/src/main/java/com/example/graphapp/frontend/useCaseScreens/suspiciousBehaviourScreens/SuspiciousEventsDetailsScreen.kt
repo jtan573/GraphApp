@@ -43,41 +43,41 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun SuspiciousEventsDetailsScreen(
-//    viewModel: GraphViewModel
+    viewModel: GraphViewModel
 ) {
 
-    // Data for showcase purposes
-//    val testData = viewModel.getDataForSuspiciousBehaviourUseCase(listOf<String>(
-//        "Subject loiters near restricted zone appearing to scan the area",
-//        "Subject spotted wandering aimlessly along perimeter fencing",
-//        "Person discreetly writing or sketching near checkpoint structure",
-//        "Unusual handoff of item occurs at public bench with minimal interaction",
-//        "Small group appears to annotate or inspect public utility fixture"
-//    ))
+//     Data for showcase purposes
+    val previewIncidents = viewModel.getDataForSuspiciousBehaviourUseCase(listOf<String>(
+        "Subject loiters near restricted zone appearing to scan the area",
+        "Subject spotted wandering aimlessly along perimeter fencing",
+        "Person discreetly writing or sketching near checkpoint structure",
+        "Unusual handoff of item occurs at public bench with minimal interaction",
+        "Small group appears to annotate or inspect public utility fixture"
+    ))
 
     // Dummy preview data
-    val previewIncidents = listOf(
-        mapOf(
-            "WHEN" to "1694354700000", // 10 Sep 2023, 16:45 UTC+8
-            "INCIDENT" to "Subject loiters near restricted zone appearing to scan the area"
-        ),
-        mapOf(
-            "WHEN" to "1694446320000", // 11 Sep 2023, 18:12 UTC+8
-            "INCIDENT" to "Subject spotted wandering aimlessly along perimeter fencing"
-        ),
-        mapOf(
-            "WHEN" to "1694514300000", // 12 Sep 2023, 15:05 UTC+8
-            "INCIDENT" to "Person discreetly writing or sketching near checkpoint structure"
-        ),
-        mapOf(
-            "WHEN" to "1694615820000", // 13 Sep 2023, 21:37 UTC+8
-            "INCIDENT" to "Unusual handoff of item occurs at public bench with minimal interaction"
-        ),
-        mapOf(
-            "WHEN" to "1694702100000", // 14 Sep 2023, 17:55 UTC+8
-            "INCIDENT" to "Small group appears to annotate or inspect public utility fixture"
-        )
-    )
+//    val previewIncidents = listOf(
+//        mapOf(
+//            "WHEN" to "1694354700000", // 10 Sep 2023, 16:45 UTC+8
+//            "INCIDENT" to "Subject loiters near restricted zone appearing to scan the area"
+//        ),
+//        mapOf(
+//            "WHEN" to "1694446320000", // 11 Sep 2023, 18:12 UTC+8
+//            "INCIDENT" to "Subject spotted wandering aimlessly along perimeter fencing"
+//        ),
+//        mapOf(
+//            "WHEN" to "1694514300000", // 12 Sep 2023, 15:05 UTC+8
+//            "INCIDENT" to "Person discreetly writing or sketching near checkpoint structure"
+//        ),
+//        mapOf(
+//            "WHEN" to "1694615820000", // 13 Sep 2023, 21:37 UTC+8
+//            "INCIDENT" to "Unusual handoff of item occurs at public bench with minimal interaction"
+//        ),
+//        mapOf(
+//            "WHEN" to "1694702100000", // 14 Sep 2023, 17:55 UTC+8
+//            "INCIDENT" to "Small group appears to annotate or inspect public utility fixture"
+//        )
+//    )
     val sortedIncidents = previewIncidents.sortedBy { it[SchemaEventTypeNames.WHEN.key] }
 
 
@@ -163,8 +163,8 @@ fun SuspiciousEventsDetailsScreen(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun IncidentTablePreview() {
-    SuspiciousEventsDetailsScreen()
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun IncidentTablePreview() {
+//    SuspiciousEventsDetailsScreen()
+//}

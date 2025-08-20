@@ -57,7 +57,7 @@ fun ThreatDetectionMainScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
                 .padding(horizontal = 16.dp).padding(top = 10.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF96D3D9) // light red background
+                containerColor = Color(0xFF96D3D9)
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
             shape = MaterialTheme.shapes.medium

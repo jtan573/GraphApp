@@ -30,7 +30,7 @@ fun UseCaseScreen(
 ) {
     val useCasesList = mapOf<String, () -> Unit>(
         "Find Relevant Personnel" to {
-            navController.navigate(NavItem.Personnel.route) {
+            navController.navigate(NavItem.RelevantPersonnelUseCase.route) {
                 launchSingleTop = true
                 restoreState = true
                 popUpTo(navController.graph.startDestinationId) {
