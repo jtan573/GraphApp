@@ -26,6 +26,7 @@ sealed class NavItem(val route: String, val label: String, val icon: ImageVector
     object AssignTaskScreen : NavItem("assignTaskScreen", "AssignTaskScreen", null)
     object ReceivedTaskScreen : NavItem("receivedTaskScreen", "ReceivedTaskScreen", null)
     object TaskInstructionsScreen : NavItem("taskInstructionsScreen", "TaskInstructionsScreen", null)
+    object ThreatAnalysisScreen : NavItem("threatAnalysisScreen", "ThreatAnalysisScreen", null)
     object SuspiciousLocationScreen : NavItem("suspiciousLocationScreen", "SuspiciousLocationScreen", null)
     object SuspiciousEventsDetailScreen : NavItem("suspiciousDetailsScreen", "SuspiciousDetailsScreen", null)
 

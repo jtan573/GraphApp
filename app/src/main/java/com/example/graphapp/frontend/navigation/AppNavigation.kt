@@ -18,6 +18,8 @@ import com.example.graphapp.frontend.useCaseScreens.routeIntegrityScreens.RouteI
 import com.example.graphapp.frontend.useCaseScreens.suspiciousBehaviourScreens.SuspiciousBehaviourUseCaseScreen
 import com.example.graphapp.frontend.useCaseScreens.suspiciousBehaviourScreens.SuspiciousEventsDetailsScreen
 import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.TaskInstructionsScreen
+import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.ThreatAnalysisScreen
+import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.ThreatDetectionAnalysisScreen
 import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.ThreatDetectionMainScreen
 import com.example.graphapp.frontend.viewmodels.GraphViewModel
 
@@ -70,6 +72,9 @@ fun AppNavigation (
         }
         composable(NavItem.TaskInstructionsScreen.route) {
             TaskInstructionsScreen()
+        }
+        composable(NavItem.ThreatAnalysisScreen.route) {
+            ThreatAnalysisScreen(viewModel = viewModel)
         }
         composable(NavItem.SuspiciousLocationScreen.route) {
             SuspiciousActivityByLocationScreen(navController = navController)

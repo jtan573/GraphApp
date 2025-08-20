@@ -33,87 +33,110 @@ suspend fun fetchResponseToThreatIncidentUseCase(
     eventInput.whatValue?.map { statusEventMap.put(SchemaEventTypeNames.INCIDENT, eventInput.whatValue) }
     eventInput.howValue?.map { statusEventMap.put(SchemaEventTypeNames.HOW, eventInput.howValue) }
 
-    val (_, _ ,impactResults) = fetchRelevantEventsByTargetType(
+    // test
+    val (_, _ , incidentResults) = fetchRelevantEventsByTargetType(
         statusEventMap = statusEventMap,
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
         sourceEventType = SchemaKeyEventTypeNames.INCIDENT,
-        queryKey = SchemaKeyEventTypeNames.IMPACT,
+        queryKey = SchemaKeyEventTypeNames.INCIDENT,
         activeNodesOnly = false
     )
-    val potentialImpacts = if (impactResults.predictedEvents.isNotEmpty()) {
-        impactResults.predictedEvents[SchemaKeyEventTypeNames.IMPACT]?.map { it }
+    val similarIncidents = if (incidentResults.predictedEvents.isNotEmpty()) {
+        incidentResults.predictedEvents[SchemaKeyEventTypeNames.INCIDENT]?.map { it }
     } else { null }
 
-
-    // Response 3: Similar incidents -> Tasks
-    val (_, _ ,taskResults) = fetchRelevantEventsByTargetType(
-        statusEventMap = statusEventMap,
-        eventRepository = eventRepository,
-        embeddingRepository = embeddingRepository,
-        sourceEventType = SchemaKeyEventTypeNames.INCIDENT,
-        queryKey = SchemaKeyEventTypeNames.TASK,
-        activeNodesOnly = false
-    )
-    val potentialTasks = if (taskResults.predictedEvents.isNotEmpty()) {
-        taskResults.predictedEvents[SchemaKeyEventTypeNames.TASK]?.map { it }
+    val potentialImpacts = mutableMapOf<Long, List<String>>()
+    if (!similarIncidents.isNullOrEmpty()) {
+        similarIncidents.forEach { simIncident ->
+            val impacts = eventRepository.getNeighborsOfEventNodeById(simIncident.eventId)
+                .filter { it.type == SchemaKeyEventTypeNames.IMPACT.key }.map { it.name }
+            potentialImpacts.put(simIncident.eventId, impacts)
+        }
     } else { null }
+
+//    val (_, _ ,impactResults) = fetchRelevantEventsByTargetType(
+//        statusEventMap = statusEventMap,
+//        eventRepository = eventRepository,
+//        embeddingRepository = embeddingRepository,
+//        sourceEventType = SchemaKeyEventTypeNames.INCIDENT,
+//        queryKey = SchemaKeyEventTypeNames.IMPACT,
+//        activeNodesOnly = false
+//    )
+//    val potentialImpacts = if (impactResults.predictedEvents.isNotEmpty()) {
+//        impactResults.predictedEvents[SchemaKeyEventTypeNames.IMPACT]?.map { it }
+//    } else { null }
+
+
+//    // Response 3: Similar incidents -> Tasks
+//    val (_, _ ,taskResults) = fetchRelevantEventsByTargetType(
+//        statusEventMap = statusEventMap,
+//        eventRepository = eventRepository,
+//        embeddingRepository = embeddingRepository,
+//        sourceEventType = SchemaKeyEventTypeNames.INCIDENT,
+//        queryKey = SchemaKeyEventTypeNames.TASK,
+//        activeNodesOnly = false
+//    )
+//    val potentialTasks = if (taskResults.predictedEvents.isNotEmpty()) {
+//        taskResults.predictedEvents[SchemaKeyEventTypeNames.TASK]?.map { it }
+//    } else { null }
 
 
     // Response 4: Relevant personnel
-    val taskingMap = mutableMapOf<String, List<UserNodeEntity>>()
-
-    potentialTasks?.forEach { task ->
-        val taskHandlerMap = mutableListOf<Triple<UserNodeEntity, Int, Float>>()
-        val testDescNodeList = eventRepository.getNeighborsOfEventNodeById(task.eventId).filter { it.type == SchemaEventTypeNames.WHO.key }
-
-        if (testDescNodeList.isNotEmpty()) {
-            testDescNodeList.forEach { testNode ->
-                val nearbyPersonnelMap = findRelevantPersonnelByLocationUseCase(
-                    userActionRepository = userActionRepository,
-                    embeddingRepository = embeddingRepository,
-                    threatLocation = threatLocation,
-                    threatDescription = testNode.description,
-                    radiusInMeters = 5000f,
-                )
-                if (nearbyPersonnelMap != null) {
-                    taskHandlerMap.addAll(nearbyPersonnelMap.take(5))
-                }
-            }
-        } else {
-            val taskNode = eventRepository.getEventNodeByNameAndType(task.eventName, SchemaEventTypeNames.TASK.key)
-            if (taskNode != null) {
-                val method = eventRepository.getNeighborsOfEventNodeById(taskNode.id)
-                    .first { it.type == SchemaEventTypeNames.HOW.key }.name
-
-                val taskDescription = task.eventName + method
-                val nearbyPersonnelMap = findRelevantPersonnelByLocationUseCase(
-                    userActionRepository = userActionRepository,
-                    embeddingRepository = embeddingRepository,
-                    threatLocation = threatLocation,
-                    threatDescription = taskDescription,
-                    radiusInMeters = 5000f,
-                )
-                if (nearbyPersonnelMap != null) {
-                    taskHandlerMap.addAll(nearbyPersonnelMap.take(5))
-                }
-            }
-        }
-
-        if (taskHandlerMap.isNotEmpty()) {
-            val top3 = taskHandlerMap.sortedBy { it.second }.sortedByDescending { it.third }
-                .distinctBy { it.first.identifier }.take(3)
-                .associate { it.first to it.second}
-            taskingMap.put(task.eventName, top3.keys.toList())
-        }
-    }
+//    val taskingMap = mutableMapOf<String, List<UserNodeEntity>>()
+//
+//    potentialTasks?.forEach { task ->
+//        val taskHandlerMap = mutableListOf<Triple<UserNodeEntity, Int, Float>>()
+//        val testDescNodeList = eventRepository.getNeighborsOfEventNodeById(task.eventId).filter { it.type == SchemaEventTypeNames.WHO.key }
+//
+//        if (testDescNodeList.isNotEmpty()) {
+//            testDescNodeList.forEach { testNode ->
+//                val nearbyPersonnelMap = findRelevantPersonnelByLocationUseCase(
+//                    userActionRepository = userActionRepository,
+//                    embeddingRepository = embeddingRepository,
+//                    threatLocation = threatLocation,
+//                    threatDescription = testNode.description,
+//                    radiusInMeters = 5000f,
+//                )
+//                if (nearbyPersonnelMap != null) {
+//                    taskHandlerMap.addAll(nearbyPersonnelMap.take(5))
+//                }
+//            }
+//        } else {
+//            val taskNode = eventRepository.getEventNodeByNameAndType(task.eventName, SchemaEventTypeNames.TASK.key)
+//            if (taskNode != null) {
+//                val method = eventRepository.getNeighborsOfEventNodeById(taskNode.id)
+//                    .first { it.type == SchemaEventTypeNames.HOW.key }.name
+//
+//                val taskDescription = task.eventName + method
+//                val nearbyPersonnelMap = findRelevantPersonnelByLocationUseCase(
+//                    userActionRepository = userActionRepository,
+//                    embeddingRepository = embeddingRepository,
+//                    threatLocation = threatLocation,
+//                    threatDescription = taskDescription,
+//                    radiusInMeters = 5000f,
+//                )
+//                if (nearbyPersonnelMap != null) {
+//                    taskHandlerMap.addAll(nearbyPersonnelMap.take(5))
+//                }
+//            }
+//        }
+//
+//        if (taskHandlerMap.isNotEmpty()) {
+//            val top3 = taskHandlerMap.sortedBy { it.second }.sortedByDescending { it.third }
+//                .distinctBy { it.first.identifier }.take(3)
+//                .associate { it.first to it.second}
+//            taskingMap.put(task.eventName, top3.keys.toList())
+//        }
+//    }
 
     // Create function response
     val incidentResponse = ThreatAlertResponse(
         nearbyActiveUsersMap = nearbyPersonnelMap,
         potentialImpacts = potentialImpacts,
-        potentialTasks = potentialTasks,
-        taskAssignment = taskingMap
+//        potentialTasks = potentialTasks,
+//        taskAssignment = taskingMap
+        similarIncidents = similarIncidents
     )
 
     return incidentResponse

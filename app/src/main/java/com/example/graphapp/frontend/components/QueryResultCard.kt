@@ -119,52 +119,6 @@ fun QueryResultCard(
             Spacer(modifier = Modifier.padding(vertical = 12.dp))
         }
 
-        if (queryResults.potentialImpacts != null) {
-            Text(
-                text = "Potential impacts of the incident:",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 5.dp)
-            )
-
-            queryResults.potentialImpacts.forEach { impact ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Text(
-                        text = impact.eventName,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
-                    )
-                    impact.simProperties?.forEach { propertySimTagList ->
-                        if (propertySimTagList.relevantTagsA.isNotEmpty() && propertySimTagList.relevantTagsB.isNotEmpty()) {
-                            Text(
-                                text = "Similar Factor: ${propertySimTagList.propertyType}",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.Medium
-                                ),
-                                modifier = Modifier
-                                    .padding(top = 3.dp, bottom = 3.dp)
-                                    .padding(horizontal = 10.dp),
-                            )
-                            TagChipRow(
-                                tags = propertySimTagList.relevantTagsA,
-                                label = "New Incident:"
-                            )
-                            TagChipRow(
-                                tags = propertySimTagList.relevantTagsB,
-                                label = "Past Incident:"
-                            )
-                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
-                        }
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.padding(vertical = 12.dp))
-        }
-
         if (queryResults.potentialTasks != null) {
             Text(
                 text = "Potential Tasks of the incident:",
@@ -266,7 +220,6 @@ fun QueryResultCard(
             Spacer(modifier = Modifier.padding(vertical = 12.dp))
         }
 
-
         queryResults.similarIncidents?.forEach { incident ->
             Card(
                 modifier = Modifier
@@ -291,18 +244,6 @@ fun QueryResultCard(
                     color = Color.DarkGray,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
                 )
-//                incident.eventProperties[PropertyNames.WHEN.key]?.let {
-//                    Text(
-//                        text = "Observed on: ${sdf.format(Date(it.toLong()))}",
-//                        style = MaterialTheme.typography.bodyMedium.copy(
-//                            fontStyle = FontStyle.Italic
-//                        ),
-//                        color = Color.DarkGray,
-//                        modifier = Modifier
-//                            .padding(horizontal = 10.dp)
-//                            .padding(bottom = 2.dp)
-//                    )
-//                }
                 Text(
                     text = "How: ${incident.eventProperties[SchemaEventTypeNames.HOW.key]}",
                     style = MaterialTheme.typography.bodyMedium.copy(

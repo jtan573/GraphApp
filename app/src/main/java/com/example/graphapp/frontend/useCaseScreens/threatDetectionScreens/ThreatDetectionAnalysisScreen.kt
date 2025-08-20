@@ -103,24 +103,6 @@ fun ThreatDetectionAnalysisScreen(viewModel: GraphViewModel, navController: NavC
             }
         }
 
-        // ALERT SCREEN
-        Card(
-            onClick = { navController.navigate(NavItem.AlertTroopersScreen.route) },
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    "ALERT TROOPERS",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(Modifier.height(4.dp))
-            }
-        }
-
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier

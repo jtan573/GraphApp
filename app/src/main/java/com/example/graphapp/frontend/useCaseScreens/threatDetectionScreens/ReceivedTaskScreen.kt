@@ -248,6 +248,17 @@ fun ReceivedTaskScreen(navController: NavController) {
                                     Spacer(Modifier.height(8.dp))
                                 }
                             }
+                            Button(
+                                onClick = { navController.navigate(NavItem.ThreatAnalysisScreen.route) },
+                                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF596569),          // background color
+                                    contentColor = Color.White                   // text/icon color
+                                )
+                            ) {
+                                Text("Results Analysis >", fontSize = 14.sp)
+                            }
                         }
                     }
                 }
