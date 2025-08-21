@@ -1,7 +1,7 @@
 package com.example.graphapp.backend.services.kgraph.admin
 
-import com.example.graphapp.backend.dto.GraphSchema
-import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.services.kgraph.GraphAccess
 import com.example.graphapp.data.api.RequestData
 import com.example.graphapp.data.db.ActionEdgeEntity

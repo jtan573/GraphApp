@@ -1,6 +1,4 @@
-package com.example.graphapp.backend.schema
-
-import io.objectbox.converter.PropertyConverter
+package com.example.graphapp.backend.core
 
 data class EventEmbeddingSet (
     // Type, Metadata

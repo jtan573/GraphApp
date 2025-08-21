@@ -2,7 +2,7 @@ package com.example.graphapp.data.repository
 
 import android.app.Application
 import android.content.Context
-import com.example.graphapp.backend.dto.GraphSchema.SchemaPosTags
+import com.example.graphapp.backend.core.GraphSchema.SchemaPosTags
 import edu.stanford.nlp.tagger.maxent.MaxentTagger
 import java.io.File
 

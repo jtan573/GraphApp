@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.graphapp.R
-import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.frontend.useCaseScreens.formatMillisToSGT
 import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.ReceivedTaskScreen
 import com.example.graphapp.frontend.viewmodels.GraphViewModel

@@ -1,4 +1,4 @@
-package com.example.graphapp.backend.dto
+package com.example.graphapp.backend.core
 
 object GraphSchema {
     val SchemaEdgeLabels = mapOf(

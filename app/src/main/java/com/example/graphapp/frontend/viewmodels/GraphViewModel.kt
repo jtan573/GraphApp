@@ -7,9 +7,9 @@ import com.example.graphapp.data.db.ActionNodeEntity
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.db.UserNodeEntity
-import com.example.graphapp.backend.schema.UiEvent
-import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
-import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.frontend.components.UiEvent
+import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.services.kgraph.KGraphService
 import com.example.graphapp.backend.services.kgraph.admin.AdminService
 import com.example.graphapp.backend.services.kgraph.query.QueryService

@@ -3,8 +3,8 @@ package com.example.graphapp.backend.usecases
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.backend.core.computeSimilarAndRelatedEvents
-import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
-import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.data.api.DiscoverEventsResponse
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository

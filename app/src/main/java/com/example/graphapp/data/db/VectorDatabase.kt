@@ -1,8 +1,8 @@
 package com.example.graphapp.data.db
 
 import android.content.Context
-import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
-import com.example.graphapp.backend.schema.EventStatus
+import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.core.EventStatus
 import io.objectbox.BoxStore
 import io.objectbox.BoxStoreBuilder
 import io.objectbox.annotation.Convert

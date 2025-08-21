@@ -1,21 +1,16 @@
 package com.example.graphapp.backend.core
 
 import android.util.Log
-import com.example.graphapp.backend.dto.GraphSchema
-import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema
+import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
-import com.example.graphapp.backend.dto.GraphSchema.SchemaComputedPropertyNodes
-import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
-import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyNodes
-import com.example.graphapp.backend.dto.GraphSchema.SchemaSemanticPropertyNodes
-import com.example.graphapp.backend.schema.EventEmbeddingSet
-import com.example.graphapp.backend.schema.EventMetadata
-import com.example.graphapp.backend.schema.EventStatus
-import com.example.graphapp.backend.schema.ExplainedSimilarityWithScores
-import com.example.graphapp.backend.schema.SimilarEventTags
+import com.example.graphapp.backend.core.GraphSchema.SchemaComputedPropertyNodes
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyNodes
+import com.example.graphapp.backend.core.GraphSchema.SchemaSemanticPropertyNodes
 import com.example.graphapp.backend.usecases.restoreLocationFromString
 import kotlin.collections.iterator
 import kotlin.math.ln
@@ -273,7 +268,7 @@ suspend fun computeSemanticSimilarEventsForProps(
             val simNodesIds = if (targetEventType != null) {
                 mainNodes.filter{ it.type.lowercase() == targetEventType.toString().lowercase() }.map { it.type to it.id}
             } else {
-                mainNodes.filter{ node -> GraphSchema.SchemaKeyEventTypeNames.fromKey(node.type) != null }
+                mainNodes.filter{ node -> SchemaKeyEventTypeNames.fromKey(node.type) != null }
                     .map { it.type to it.id}
             }
 

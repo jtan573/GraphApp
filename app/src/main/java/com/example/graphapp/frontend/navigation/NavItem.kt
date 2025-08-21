@@ -14,20 +14,19 @@ sealed class NavItem(val route: String, val label: String, val icon: ImageVector
     object UseCase : NavItem("useCase", "UseCase", Icons.Default.Build)
 
     // Use Cases
-    object ThreatDetectionUseCase : NavItem("threatDetection", "ThreatDetection", null)
-    object SuspiciousPatternUseCase : NavItem("suspiciousPattern", "SuspiciousPattern", null)
-    object RouteIntegrityUseCase : NavItem("routeIntegrity", "RouteIntegrity", null)
     object RelevantPersonnelUseCase : NavItem("relevantPersonnel", "RelevantPersonnel", null)
 
-    // Demo Purposes
+    object RouteIntegrityUseCase : NavItem("routeIntegrity", "RouteIntegrity", null)
     object RouteIntegrityImage : NavItem("routeIntegrityImage", "RouteIntegrityImage", null)
     object ReRouteIntegrityImage : NavItem("reRouteIntegrityImage", "ReRouteIntegrityImage", null)
+
+    object ThreatDetectionUseCase : NavItem("threatDetection", "ThreatDetection", null)
     object AlertTroopersScreen : NavItem("alertTroopersScreen", "AlertTroopersScreen", null)
-    object AssignTaskScreen : NavItem("assignTaskScreen", "AssignTaskScreen", null)
     object ReceivedTaskScreen : NavItem("receivedTaskScreen", "ReceivedTaskScreen", null)
     object TaskInstructionsScreen : NavItem("taskInstructionsScreen", "TaskInstructionsScreen", null)
     object ThreatAnalysisScreen : NavItem("threatAnalysisScreen", "ThreatAnalysisScreen", null)
-    object SuspiciousLocationScreen : NavItem("suspiciousLocationScreen", "SuspiciousLocationScreen", null)
+
+    object SuspiciousActivityScreen : NavItem("suspiciousActivityScreen", "SuspiciousActivityScreen", null)
     object SuspiciousEventsDetailScreen : NavItem("suspiciousDetailsScreen", "SuspiciousDetailsScreen", null)
 
     companion object {

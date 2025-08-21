@@ -1,9 +1,9 @@
 package com.example.graphapp.backend.core
 
 import android.util.Log
-import com.example.graphapp.backend.dto.GraphSchema
-import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
-import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema
+import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.data.repository.EventRepository
 import com.example.graphapp.data.api.DiscoverEventsResponse
 import com.example.graphapp.data.api.EventDetails
@@ -14,9 +14,9 @@ import com.example.graphapp.data.api.SimilarEvent
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
-import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyNodes
-import com.example.graphapp.backend.dto.GraphSchema.SchemaOtherNodes
-import com.example.graphapp.backend.dto.GraphSchema.SchemaPropertyNodes
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyNodes
+import com.example.graphapp.backend.core.GraphSchema.SchemaOtherNodes
+import com.example.graphapp.backend.core.GraphSchema.SchemaPropertyNodes
 //import com.example.graphdb.Edge
 //import com.example.graphdb.Node
 import kotlin.collections.component1
@@ -211,7 +211,7 @@ suspend fun detectReplicateInput(
     val inputEmbeddings = newEventMap.entries.associate { (type, value) ->
         type to embeddingRepository.getTextEmbeddings(value)
     }
-    val keyEventType = inputEmbeddings.keys.intersect(GraphSchema.SchemaKeyEventTypeNames.entries)
+    val keyEventType = inputEmbeddings.keys.intersect(SchemaKeyEventTypeNames.entries)
 
     val allNodes = eventRepository.getAllEventNodes()
 

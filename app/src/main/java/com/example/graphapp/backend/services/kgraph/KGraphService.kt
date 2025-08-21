@@ -1,6 +1,6 @@
 package com.example.graphapp.backend.services.kgraph
 
-import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.services.kgraph.query.QueryService
 import com.example.graphapp.data.api.EventDetailData
 import com.example.graphapp.data.api.EventDetails

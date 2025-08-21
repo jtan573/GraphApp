@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.graphapp.backend.schema.ActiveButton
+import com.example.graphapp.frontend.components.ActiveButton
 import com.example.graphapp.frontend.components.GraphWebView
 import com.example.graphapp.frontend.viewmodels.GraphViewModel
 import kotlinx.coroutines.Dispatchers

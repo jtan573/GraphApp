@@ -1,7 +1,4 @@
-package com.example.graphapp.backend.schema
-
-import com.example.graphapp.data.api.EventDetails
-import com.example.graphapp.data.db.UserNodeEntity
+package com.example.graphapp.frontend.components
 
 sealed class UiEvent {
     data class ShowSnackbar(val message: String) : UiEvent()

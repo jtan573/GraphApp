@@ -1,8 +1,8 @@
 package com.example.graphapp.backend.usecases
 
 import android.util.Log
-import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
-import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.data.api.EventDetailData
 import com.example.graphapp.data.api.ThreatAlertResponse
 import com.example.graphapp.data.db.UserNodeEntity

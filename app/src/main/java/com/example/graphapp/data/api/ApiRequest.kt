@@ -1,7 +1,7 @@
 package com.example.graphapp.data.api
 
-import com.example.graphapp.backend.dto.GraphSchema.SchemaEventTypeNames
-import com.example.graphapp.backend.dto.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -42,11 +42,6 @@ data class EventDetailData(
     val eventMap: Map<SchemaEventTypeNames, String>? = null
 )
 
-@Serializable
-data class EventRequestEntry(
-    val routeCoordinates: List<String>? = null
-)
-
 /* -------------------------------------------------
     Related to Users/Personnel
 ------------------------------------------------- */
@@ -62,10 +57,4 @@ data class UserDetailData (
 data class ActionDetailData (
     val actionName: String? = null,
     val userIdentifier: String? = null,
-)
-
-@Serializable
-data class PersonnelRequestEntry (
-    val description: String? = null,
-    val location: String?= null
 )
