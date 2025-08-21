@@ -55,6 +55,24 @@ class DictionaryRepository(
         queries.updateEventRelationOfTerm(eventNode, inputValue)
     }
 
+
+    suspend fun replaceSimilarTags(posTags: List<String>): List<String> {
+        val newTagList = mutableListOf<String>()
+        posTags.forEach { tag ->
+            val simTagsFound = queries.findSimilarTagsQuery(
+                inputEmbedding = sentenceEmbedding.encode(tag),
+                numTagsToFind = 1,
+                threshold = 0.2f
+            )
+            if (simTagsFound.isNotEmpty()) {
+                newTagList.add(simTagsFound.first())
+            } else {
+                newTagList.add(tag)
+            }
+        }
+        return newTagList
+    }
+
     /*---------------------------
         FOR SUSPICIOUS PHRASES
     --------------------------- */
@@ -109,5 +127,9 @@ class DictionaryRepository(
         return matchedPhrases to workingSentence.trim().replace("\\s+".toRegex(), " ")
     }
 
+
+    fun resetDictionaryDb() {
+        queries.resetDictionaryDbQuery()
+    }
 
 }

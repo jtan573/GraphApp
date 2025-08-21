@@ -66,65 +66,6 @@ fun GraphViewScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top=64.dp, bottom=8.dp),
             )
-            Box {
-                Row (
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            coroutineScope.launch(Dispatchers.Default) {
-                                withContext(Dispatchers.Main) {
-                                    isLoading = true
-                                    activeButton = ActiveButton.FILL
-                                }
-                                viewModel.fillMissingLinks()
-                                withContext(Dispatchers.Main) {
-                                    isLoading = false
-                                    activeButton = ActiveButton.NONE
-                                }
-                            }},
-                        enabled = !isLoading,
-                        modifier = Modifier.padding(end = 3.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
-                    ) {
-                        if (isLoading  && activeButton == ActiveButton.FILL) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text("Fill", fontSize = 12.sp)
-                        }
-                    }
-                    Button(
-                        onClick = {
-                            coroutineScope.launch(Dispatchers.Default) {
-                                withContext(Dispatchers.Main) {
-                                    isLoading = true
-                                    activeButton = ActiveButton.FIND
-                                }
-                                viewModel.findGraphRelations()
-                                withContext(Dispatchers.Main) {
-                                    isLoading = false
-                                    activeButton = ActiveButton.NONE
-                                }
-                            }},
-                        enabled = !isLoading,
-                        modifier = Modifier.padding(end = 3.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp)
-                    ) {
-                        if (isLoading && activeButton == ActiveButton.FIND) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text("Find", fontSize = 12.sp)
-                        }
-                    }
-                }
-            }
         }
 
         if (graphJson != null) {

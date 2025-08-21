@@ -1,11 +1,8 @@
 package com.example.graphapp.data.repository
 
-import android.content.Context
 import android.util.Log
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
-import com.example.graphapp.data.db.EventEdgeEntity
-import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.db.UserActionDatabaseQueries
 import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.data.embedding.SentenceEmbedding
@@ -136,6 +133,10 @@ class UserActionRepository (
         } else {
             Log.e("EdgeError", "Missing edge information for actionId: $deletedActionId")
         }
+    }
+
+    fun resetPersonnelDb() {
+        queries.resetPersonnelDbQuery()
     }
 
     suspend fun initialiseUserActionRepository() {

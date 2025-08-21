@@ -1,5 +1,6 @@
 package com.example.graphapp.backend.services.kgraph.query
 
+import android.media.metrics.Event
 import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.services.kgraph.GraphAccess
@@ -112,9 +113,12 @@ class QueryGraph @Inject constructor(
         return results
     }
 
-    override suspend fun findThreatAlertAndResponse(eventInput: EventDetailData): ThreatAlertResponse {
+    override suspend fun findThreatAlertAndResponse(
+        incidentEventInput: EventDetailData,
+        taskEventInput: EventDetailData
+    ): ThreatAlertResponse {
         val incidentResponse = fetchResponseToThreatIncidentUseCase(
-            eventInput, graph.userActionRepository, graph.embeddingRepository, graph.eventRepository
+            incidentEventInput, taskEventInput, graph.userActionRepository, graph.embeddingRepository, graph.eventRepository
         )
         return incidentResponse
     }

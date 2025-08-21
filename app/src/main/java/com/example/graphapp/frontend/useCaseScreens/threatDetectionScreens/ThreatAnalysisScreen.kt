@@ -39,20 +39,11 @@ fun ThreatAnalysisScreen(
 ) {
     val threatAlertResults by viewModel.threatAlertResults.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.findThreatAlertAndResponse(mapOf(
-            SchemaEventTypeNames.INCIDENT.key to "Mid-flight drone propeller failure",
-            SchemaEventTypeNames.WHEN.key to "1723897200000",
-            SchemaEventTypeNames.WHERE.key to "1.3901,103.8072",
-            SchemaEventTypeNames.HOW.key to "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent"
-        ))
-    }
-
     val incidentInfo = mapOf<String, String>(
-        "Incident" to "Drone Rotor Jammed During Lift-Off",
-        "Details" to "Dust ingress in rotor hub stalled motor mid-ascent, causing drone to crash near fire truck",
+        "Incident" to "Mid-flight drone propeller failure",
+        "Details" to "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent",
         "DateTime" to "2025-01-18T13:20Z",
-        "Location" to "1.3012,103.7880 (150m away from you)",
+        "Location" to "1.3901,103.8072 (150m away from you)",
     )
 
     val listState = rememberLazyListState()

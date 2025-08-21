@@ -51,14 +51,14 @@ class GraphViewModel @Inject constructor(
     // ThreatAlertUseCase
     private val _threatAlertResults = MutableStateFlow<ThreatAlertResponse?>(null)
     val threatAlertResults: StateFlow<ThreatAlertResponse?> = _threatAlertResults
-    private val _threatAlertCreatedEvent = MutableStateFlow(mapOf<String, String>())
-    val threatAlertCreatedEvent: StateFlow<Map<String, String>> = _threatAlertCreatedEvent
+    private val _threatAlertCreatedEvent = MutableStateFlow(mapOf<SchemaEventTypeNames, String>())
+    val threatAlertCreatedEvent: StateFlow<Map<SchemaEventTypeNames, String>> = _threatAlertCreatedEvent
 
     // SuspiciousDetectionUseCase
     private val _suspiciousDetectionResults = MutableStateFlow<ThreatAlertResponse?>(null)
     val suspiciousDetectionResults: StateFlow<ThreatAlertResponse?> = _suspiciousDetectionResults
-    private val _suspiciousDetectionCreatedEvent = MutableStateFlow(mapOf<String, String>())
-    val suspiciousDetectionCreatedEvent: StateFlow<Map<String, String>> =
+    private val _suspiciousDetectionCreatedEvent = MutableStateFlow(mapOf<SchemaEventTypeNames, String>())
+    val suspiciousDetectionCreatedEvent: StateFlow<Map<SchemaEventTypeNames, String>> =
         _suspiciousDetectionCreatedEvent
 
     // ---------- Personnel Query States ----------
@@ -128,16 +128,6 @@ class GraphViewModel @Inject constructor(
         _allActiveUsers.value = adminService.retrieveAllActiveUsers()
     }
 
-    // Function 1: Predict missing properties
-    fun fillMissingLinks() {
-        TODO("Not yet implemented.")
-    }
-
-    // Function 4: Find Patterns/Clusters
-    fun findGraphRelations() {
-        TODO("Not yet implemented.")
-    }
-
     // Function 5: Detect Same Event
     fun detectDuplicateEvent(normalizedMap: Map<String, String>): Pair<Boolean, EventNodeEntity?> {
         TODO("Not yet implemented.")
@@ -161,28 +151,41 @@ class GraphViewModel @Inject constructor(
         return adminService.getDataForThreatAlertUseCase(identifiers)
     }
 
-    override suspend fun findThreatAlertAndResponse(inputMap: Map<String, String>) {
-        val normalizedMap = inputMap.filterValues { it.isNotBlank() }
-        if (normalizedMap.isEmpty()) {
+    override suspend fun findThreatAlertAndResponse(
+        incidentInputMap: Map<SchemaEventTypeNames, String>,
+        taskInputMap: Map<SchemaEventTypeNames, String>,
+    ) {
+        val incidentNormalizedMap = incidentInputMap.filterValues { it.isNotBlank() }
+        val taskNormalizedMap = taskInputMap.filterValues { it.isNotBlank() }
+        if (incidentNormalizedMap.isEmpty() && taskNormalizedMap.isEmpty()) {
             return
         }
 
         val response = queryService.findThreatAlertAndResponse(
-            eventInput = EventDetailData(
-                whoValue = inputMap[SchemaEventTypeNames.WHO.key],
-                whatValue = inputMap[SchemaEventTypeNames.INCIDENT.key],
-                whenValue = inputMap[SchemaEventTypeNames.WHEN.key],
-                whereValue = inputMap[SchemaEventTypeNames.WHERE.key],
-                howValue = inputMap[SchemaEventTypeNames.HOW.key],
-                whyValue = inputMap[SchemaEventTypeNames.WHY.key],
-            )
+            incidentEventInput = EventDetailData(
+                whoValue = incidentInputMap[SchemaEventTypeNames.WHO],
+                whatValue = incidentInputMap[SchemaEventTypeNames.INCIDENT],
+                whenValue = incidentInputMap[SchemaEventTypeNames.WHEN],
+                whereValue = incidentInputMap[SchemaEventTypeNames.WHERE],
+                howValue = incidentInputMap[SchemaEventTypeNames.HOW],
+                whyValue = incidentInputMap[SchemaEventTypeNames.WHY],
+            ),
+            taskEventInput =
+                EventDetailData(
+                    whoValue = taskInputMap[SchemaEventTypeNames.WHO],
+                    whatValue = taskInputMap[SchemaEventTypeNames.INCIDENT],
+                    whenValue = taskInputMap[SchemaEventTypeNames.WHEN],
+                    whereValue = taskInputMap[SchemaEventTypeNames.WHERE],
+                    howValue = taskInputMap[SchemaEventTypeNames.HOW],
+                    whyValue = taskInputMap[SchemaEventTypeNames.WHY],
+                )
         )
         _threatAlertResults.value = response
-        _threatAlertCreatedEvent.value = normalizedMap
+        _threatAlertCreatedEvent.value = incidentNormalizedMap
     }
 
     // Function for Use Case 3: Suspicious Behaviour Detection
-    override suspend fun findSimilarSuspiciousEventsByLocationAndApproach(inputMap: Map<String, String>) {
+    override suspend fun findSimilarSuspiciousEventsByLocationAndApproach(inputMap: Map<SchemaEventTypeNames, String>) {
         val normalizedMap = inputMap.filterValues { it.isNotBlank() }
         if (normalizedMap.isEmpty()) {
             return
@@ -190,12 +193,12 @@ class GraphViewModel @Inject constructor(
 
         val response = queryService.findSuspiciousEventsQuery(
             event = EventDetailData(
-                whoValue = inputMap[SchemaEventTypeNames.WHO.key],
-                whatValue = inputMap[SchemaEventTypeNames.INCIDENT.key],
-                whenValue = inputMap[SchemaEventTypeNames.WHEN.key],
-                whereValue = inputMap[SchemaEventTypeNames.WHERE.key],
-                howValue = inputMap[SchemaEventTypeNames.HOW.key],
-                whyValue = inputMap[SchemaEventTypeNames.WHY.key],
+                whoValue = inputMap[SchemaEventTypeNames.WHO],
+                whatValue = inputMap[SchemaEventTypeNames.INCIDENT],
+                whenValue = inputMap[SchemaEventTypeNames.WHEN],
+                whereValue = inputMap[SchemaEventTypeNames.WHERE],
+                howValue = inputMap[SchemaEventTypeNames.HOW],
+                whyValue = inputMap[SchemaEventTypeNames.WHY],
             )
         )
         _suspiciousDetectionResults.value = ThreatAlertResponse(similarIncidents = response)

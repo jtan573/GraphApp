@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,11 +29,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -47,24 +52,43 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.frontend.navigation.NavItem
+import com.example.graphapp.frontend.viewmodels.GraphViewModel
 import kotlin.collections.component1
 import kotlin.collections.component2
 
 @Composable
-fun ReceivedTaskScreen(navController: NavController) {
+fun ReceivedTaskScreen(viewModel: GraphViewModel,
+                       navController: NavController) {
+
+    val threatAlertResults by viewModel.threatAlertResults.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.findThreatAlertAndResponse(
+            incidentInputMap = mapOf(
+                SchemaEventTypeNames.INCIDENT to "Mid-flight drone propeller failure",
+                SchemaEventTypeNames.WHEN to "1723897200000",
+                SchemaEventTypeNames.WHERE to "1.3901,103.8072",
+                SchemaEventTypeNames.HOW to "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent"
+            ),
+            taskInputMap = mapOf(
+                SchemaEventTypeNames.TASK to "Clear Launch Pad and Inspect Fleet",
+                SchemaEventTypeNames.WHY to "Prevent launch delays and rule out drone batch-wide mechanical faults"
+            )
+        )
+    }
 
     val taskInfo = mapOf<String, String>(
         "Task" to "Clear Launch Pad and Inspect Fleet",
         "Objective" to "Prevent launch delays and rule out drone batch-wide mechanical faults",
-//        "Method" to "Clear debris from lift pad and conduct rotor health scan across nearby UAVs"
     )
 
     val incidentInfo = mapOf<String, String>(
-        "Incident" to "Drone Rotor Jammed During Lift-Off",
-        "Details" to "Dust ingress in rotor hub stalled motor mid-ascent, causing drone to crash near fire truck",
+        "Incident" to "Mid-flight drone propeller failure",
+        "Details" to "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent",
         "DateTime" to "2025-01-18T13:20Z",
-        "Location" to "1.3012,103.7880 (150m away from you)",
+        "Location" to "1.3901,103.8072 (150m away from you)",
     )
 
     val testImpacts = listOf(
@@ -136,8 +160,7 @@ fun ReceivedTaskScreen(navController: NavController) {
                     containerColor = Color(0xFF99CCD1) // no background
                 ),
                 shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // optional, no shadow
-//                border = BorderStroke(2.dp, Color(0xFF48C7D4)) // border color + thickness
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
@@ -175,10 +198,20 @@ fun ReceivedTaskScreen(navController: NavController) {
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF45A0A8),          // background color
-                            contentColor = Color.White                   // text/icon color
+                            contentColor = Color.White
                         )
                     ) {
-                        Text("Instructions on How to Perform", fontSize = 14.sp)
+                        threatAlertResults?.let {
+                            Text("Instructions on How to Perform", fontSize = 14.sp)
+                        } ?: Row(
+                            Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 3.dp)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Looking for instructions...")
+                        }
                     }
                 }
             }
@@ -189,80 +222,86 @@ fun ReceivedTaskScreen(navController: NavController) {
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             ) {
                 Column(Modifier.animateContentSize()) {
-                    // Header row (tap to expand/collapse)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { expanded = !expanded }
-                            .padding(horizontal = 16.dp, vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = null
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "Predicted Impacts",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = if (expanded) "Collapse" else "Expand",
-                            modifier = Modifier.rotate(if (expanded) 180f else 0f)
-                        )
-                    }
+                    threatAlertResults?.let {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { expanded = !expanded }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "Predicted Impacts",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = if (expanded) "Collapse" else "Expand",
+                                modifier = Modifier.rotate(if (expanded) 180f else 0f)
+                            )
+                        }
 
-                    HorizontalDivider()
+                        HorizontalDivider()
 
-                    AnimatedVisibility(
-                        visible = expanded,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut()
-                    ) {
-                        Column(Modifier.padding(16.dp)) {
-                            testImpacts.forEachIndexed { i, impact ->
-                                Row(
-                                    verticalAlignment = Alignment.Top,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    // bullet dot
-                                    Text("•  ", style = MaterialTheme.typography.bodyMedium)
-                                    Text(
-                                        impact,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.weight(1f)
+                        AnimatedVisibility(
+                            visible = expanded,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                testImpacts.forEachIndexed { i, impact ->
+                                    Row(
+                                        verticalAlignment = Alignment.Top,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        // bullet dot
+                                        Text("•  ", style = MaterialTheme.typography.bodyMedium)
+                                        Text(
+                                            impact,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    if (i != testImpacts.lastIndex) {
+                                        Spacer(Modifier.height(8.dp))
+                                        HorizontalDivider(color = Color.LightGray)
+                                        Spacer(Modifier.height(8.dp))
+                                    }
+                                }
+
+                                Button(
+                                    onClick = { navController.navigate(NavItem.ThreatAnalysisScreen.route) },
+                                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF596569),          // background color
+                                        contentColor = Color.White                   // text/icon color
                                     )
+                                ) {
+                                    Text("Results Analysis >", fontSize = 14.sp)
                                 }
-                                if (i != testImpacts.lastIndex) {
-                                    Spacer(Modifier.height(8.dp))
-                                    HorizontalDivider(color = Color.LightGray)
-                                    Spacer(Modifier.height(8.dp))
-                                }
-                            }
-                            Button(
-                                onClick = { navController.navigate(NavItem.ThreatAnalysisScreen.route) },
-                                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF596569),          // background color
-                                    contentColor = Color.White                   // text/icon color
-                                )
-                            ) {
-                                Text("Results Analysis >", fontSize = 14.sp)
                             }
                         }
+                    }?: Row(
+                        Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 3.dp
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Analysing for potential impacts...")
                     }
                 }
             }
         }
     }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ReceivedTaskScreenPreview() {
-    val dummyNavController = rememberNavController()
-    ReceivedTaskScreen(dummyNavController)
 }

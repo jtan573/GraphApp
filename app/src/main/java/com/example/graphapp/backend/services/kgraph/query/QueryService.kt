@@ -81,7 +81,10 @@ interface QueryService {
      *      4. Recommend personnel assignments for each task based on specialisation and proximity.
      *      5. Retrieve similar historical incidents for reference or comparison.
      */
-    suspend fun findThreatAlertAndResponse(eventInput: EventDetailData): ThreatAlertResponse
+    suspend fun findThreatAlertAndResponse(
+        incidentEventInput: EventDetailData,
+        taskEventInput: EventDetailData
+    ): ThreatAlertResponse
 
     /**
      * Retrieves incidents that are potentially suspicious based on location and behavioral similarity.

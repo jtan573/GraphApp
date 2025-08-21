@@ -1,5 +1,7 @@
 package com.example.graphapp.backend.services.kgraph
 
+import com.example.graphapp.backend.core.GraphSchema
+import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.services.kgraph.query.QueryService
 import com.example.graphapp.data.api.EventDetailData
@@ -31,8 +33,8 @@ interface KGraphService {
 
     /**
      * Retrieves events that are similar in a specific aspect (overall similarity).
-     * @param givenEventType Type of event.
-     * @param givenPropertyValue Value of property to calculate similarity against.
+     * @param inputEventType Type of event.
+     * @param inputPropertyValue Value of property to calculate similarity against.
      * @param targetEventType Type of event user wants to retrieve.
      * @param targetSimilarityProperty Property to compute similarity on.
      * @return List of events with high similarity to the given event.
@@ -72,7 +74,7 @@ interface KGraphService {
      * Analyzes the given event and generates a threat alert response that includes situational awareness,
      * resource allocation, and related incident insights.
      *
-     * @param eventInput The details of the incoming event, including what, how, and where components.
+     * @param inputMap The details of the incoming event, including what, how, and where components.
      * @return A [ThreatAlertResponse] containing context-specific recommendations and data to support response planning.
      *      1. Identify nearby active users and their distance away from incident.
      *      2. Suggest potential impacts based on the nature and context of the event.
@@ -80,7 +82,10 @@ interface KGraphService {
      *      4. Recommend personnel assignments for each task based on specialisation and proximity.
      *      5. Retrieve similar historical incidents for reference or comparison.
      */
-    suspend fun findThreatAlertAndResponse(inputMap: Map<String, String>)
+    suspend fun findThreatAlertAndResponse(
+        incidentInputMap: Map<SchemaEventTypeNames, String>,
+        taskInputMap: Map<SchemaEventTypeNames, String>,
+    )
 
     /**
      * Retrieves incidents that are potentially suspicious based on location and behavioral similarity.
@@ -88,9 +93,9 @@ interface KGraphService {
      * 1. Occurred near the specified event's location.
      * 2. Share similar "how" or "what" characteristics indicating a potentially suspicious pattern or approach.
      *
-     * @param event The input event containing descriptive and locational information.
+     * @param inputMap The input event containing descriptive and locational information.
      * @return A map grouping similar suspicious incidents by type or category, or `null` if no relevant incidents are found.
      */
-    suspend fun findSimilarSuspiciousEventsByLocationAndApproach(inputMap: Map<String, String>)
+    suspend fun findSimilarSuspiciousEventsByLocationAndApproach(inputMap: Map<SchemaEventTypeNames, String>)
 
 }

@@ -118,4 +118,9 @@ class EventDatabaseQueries() {
         ).build().findFirst()
     }
 
+    fun resetEventDbQuery() {
+        nodesBox.removeAll()
+        edgesBox.removeAll()
+    }
+
 }

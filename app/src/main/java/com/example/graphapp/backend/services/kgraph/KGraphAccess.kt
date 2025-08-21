@@ -22,7 +22,6 @@ class GraphAccess @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val _ready = MutableStateFlow(false)
-    val ready: StateFlow<Boolean> = _ready
 
     private val readyGate = CompletableDeferred<Unit>() // for suspend callers
 

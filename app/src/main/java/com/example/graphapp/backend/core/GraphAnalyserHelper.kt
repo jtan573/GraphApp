@@ -13,6 +13,7 @@ import com.example.graphapp.backend.core.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.backend.core.GraphSchema.SchemaSemanticPropertyNodes
 import com.example.graphapp.backend.usecases.restoreLocationFromString
 import kotlin.collections.iterator
+import kotlin.math.abs
 import kotlin.math.ln
 
 /* -------------------------------------------------
@@ -146,6 +147,16 @@ suspend fun computeSemanticSimilarity(
                     similarities.add(0f)
                 }
             }
+
+            if (prop == SchemaEventTypeNames.WHEN.key) {
+                val oneDayMs = 86_400_000L
+                val timeDiff = abs(v1.eventName.toLong() - v2.eventName.toLong())
+                if (timeDiff <= 3 * oneDayMs) {
+                    similarities.add(1f - (timeDiff / (3 * oneDayMs)).toFloat())
+                } else {
+                    similarities.add(0f)
+                }
+            }
         }
     }
 
@@ -208,12 +219,14 @@ suspend fun computeSemanticSimilarEventsForProps(
         var nodes: List<EventNodeEntity> = if (type in SchemaSemanticPropertyNodes) {
             // Semantic nodes
             eventRepository.getRelevantNodes(eventNode.tags, type).filter { it.status in nodeStatus }
-        } else {
+        } else if (type == SchemaEventTypeNames.WHERE.key) {
             // Computed Nodes
             eventRepository.getCloseNodesByLocation(eventNode.name).filter { it.status in nodeStatus }
+        } else {
+            eventRepository.getCloseNodesByDatetime(eventNode.name).filter { it.status in nodeStatus }
         }
 
-        Log.d("CHECKPOINT 1:", "nodes with similar tags: ${nodes.joinToString { it.name }}")
+        Log.d("CHECKPOINT 1:", "nodes: $nodes")
 
         // Retrieve key neighbours of relevant nodes
         nodes.forEach { node ->

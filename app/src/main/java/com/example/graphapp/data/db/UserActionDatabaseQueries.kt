@@ -1,8 +1,6 @@
 package com.example.graphapp.data.db
 
-import android.util.Log
 import io.objectbox.kotlin.boxFor
-import org.intellij.lang.annotations.Identifier
 
 class UserActionDatabaseQueries() {
 
@@ -114,15 +112,6 @@ class UserActionDatabaseQueries() {
         return nodeFound
     }
 
-    fun findActionNodeByIdQuery(inputId: Long) : ActionNodeEntity? {
-        val nodeFound = actionsBox
-            .query(ActionNodeEntity_.id.equal(inputId))
-            .build()
-            .findFirst()
-
-        return nodeFound
-    }
-
     fun findActionNodeByName(actionName: String) : ActionNodeEntity? {
         val nodeFound = actionsBox
             .query(ActionNodeEntity_.actionName.equal(actionName))
@@ -173,6 +162,12 @@ class UserActionDatabaseQueries() {
             userNode.actionsTaken.remove(deletedActionId)
             usersBox.put(userNode)
         }
+    }
+
+    fun resetPersonnelDbQuery() {
+        usersBox.removeAll()
+        actionsBox.removeAll()
+        actionsEdgesBox.removeAll()
     }
 
 }

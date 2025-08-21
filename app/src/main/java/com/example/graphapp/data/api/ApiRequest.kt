@@ -14,18 +14,6 @@ sealed class RequestData {
         val eventType: SchemaKeyEventTypeNames? = null,
         val details: EventDetailData? = null
     ) : RequestData()
-
-    @Serializable
-    @SerialName("UserRequestData")
-    data class UserRequestData(
-        val userData: UserDetailData? = null,
-    ) : RequestData()
-
-    @Serializable
-    @SerialName("ActionRequestData")
-    data class ActionRequestData(
-        val actionData: ActionDetailData? = null
-    ) : RequestData()
 }
 
 /* -------------------------------------------------

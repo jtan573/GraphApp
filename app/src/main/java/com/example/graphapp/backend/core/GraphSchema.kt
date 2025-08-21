@@ -41,7 +41,7 @@ object GraphSchema {
     )
 
     val SchemaPropertyNodes = listOf(
-        "PEOPLEINVOLVED", "APPROACH", "LOCATION", "OBJECTIVE"
+        "PEOPLEINVOLVED", "APPROACH", "LOCATION", "OBJECTIVE", "DATETIME"
     )
 
     val SchemaSemanticPropertyNodes = listOf(
@@ -49,11 +49,11 @@ object GraphSchema {
     )
 
     val SchemaComputedPropertyNodes = listOf(
-        "LOCATION",
+        "LOCATION", "DATETIME"
     )
 
     val SchemaOtherNodes = listOf(
-        "DATETIME", "DESCRIPTION"
+        "DESCRIPTION"
     )
 
     enum class SchemaEventTypeNames(val key: String) {

@@ -59,7 +59,7 @@ fun AppNavigation (
             AlertNearbyTroopersScreen()
         }
         composable(NavItem.ReceivedTaskScreen.route) {
-            ReceivedTaskScreen(navController = navController)
+            ReceivedTaskScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.TaskInstructionsScreen.route) {
             TaskInstructionsScreen()
@@ -68,7 +68,7 @@ fun AppNavigation (
             ThreatAnalysisScreen(viewModel = viewModel)
         }
         composable(NavItem.SuspiciousActivityScreen.route) {
-            SuspiciousActivityMainScreen(navController = navController)
+            SuspiciousActivityMainScreen(navController = navController, viewModel = viewModel)
         }
         composable(NavItem.SuspiciousEventsDetailScreen.route) {
             SuspiciousEventsDetailsScreen(viewModel = viewModel)

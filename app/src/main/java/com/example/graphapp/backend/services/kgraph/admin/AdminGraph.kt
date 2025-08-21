@@ -4,6 +4,7 @@ import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.services.kgraph.GraphAccess
 import com.example.graphapp.data.api.RequestData
+import com.example.graphapp.data.api.UserDetailData
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
 import com.example.graphapp.data.db.EventEdgeEntity
@@ -95,36 +96,25 @@ class AdminGraph @Inject constructor(
         return true
     }
 
-    override suspend fun addUserToDatabase(inputData: RequestData.UserRequestData): Boolean {
-        val user = inputData.userData
-        if (user != null) {
+    override suspend fun addActionToDatabase(
+        inputActionName: String,
+        inputUserData: UserDetailData
+    ): Boolean {
 
-            if (user.identifier.isNullOrBlank() || user.role.isNullOrBlank() ||
-                user.specialisation.isNullOrBlank() || user.currentLocation.isNullOrBlank()) {
-                return false
-            }
-
-            graph.userActionRepository.insertUserNodeIntoDb(
-                inputIdentifier = inputData.userData.identifier,
-                inputRole = inputData.userData.role,
-                inputSpecialisation = inputData.userData.specialisation,
-                inputLocation = inputData.userData.currentLocation
-            )
-            return true
+        if (inputActionName.isBlank()) {
+            return false
         }
-        return false
-    }
 
-    override suspend fun addActionToDatabase(inputData: RequestData.ActionRequestData): Boolean {
-        val action = inputData.actionData
-        if (action != null) {
-
-            if (action.actionName.isNullOrBlank() || action.userIdentifier.isNullOrBlank()) {
-                return false
-            }
+        if (!inputUserData.identifier.isNullOrBlank()) {
+            graph.userActionRepository.insertUserNodeIntoDb(
+                inputIdentifier = inputUserData.identifier,
+                inputRole = inputUserData.role?: "",
+                inputSpecialisation = inputUserData.specialisation?: "",
+                inputLocation = inputUserData.currentLocation?: ""
+            )
 
             graph.userActionRepository.insertActionNodeIntoDb(
-                userIdentifier = action.userIdentifier, inputName = action.actionName
+                userIdentifier = inputUserData.identifier, inputName = inputActionName
             )
             return true
         }
@@ -162,6 +152,33 @@ class AdminGraph @Inject constructor(
         } else {
             return false
         }
+    }
+
+    override fun resetApp(): Boolean {
+        graph.userActionRepository.resetPersonnelDb()
+        graph.eventRepository.resetEventDb()
+        graph.dictionaryRepository.resetDictionaryDb()
+        return true
+    }
+
+    override fun exportEventDb(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun exportPersonnelDb(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun exportAllDb(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun importEventDb(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun importPersonnelDb(): Boolean {
+        TODO("Not yet implemented")
     }
 
     /* ------------------------------------------

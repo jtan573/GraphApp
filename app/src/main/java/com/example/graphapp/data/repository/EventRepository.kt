@@ -8,6 +8,7 @@ import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaSemanticPropertyNodes
 import com.example.graphapp.backend.usecases.restoreLocationFromString
+import kotlin.math.abs
 
 class EventRepository(
     private val embeddingRepository: EmbeddingRepository,
@@ -33,6 +34,7 @@ class EventRepository(
 
             var allTags = listOf<String>()
             var posTags = listOf<String>()
+            var filteredPosTags = listOf<String>()
             var isSuspicious = false
 
             if (inputType in SchemaSemanticPropertyNodes) {
@@ -41,7 +43,8 @@ class EventRepository(
                 val (matchedPhrases, cleanedSentence) = dictionaryRepository.extractAndRemovePhrases(inputName)
                 val taggedSentence = posTaggerRepository.tagText(cleanedSentence.lowercase())
                 posTags = posTaggerRepository.extractTaggedWords(taggedSentence)
-                allTags = posTags + matchedPhrases
+                filteredPosTags = dictionaryRepository.replaceSimilarTags(posTags)
+                allTags = filteredPosTags + matchedPhrases
             }
 
             val relevantTags = if (isSuspicious) {
@@ -62,7 +65,7 @@ class EventRepository(
             // Update dictionary repository after node is initialised
             val eventNode = getEventNodeById(nodeId)
             if (eventNode != null) {
-                posTags.forEach {
+                filteredPosTags.forEach {
                     dictionaryRepository.insertPosTagIntoDb(it, eventNode)
                 }
             }
@@ -154,7 +157,12 @@ class EventRepository(
         type: String,
         embeddingRepository: EmbeddingRepository,
     ): EventNodeEntity {
-        val tags = posTaggerRepository.extractTaggedWords(posTaggerRepository.tagText(value))
+
+        val tags = mutableListOf<String>()
+        if (type in SchemaSemanticPropertyNodes) {
+            tags.addAll(posTaggerRepository.extractTaggedWords(posTaggerRepository.tagText(value)))
+        }
+
         return EventNodeEntity(
             id = (-1L * (1..1_000_000).random()),
             name = value,
@@ -201,6 +209,26 @@ class EventRepository(
             }
         }
         return relevantNodes
+    }
+
+    // Retrieve nodes by datetime
+    fun getCloseNodesByDatetime(
+        inputDateTime: String
+    ): List<EventNodeEntity> {
+        val relevantNodes = mutableListOf<EventNodeEntity>()
+        val allNodes = getAllEventNodes().filter{ it.type == SchemaEventTypeNames.WHEN.key }
+        allNodes.forEach { dateNode ->
+            val oneDayMs = 86_400_000L
+            val timeDiff = abs(inputDateTime.toLong() - dateNode.name.toLong())
+            if (timeDiff <= 3 * oneDayMs) {
+                relevantNodes.add(dateNode)
+            }
+        }
+        return relevantNodes
+    }
+
+    fun resetEventDb() {
+        queries.resetEventDbQuery()
     }
 
 
@@ -339,7 +367,7 @@ class EventRepository(
             getEventNodeByNameAndType("Reconnaissance Patrol", SchemaEventTypeNames.TASK.key)
         )
 
-        insertEventNodeIntoDb("2023-09-15T07:00Z", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1694761200000", SchemaEventTypeNames.WHEN.key)
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Alpha Company", SchemaEventTypeNames.WHO.key),
             getEventNodeByNameAndType("Area Surveillance Operation", SchemaEventTypeNames.TASK.key)
@@ -349,7 +377,7 @@ class EventRepository(
             getEventNodeByNameAndType("Area Surveillance Operation", SchemaEventTypeNames.TASK.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-15T07:00Z", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("1694761200000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType("Area Surveillance Operation", SchemaEventTypeNames.TASK.key)
         )
 //        insertEdgeIntoDB(getNodeByNameAndType("1.3521,103.8198", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Area Surveillance Operation", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.TASK.key))
@@ -489,7 +517,7 @@ class EventRepository(
 
         insertEventNodeIntoDb("Enemies", SchemaEventTypeNames.WHO.key)
         insertEventNodeIntoDb("Counterattack", SchemaEventTypeNames.WHY.key)
-        insertEventNodeIntoDb("2023-09-15T10:50Z", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1694775000000", SchemaEventTypeNames.WHEN.key)
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Enemies", SchemaEventTypeNames.WHO.key),
             getEventNodeByNameAndType("Surprise Attack", SchemaEventTypeNames.INCIDENT.key)
@@ -499,7 +527,7 @@ class EventRepository(
             getEventNodeByNameAndType("Surprise Attack", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-15T10:50Z", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("1694775000000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType("Surprise Attack", SchemaEventTypeNames.INCIDENT.key)
         )
 //        insertEdgeIntoDB(getNodeByNameAndType("1.1344,104.0495", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Surprise Attack", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
@@ -529,7 +557,7 @@ class EventRepository(
 
         insertEventNodeIntoDb("Interfere with enemy supply lines", SchemaEventTypeNames.WHY.key)
         insertEventNodeIntoDb("Explosion of IED", SchemaEventTypeNames.HOW.key)
-        insertEventNodeIntoDb("2023-09-16T15:42Z", SchemaEventTypeNames.WHEN.key)
+        insertEventNodeIntoDb("1694878920000", SchemaEventTypeNames.WHEN.key)
 //        insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemy Group", SchemaEventTypeNames.WHO.key), getEventNodeByNameAndType("Improvised Explosive Strike", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
@@ -538,7 +566,7 @@ class EventRepository(
             ), getEventNodeByNameAndType("Improvised Explosive Strike", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(
-            getEventNodeByNameAndType("2023-09-16T15:42Z", SchemaEventTypeNames.WHEN.key),
+            getEventNodeByNameAndType("1694878920000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType("Improvised Explosive Strike", SchemaEventTypeNames.INCIDENT.key)
         )
         insertEventEdgeIntoDb(

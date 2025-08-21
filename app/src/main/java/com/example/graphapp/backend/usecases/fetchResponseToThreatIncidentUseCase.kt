@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.data.api.EventDetailData
+import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.data.api.ThreatAlertResponse
 import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
@@ -12,28 +13,28 @@ import com.example.graphapp.data.repository.UserActionRepository
 
 // App response to INCIDENTS
 suspend fun fetchResponseToThreatIncidentUseCase(
-    eventInput: EventDetailData,
+    incidentEventInput: EventDetailData,
+    taskEventInput: EventDetailData?,
     userActionRepository: UserActionRepository,
     embeddingRepository: EmbeddingRepository,
     eventRepository: EventRepository,
 ): ThreatAlertResponse {
 
     // Response 1: Active personnel with related specialisation
-    val threatLocation = eventInput.whereValue
-    val nearbyPersonnelMap = findRelevantPersonnelByLocationUseCase(
-        userActionRepository = userActionRepository,
-        embeddingRepository = embeddingRepository,
-        threatLocation = threatLocation,
-        radiusInMeters = 3000f
-    )?.associate { it.first to it.second }
+//    val threatLocation = incidentEventInput.whereValue
+//    val nearbyPersonnelMap = findRelevantPersonnelByLocationUseCase(
+//        userActionRepository = userActionRepository,
+//        embeddingRepository = embeddingRepository,
+//        threatLocation = threatLocation,
+//        radiusInMeters = 3000f
+//    )?.associate { it.first to it.second }
 
 
-    // Response 2: Similar Incidents -> What are the possible impacts?
+    // Response 1: Similar Incidents -> What are the possible impacts?
     val statusEventMap = mutableMapOf<SchemaEventTypeNames, String>()
-    eventInput.whatValue?.map { statusEventMap.put(SchemaEventTypeNames.INCIDENT, eventInput.whatValue) }
-    eventInput.howValue?.map { statusEventMap.put(SchemaEventTypeNames.HOW, eventInput.howValue) }
+    incidentEventInput.whatValue?.map { statusEventMap.put(SchemaEventTypeNames.INCIDENT, incidentEventInput.whatValue) }
+    incidentEventInput.howValue?.map { statusEventMap.put(SchemaEventTypeNames.HOW, incidentEventInput.howValue) }
 
-    // test
     val (_, _ , incidentResults) = fetchRelevantEventsByTargetType(
         statusEventMap = statusEventMap,
         eventRepository = eventRepository,
@@ -55,32 +56,28 @@ suspend fun fetchResponseToThreatIncidentUseCase(
         }
     } else { null }
 
-//    val (_, _ ,impactResults) = fetchRelevantEventsByTargetType(
-//        statusEventMap = statusEventMap,
-//        eventRepository = eventRepository,
-//        embeddingRepository = embeddingRepository,
-//        sourceEventType = SchemaKeyEventTypeNames.INCIDENT,
-//        queryKey = SchemaKeyEventTypeNames.IMPACT,
-//        activeNodesOnly = false
-//    )
-//    val potentialImpacts = if (impactResults.predictedEvents.isNotEmpty()) {
-//        impactResults.predictedEvents[SchemaKeyEventTypeNames.IMPACT]?.map { it }
-//    } else { null }
 
-
-//    // Response 3: Similar incidents -> Tasks
-//    val (_, _ ,taskResults) = fetchRelevantEventsByTargetType(
-//        statusEventMap = statusEventMap,
-//        eventRepository = eventRepository,
-//        embeddingRepository = embeddingRepository,
-//        sourceEventType = SchemaKeyEventTypeNames.INCIDENT,
-//        queryKey = SchemaKeyEventTypeNames.TASK,
-//        activeNodesOnly = false
-//    )
-//    val potentialTasks = if (taskResults.predictedEvents.isNotEmpty()) {
-//        taskResults.predictedEvents[SchemaKeyEventTypeNames.TASK]?.map { it }
-//    } else { null }
-
+    // Response 3: Similar Tasks
+    val potentialTasks = mutableListOf<EventDetails>()
+    if (taskEventInput != null) {
+        val taskStatusEventMap = mutableMapOf<SchemaEventTypeNames, String>()
+        taskEventInput.whatValue?.map { statusEventMap.put(SchemaEventTypeNames.TASK, taskEventInput.whatValue) }
+        taskEventInput.whyValue?.map { statusEventMap.put(SchemaEventTypeNames.WHY, taskEventInput.whyValue) }
+        val (_, _ ,taskResults) = fetchRelevantEventsByTargetType(
+            statusEventMap = taskStatusEventMap,
+            eventRepository = eventRepository,
+            embeddingRepository = embeddingRepository,
+            sourceEventType = SchemaKeyEventTypeNames.TASK,
+            queryKey = SchemaKeyEventTypeNames.TASK,
+            activeNodesOnly = false
+        )
+        val predictedTasks = if (taskResults.predictedEvents.isNotEmpty()) {
+            taskResults.predictedEvents[SchemaKeyEventTypeNames.TASK]?.map { it }
+        } else { null }
+        if (predictedTasks != null) {
+            potentialTasks.addAll(predictedTasks)
+        }
+    }
 
     // Response 4: Relevant personnel
 //    val taskingMap = mutableMapOf<String, List<UserNodeEntity>>()
@@ -132,9 +129,9 @@ suspend fun fetchResponseToThreatIncidentUseCase(
 
     // Create function response
     val incidentResponse = ThreatAlertResponse(
-        nearbyActiveUsersMap = nearbyPersonnelMap,
+//        nearbyActiveUsersMap = nearbyPersonnelMap,
         potentialImpacts = potentialImpacts,
-//        potentialTasks = potentialTasks,
+        potentialTasks = potentialTasks,
 //        taskAssignment = taskingMap
         similarIncidents = similarIncidents
     )
