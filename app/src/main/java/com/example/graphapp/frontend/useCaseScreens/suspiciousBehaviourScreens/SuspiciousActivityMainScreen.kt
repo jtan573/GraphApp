@@ -1,5 +1,6 @@
 package com.example.graphapp.frontend.useCaseScreens.suspiciousBehaviourScreens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,9 @@ import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.frontend.navigation.NavItem
 import com.example.graphapp.frontend.viewmodels.GraphViewModel
 import androidx.compose.runtime.getValue
+import com.example.graphapp.frontend.useCaseScreens.formatMillisToSGT
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 @Composable
 fun SuspiciousActivityMainScreen(
@@ -60,18 +64,20 @@ fun SuspiciousActivityMainScreen(
     )
 
     LaunchedEffect(Unit) {
-        viewModel.findSimilarSuspiciousEventsByLocationAndApproach(newIncident)
+        viewModel.findRelevantSuspiciousEvents(newIncident)
     }
 
     val taskInfo = mapOf<String, String>(
-        "Task" to "Investigate series of Suspicious Events",
+        "Task" to "Investigate the suspicious event",
         "Objective" to "Conduct a systematic sweep of the area to identify potential threats, unusual behavior, or unattended objects."
     )
 
     val scrollState = rememberScrollState()
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
     ) {
 
         Text(
@@ -81,9 +87,61 @@ fun SuspiciousActivityMainScreen(
             modifier = Modifier.padding(top = 64.dp, bottom = 12.dp, start = 10.dp),
         )
 
-        Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+        ) {
             Card(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.Transparent // light red background
+                ),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(3.dp, Color(0xFF9C6440))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Incident reported:",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    newIncident.forEach { (label, value) ->
+                        Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                            Text(
+                                text = "${label.key}:",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF2E4E8C)
+                            )
+                            if (label == SchemaEventTypeNames.WHEN) {
+                                Text(
+                                    text = formatMillisToSGT(value),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Black
+                                )
+                            } else {
+                                Text(
+                                    text = value,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Black
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(bottom = 16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF9DCFD4)),
                 shape = RoundedCornerShape(12.dp),
@@ -120,38 +178,31 @@ fun SuspiciousActivityMainScreen(
                         }
                     }
 
+                    Button(
+                        onClick = { navController.navigate(NavItem.SuspiciousEventsDetailScreen.route) },
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF45A0A8),          // background color
+                            contentColor = Color.White
+                        )
+                    ) {
+                        suspiciousDetectionResults?.let {
+                            Text("Check Details and other Relevant Info", fontSize = 14.sp)
+                        } ?: Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text("Looking for useful information...")
+                        }
+                    }
                 }
-            }
-            suspiciousDetectionResults?.let {
-                Image(
-                    painter = painterResource(id = R.drawable.suspicious_behaviour_location),
-                    contentDescription = "PNG display",
-                    modifier = Modifier.fillMaxWidth(),
-                    contentScale = ContentScale.FillWidth
-                )
-                Spacer(Modifier.height(8.dp))
-                Button(
-                    onClick = { navController.navigate(NavItem.SuspiciousEventsDetailScreen.route) },
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF45A0A8),          // background color
-                        contentColor = Color.White                   // text/icon color
-                    )
-                ) {
-                    Text("Check Details and other Relevant Info >", fontSize = 16.sp)
-                }
-            }?: Row(
-                Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 3.dp
-                )
-                Spacer(Modifier.width(8.dp))
-                Text("Searching relevant details...")
             }
         }
     }

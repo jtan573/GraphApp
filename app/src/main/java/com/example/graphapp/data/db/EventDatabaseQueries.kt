@@ -1,5 +1,6 @@
 package com.example.graphapp.data.db
 
+import com.example.graphapp.backend.core.GraphSchema
 import io.objectbox.kotlin.boxFor
 
 class EventDatabaseQueries() {

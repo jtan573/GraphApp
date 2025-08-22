@@ -1,6 +1,7 @@
 package com.example.graphapp.frontend.useCaseScreens.routeIntegrityScreens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,8 +9,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,16 +63,21 @@ fun RouteIntegrityMainScreen(navController: NavController){
             modifier = Modifier.fillMaxWidth(),
             contentScale = ContentScale.Fit
         )
-        Button(
-            onClick = { navController.navigate(NavItem.RouteIntegrityImage.route) },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF45A0A8),          // background color
-                contentColor = Color.White                   // text/icon color
-            )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
         ) {
-            Text("Check if route is operational >", fontSize = 16.sp)
+            Button(
+                onClick = { navController.navigate(NavItem.RouteIntegrityImage.route) },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF45A0A8),          // background color
+                    contentColor = Color.White                   // text/icon color
+                )
+            ) {
+                Text(">", fontSize = 16.sp)
+            }
         }
     }
 }

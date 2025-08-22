@@ -204,7 +204,7 @@ fun ReceivedTaskScreen(viewModel: GraphViewModel,
                         threatAlertResults?.let {
                             Text("Instructions on How to Perform", fontSize = 14.sp)
                         } ?: Row(
-                            Modifier.fillMaxWidth().padding(16.dp),
+                            Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -221,7 +221,9 @@ fun ReceivedTaskScreen(viewModel: GraphViewModel,
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             ) {
-                Column(Modifier.animateContentSize()) {
+                Column(
+                    modifier = Modifier.animateContentSize()
+                ) {
                     threatAlertResults?.let {
                         Row(
                             modifier = Modifier
@@ -284,7 +286,7 @@ fun ReceivedTaskScreen(viewModel: GraphViewModel,
                                         contentColor = Color.White                   // text/icon color
                                     )
                                 ) {
-                                    Text("Results Analysis >", fontSize = 14.sp)
+                                    Text("More Useful Information >", fontSize = 14.sp)
                                 }
                             }
                         }

@@ -1,11 +1,9 @@
 package com.example.graphapp.backend.usecases
 
-import com.example.graphapp.data.db.EventEdgeEntity
-import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.backend.core.computeSimilarAndRelatedEvents
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
-import com.example.graphapp.data.api.DiscoverEventsResponse
+import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 
@@ -17,25 +15,18 @@ suspend fun fetchRelevantEventsByTargetType(
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
     sourceEventType: SchemaKeyEventTypeNames? = null,
-    queryKey: SchemaKeyEventTypeNames? = null,
+    targetEventType: SchemaKeyEventTypeNames? = null,
     activeNodesOnly: Boolean
-): Triple<List<EventNodeEntity>, List<EventEdgeEntity>, DiscoverEventsResponse> {
+): Map<SchemaKeyEventTypeNames, List<EventDetails>> {
 
-    var nodes = listOf<EventNodeEntity>()
-    var edges = listOf<EventEdgeEntity>()
-
-    val (resultsNodes, resultsEdges, resultsRecs) = computeSimilarAndRelatedEvents(
+    val resultsRecs = computeSimilarAndRelatedEvents(
         newEventMap = statusEventMap,
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
         sourceEventType = sourceEventType,
-        targetEventType = queryKey,
+        targetEventType = targetEventType,
         activeNodesOnly = activeNodesOnly
     )
-    if (resultsNodes != null && resultsEdges != null) {
-        nodes = resultsNodes
-        edges = resultsEdges
-    }
 
-    return Triple(nodes, edges, resultsRecs)
+    return resultsRecs
 }

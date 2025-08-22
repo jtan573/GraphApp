@@ -10,7 +10,7 @@ import com.example.graphapp.data.db.UserNodeEntity
 interface QueryService {
 
     enum class InsightCategory {
-        WHO, WHEN, WHERE, WHY, HOW
+        WHO, WHEN, WHERE, WHY, HOW, SUSPICIOUS, ALERT
     }
 
     suspend fun ensureReady()
@@ -30,19 +30,8 @@ interface QueryService {
     suspend fun querySimilarEvents(
         eventType: SchemaKeyEventTypeNames,
         eventDetails: EventDetailData,
-        targetEventType: SchemaKeyEventTypeNames?
-    ): Map<SchemaKeyEventTypeNames, List<EventDetails>>
-
-    /**
-     * Retrieves events that are similar in one specific aspects.
-     * @param targetEventType Type of event user wants to retrieve.
-     * @return List of events with high similarity to the given event.
-     */
-    suspend fun querySimilarEventsByCategory(
-        eventType: SchemaKeyEventTypeNames?,
-        inputPropertyType: InsightCategory?,
-        inputValue: String,
-        targetEventType: SchemaKeyEventTypeNames?
+        targetEventType: SchemaKeyEventTypeNames?,
+        insightCategory: InsightCategory?,
     ): Map<SchemaKeyEventTypeNames, List<EventDetails>>
 
     /**
@@ -81,24 +70,16 @@ interface QueryService {
      *      4. Recommend personnel assignments for each task based on specialisation and proximity.
      *      5. Retrieve similar historical incidents for reference or comparison.
      */
-    suspend fun findThreatAlertAndResponse(
+    suspend fun findThreatResponse(
         incidentEventInput: EventDetailData,
         taskEventInput: EventDetailData
     ): ThreatAlertResponse
 
     /**
-     * Retrieves incidents that are potentially suspicious based on location and behavioral similarity.
-     * This function identifies past events that:
-     * 1. Occurred near the specified event's location.
-     * 2. Share similar "how" or "what" characteristics indicating a potentially suspicious pattern or approach.
+     * Retrieves all actions of a user's session.
      *
-     * @param event The input event containing descriptive and locational information.
-     * @return A map grouping similar suspicious incidents by type or category, or `null` if no relevant incidents are found.
      */
-    suspend fun findSuspiciousEventsQuery(event: EventDetailData): List<EventDetails>?
+    fun queryUserActions(userIdentifier: String): Map<Long, String>
 
-    /* ---------------------------
-        GENERAL USE CASES
-    --------------------------- */
 
 }

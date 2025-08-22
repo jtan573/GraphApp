@@ -16,7 +16,7 @@ suspend fun findRelatedSuspiciousEventsUseCase(
     eventInput: EventDetailData,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository
-) : List<EventDetails> {
+) : Map<SchemaKeyEventTypeNames, List<EventDetails>> {
 
     val similarIncidentsFound = mutableListOf<EventDetails>()
     val simEventsLocAndDate = mutableListOf<Pair<String, String>>()
@@ -27,7 +27,7 @@ suspend fun findRelatedSuspiciousEventsUseCase(
     val incidentDateTime = eventInput.whenValue
 
     if ((incidentMethod != null || incidentName != null) && incidentLocation != null) {
-        val (_, _, similarIncidents) = computeSimilarAndRelatedEvents(
+        val results = computeSimilarAndRelatedEvents(
             newEventMap = buildMap<SchemaEventTypeNames, String> {
                 incidentName?.let { put(SchemaEventTypeNames.INCIDENT, it) }
                 incidentMethod?.let { put(SchemaEventTypeNames.HOW, it) }
@@ -39,22 +39,22 @@ suspend fun findRelatedSuspiciousEventsUseCase(
             targetEventType = SchemaKeyEventTypeNames.INCIDENT,
             activeNodesOnly = false
         )
-
-        if (similarIncidents.predictedEvents.isNotEmpty()) {
-            val similarEventsByMethod = similarIncidents.predictedEvents[SchemaKeyEventTypeNames.INCIDENT]
-            if (similarEventsByMethod != null) {
-                similarIncidentsFound.addAll(similarEventsByMethod)
-                similarEventsByMethod.forEach {
-                    val locFound = eventRepository.getNeighborsOfEventNodeById(it.eventId)
-                        .single { it.type == SchemaEventTypeNames.WHERE.key }.name
-                    val dateFound = eventRepository.getNeighborsOfEventNodeById(it.eventId)
-                        .single { it.type == SchemaEventTypeNames.WHEN.key }.name
-                    if (locFound != "" && dateFound != "") {
-                        simEventsLocAndDate.add(locFound to dateFound)
-                    }
+        val similarIncidents = results[SchemaKeyEventTypeNames.INCIDENT]
+        if (!similarIncidents.isNullOrEmpty()) {
+            similarIncidentsFound.addAll(similarIncidents)
+            similarIncidents.forEach {
+                val locFound = eventRepository.getNeighborsOfEventNodeById(it.eventId)
+                    .single { it.type == SchemaEventTypeNames.WHERE.key }.name
+                val dateFound = eventRepository.getNeighborsOfEventNodeById(it.eventId)
+                    .single { it.type == SchemaEventTypeNames.WHEN.key }.name
+                if (locFound != "" && dateFound != "") {
+                    simEventsLocAndDate.add(locFound to dateFound)
                 }
             }
         }
+    }
+    similarIncidentsFound.forEach {
+        Log.d("check", "FIRST STOP SUSPICIOUS INCIDENT: ${it.eventName}")
     }
 
     // test
@@ -63,9 +63,10 @@ suspend fun findRelatedSuspiciousEventsUseCase(
     }
 
     simEventsLocAndDate.forEach { (loc, date) ->
-        val (_, _, similarIncidentsByDatetime) = computeSimilarAndRelatedEvents(
+        val similarIncidentsByDatetime = computeSimilarAndRelatedEvents(
             newEventMap = buildMap<SchemaEventTypeNames, String> {
                 put(SchemaEventTypeNames.INCIDENT, "suspicious")
+                put(SchemaEventTypeNames.HOW, "suspicious")
                 put(SchemaEventTypeNames.WHEN, date)
                 put(SchemaEventTypeNames.WHERE, loc)
             },
@@ -75,16 +76,14 @@ suspend fun findRelatedSuspiciousEventsUseCase(
             targetEventType = SchemaKeyEventTypeNames.INCIDENT,
             activeNodesOnly = false
         )
-        similarIncidentsByDatetime.predictedEvents.forEach { (type, events) ->
-            events.forEach { newEvent ->
-                if (similarIncidentsFound.none { it.eventId == newEvent.eventId }) {
-                    similarIncidentsFound.add(newEvent)
-                }
+        similarIncidentsByDatetime[SchemaKeyEventTypeNames.INCIDENT]?.forEach { event ->
+            if (similarIncidentsFound.none { it.eventId == event.eventId }) {
+                    similarIncidentsFound.add(event)
             }
         }
     }
     similarIncidentsFound.forEach {
         Log.d("check", "SUSPICIOUS INCIDENT: ${it.eventName}")
     }
-    return similarIncidentsFound
+    return mapOf(SchemaKeyEventTypeNames.INCIDENT to similarIncidentsFound)
 }

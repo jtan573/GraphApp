@@ -6,54 +6,12 @@ import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.SimilarEventTags
 import com.example.graphapp.data.db.UserNodeEntity
 
-// Function 3
-data class DiscoverEventsResponse(
-    val inputInformation: Map<SchemaEventTypeNames, String>,
-    val predictedEvents: Map<GraphSchema.SchemaKeyEventTypeNames, List<EventDetails>>
-)
-
 data class EventDetails(
     val eventId: Long,
     val eventName: String,
     val eventProperties: Map<String, String>,
     val simScore: Float,
     val simProperties: List<SimilarEventTags>? = null
-)
-
-/* -------------------------------------------------
-    Function 4: Pattern Recognition
-------------------------------------------------- */
-data class PatternFindingResponse(
-    val similarNodes: List<List<KeyNode>>
-)
-
-data class KeyNode(
-    val nodeName: String,
-    val nodeDescription: String?,
-    val nodeProperties: Map<String, String>
-)
-
-/* -------------------------------------------------
-    Function 5: Detect Replica Event
-------------------------------------------------- */
-data class ReplicaDetectionResponse(
-    val inputEvent: Map<String, String>,
-    val topSimilarEvents: List<SimilarEvent>,
-    val isLikelyDuplicate: Boolean
-)
-
-data class SimilarEvent(
-    val eventName: String,
-    val propertySimilarities: Map<String, Float>,
-    val similarityRatio: Float,
-    val averageSimilarityScore: Float
-)
-
-/* -------------------------------------------------
-    Use Case 1: Contact relevant personnel
-------------------------------------------------- */
-data class ContactRelevantPersonnelResponse(
-    val personnelMap: Map<UserNodeEntity, Int>?
 )
 
 /* -------------------------------------------------

@@ -25,7 +25,6 @@ import com.example.graphapp.frontend.viewmodels.GraphViewModel
 
 @Composable
 fun UseCaseScreen(
-    viewModel: GraphViewModel,
     navController: NavHostController,
 ) {
     val useCasesList = mapOf<String, () -> Unit>(
@@ -62,8 +61,14 @@ fun UseCaseScreen(
                         saveState = true
                     }
             } },
-//        "Threat Intelligence Correlation",
-//        "Personnel Coordination"
+        "Shift Handover" to {
+            navController.navigate(NavItem.ShiftHandoverScreen.route) {
+                launchSingleTop = true
+                restoreState = true
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+            } },
     )
 
     Column(modifier = Modifier.fillMaxSize()) {

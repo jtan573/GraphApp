@@ -38,7 +38,7 @@ class UserActionDatabaseQueries() {
         actionsBox.put(
             ActionNodeEntity(actionName = actionName, timestamp = System.currentTimeMillis())
         )
-        val newActionNode = findActionNodeByName(actionName)
+        val newActionNode = findActionNodeByNameQuery(actionName)
 
         if (newActionNode != null) {
             updateUserNodeHistoryQuery(userIdentifier, newActionNode.id)
@@ -112,7 +112,16 @@ class UserActionDatabaseQueries() {
         return nodeFound
     }
 
-    fun findActionNodeByName(actionName: String) : ActionNodeEntity? {
+    fun findActionNodeByIdQuery(inputId: Long) : ActionNodeEntity? {
+        val nodeFound = actionsBox
+            .query(ActionNodeEntity_.id.equal(inputId))
+            .build()
+            .findFirst()
+
+        return nodeFound
+    }
+
+    fun findActionNodeByNameQuery(actionName: String) : ActionNodeEntity? {
         val nodeFound = actionsBox
             .query(ActionNodeEntity_.actionName.equal(actionName))
             .build()

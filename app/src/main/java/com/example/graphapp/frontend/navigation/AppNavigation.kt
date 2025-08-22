@@ -14,6 +14,7 @@ import com.example.graphapp.frontend.screens.PersonnelScreen
 import com.example.graphapp.frontend.screens.UseCaseScreen
 import com.example.graphapp.frontend.useCaseScreens.relevantPersonnelScreens.RelevantPersonnelMainScreen
 import com.example.graphapp.frontend.useCaseScreens.routeIntegrityScreens.RouteIntegrityMainScreen
+import com.example.graphapp.frontend.useCaseScreens.shiftHandoverScreens.ShiftHandoverMainScreen
 import com.example.graphapp.frontend.useCaseScreens.suspiciousBehaviourScreens.SuspiciousEventsDetailsScreen
 import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.TaskInstructionsScreen
 import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.ThreatAnalysisScreen
@@ -36,7 +37,7 @@ fun AppNavigation (
             GraphViewScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.UseCase.route) {
-            UseCaseScreen(viewModel = viewModel, navController = navController)
+            UseCaseScreen(navController = navController)
         }
         composable(NavItem.RelevantPersonnelUseCase.route) {
             RelevantPersonnelMainScreen(viewModel = viewModel, navController = navController)
@@ -72,6 +73,9 @@ fun AppNavigation (
         }
         composable(NavItem.SuspiciousEventsDetailScreen.route) {
             SuspiciousEventsDetailsScreen(viewModel = viewModel)
+        }
+        composable(NavItem.ShiftHandoverScreen.route) {
+            ShiftHandoverMainScreen()
         }
     }
 }

@@ -1,24 +1,14 @@
 package com.example.graphapp.backend.core
 
 import android.util.Log
-import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.data.repository.EventRepository
-import com.example.graphapp.data.api.DiscoverEventsResponse
 import com.example.graphapp.data.api.EventDetails
-import com.example.graphapp.data.api.KeyNode
-import com.example.graphapp.data.api.PatternFindingResponse
-import com.example.graphapp.data.api.ReplicaDetectionResponse
-import com.example.graphapp.data.api.SimilarEvent
-import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
-import com.example.graphapp.backend.core.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.backend.core.GraphSchema.SchemaOtherNodes
 import com.example.graphapp.backend.core.GraphSchema.SchemaPropertyNodes
-//import com.example.graphdb.Edge
-//import com.example.graphdb.Node
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.iterator
@@ -32,7 +22,7 @@ suspend fun computeSimilarAndRelatedEvents (
     getTopThreeResultsOnly: Boolean = true,
     customThreshold: Float = 0.0f,
     activeNodesOnly: Boolean
-) : Triple<List<EventNodeEntity>?, List<EventEdgeEntity>?, DiscoverEventsResponse> {
+) : Map<SchemaKeyEventTypeNames, List<EventDetails>> {
 
     var eventNodesByType = mutableMapOf<String, EventNodeEntity>()
 
@@ -82,38 +72,5 @@ suspend fun computeSimilarAndRelatedEvents (
         eventsByType.put(SchemaKeyEventTypeNames.fromKey(type)!!, predictedEventsList.toList())
     }
 
-    if (topRecommendationsByType.isEmpty()) {
-        return Triple(null, null, DiscoverEventsResponse(newEventMap, eventsByType))
-    }
-
-    val allPredictedNodesIds = topRecommendationsByType.values.flatten().map{ it.targetNodeId }
-    val eventPropNodes = eventNodesByType.values.toList()
-
-    val (neighborNodes, neighborEdges) = buildGraphContext(
-        repository = eventRepository,
-        predictedNodeIds = allPredictedNodesIds,
-        extraNodes = eventPropNodes,
-        addSuggestionEdges = { edgeSet, nodeSet ->
-            for (id in eventNodesByType.map { it.value.id }) {
-                for ((type, recs) in topRecommendationsByType) {
-                    for (rec in recs) {
-                        val relationType = "Suggest-$type"
-                        val newEdge = EventEdgeEntity(
-                            id = -1L,
-                            firstNodeId = id,
-                            secondNodeId = rec.targetNodeId,
-                            edgeType = relationType
-                        )
-                        edgeSet.add(newEdge)
-                    }
-                }
-            }
-        }
-    )
-
-    return Triple(
-        neighborNodes.toList(),
-        neighborEdges.toList(),
-        DiscoverEventsResponse(newEventMap, eventsByType)
-    )
+    return eventsByType
 }

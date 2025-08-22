@@ -10,12 +10,6 @@ import com.example.graphapp.data.api.ThreatAlertResponse
 
 interface KGraphService {
 
-//    fun getInsight(category: InsightService.InsightCategory, contextId: String? = null): String
-//
-//    fun getInsights(categories: List<InsightService.InsightCategory>, contextId: String? = null): Map<InsightService.InsightCategory, String>
-//
-//    fun discoverRelationships(contextId: String? = null): List<String>
-
 //    fun queryNaturalLanguage(query: String): Map<String, Float>
 
     /**
@@ -26,24 +20,10 @@ interface KGraphService {
      * @return List of events with high similarity to the given event.
      */
     suspend fun findSimilarEvents(
-        givenEventType: SchemaKeyEventTypeNames,
+        inputEventType: SchemaKeyEventTypeNames,
+        inputEventDetails: EventDetailData,
         targetEventType: SchemaKeyEventTypeNames?,
-        eventDetails: EventDetailData,
-    ): Map<SchemaKeyEventTypeNames, List<EventDetails>>
-
-    /**
-     * Retrieves events that are similar in a specific aspect (overall similarity).
-     * @param inputEventType Type of event.
-     * @param inputPropertyValue Value of property to calculate similarity against.
-     * @param targetEventType Type of event user wants to retrieve.
-     * @param targetSimilarityProperty Property to compute similarity on.
-     * @return List of events with high similarity to the given event.
-     */
-    suspend fun findSimilarEventsByProperty(
-        inputEventType: SchemaKeyEventTypeNames?,
-        targetSimilarityProperty: QueryService.InsightCategory?,
-        inputPropertyValue: String,
-        targetEventType: SchemaKeyEventTypeNames?
+        insightCategory: QueryService.InsightCategory
     ): Map<SchemaKeyEventTypeNames, List<EventDetails>>
 
     /**
@@ -96,6 +76,13 @@ interface KGraphService {
      * @param inputMap The input event containing descriptive and locational information.
      * @return A map grouping similar suspicious incidents by type or category, or `null` if no relevant incidents are found.
      */
-    suspend fun findSimilarSuspiciousEventsByLocationAndApproach(inputMap: Map<SchemaEventTypeNames, String>)
+    suspend fun findRelevantSuspiciousEvents(inputMap: Map<SchemaEventTypeNames, String>)
+
+    /**
+     * Retrieves information of a user's shift
+     * @param userIdentifier Identifier of session user.
+     * @return Map of timestamps to action.
+     */
+    fun findShiftHandoverSummary(userIdentifier: String): Map<Long, String>
 
 }

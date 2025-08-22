@@ -231,7 +231,6 @@ class EventRepository(
         queries.resetEventDbQuery()
     }
 
-
     // Function to initialise repository
     suspend fun initialiseEventRepository() {
 

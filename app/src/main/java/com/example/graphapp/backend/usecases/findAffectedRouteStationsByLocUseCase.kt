@@ -23,7 +23,7 @@ suspend fun findAffectedRouteStationsByLocUseCase(
 
     val proximityIncidentsFound = mutableListOf<EventDetails>()
     routeStations.forEachIndexed { index, station ->
-        val (_, _, locationRecs) = computeSimilarAndRelatedEvents(
+        val locationRecs = computeSimilarAndRelatedEvents(
             newEventMap = mapOf(SchemaEventTypeNames.WHERE to station),
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
@@ -33,8 +33,8 @@ suspend fun findAffectedRouteStationsByLocUseCase(
             activeNodesOnly = true
         )
 
-        if (locationRecs.predictedEvents.isNotEmpty()) {
-            val nearbyIncidents = locationRecs.predictedEvents[SchemaKeyEventTypeNames.INCIDENT]
+        if (locationRecs.isNotEmpty()) {
+            val nearbyIncidents = locationRecs[SchemaKeyEventTypeNames.INCIDENT]
             nearbyIncidents?.forEach { incident ->
                 val isAlreadyAdded = proximityIncidentsFound.any { it.eventId == incident.eventId }
                 if (!isAlreadyAdded) {

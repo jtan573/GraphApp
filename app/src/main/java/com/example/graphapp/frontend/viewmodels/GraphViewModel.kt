@@ -128,10 +128,6 @@ class GraphViewModel @Inject constructor(
         _allActiveUsers.value = adminService.retrieveAllActiveUsers()
     }
 
-    // Function 5: Detect Same Event
-    fun detectDuplicateEvent(normalizedMap: Map<String, String>): Pair<Boolean, EventNodeEntity?> {
-        TODO("Not yet implemented.")
-    }
 
     // Functions for Use Case 1: Find relevant personnel
     override suspend fun findRelevantPersonnelOnDemand(
@@ -146,11 +142,6 @@ class GraphViewModel @Inject constructor(
         }
     }
 
-    // Function for Use Case 2: Helper to get Sample Data for Threat Detection
-    fun getDataForThreatDetectionUseCase(identifiers: List<String>): List<UserNodeEntity> {
-        return adminService.getDataForThreatAlertUseCase(identifiers)
-    }
-
     override suspend fun findThreatAlertAndResponse(
         incidentInputMap: Map<SchemaEventTypeNames, String>,
         taskInputMap: Map<SchemaEventTypeNames, String>,
@@ -161,7 +152,7 @@ class GraphViewModel @Inject constructor(
             return
         }
 
-        val response = queryService.findThreatAlertAndResponse(
+        val response = queryService.findThreatResponse(
             incidentEventInput = EventDetailData(
                 whoValue = incidentInputMap[SchemaEventTypeNames.WHO],
                 whatValue = incidentInputMap[SchemaEventTypeNames.INCIDENT],
@@ -185,28 +176,27 @@ class GraphViewModel @Inject constructor(
     }
 
     // Function for Use Case 3: Suspicious Behaviour Detection
-    override suspend fun findSimilarSuspiciousEventsByLocationAndApproach(inputMap: Map<SchemaEventTypeNames, String>) {
+    override suspend fun findRelevantSuspiciousEvents(inputMap: Map<SchemaEventTypeNames, String>) {
         val normalizedMap = inputMap.filterValues { it.isNotBlank() }
         if (normalizedMap.isEmpty()) {
             return
         }
 
-        val response = queryService.findSuspiciousEventsQuery(
-            event = EventDetailData(
+        val response = queryService.querySimilarEvents(
+            eventType = SchemaKeyEventTypeNames.INCIDENT,
+            eventDetails = EventDetailData(
                 whoValue = inputMap[SchemaEventTypeNames.WHO],
                 whatValue = inputMap[SchemaEventTypeNames.INCIDENT],
                 whenValue = inputMap[SchemaEventTypeNames.WHEN],
                 whereValue = inputMap[SchemaEventTypeNames.WHERE],
                 howValue = inputMap[SchemaEventTypeNames.HOW],
                 whyValue = inputMap[SchemaEventTypeNames.WHY],
-            )
+            ),
+            targetEventType = SchemaKeyEventTypeNames.INCIDENT,
+            insightCategory = QueryService.InsightCategory.SUSPICIOUS
         )
-        _suspiciousDetectionResults.value = ThreatAlertResponse(similarIncidents = response)
+        _suspiciousDetectionResults.value = ThreatAlertResponse(similarIncidents = response[SchemaKeyEventTypeNames.INCIDENT])
         _suspiciousDetectionCreatedEvent.value = normalizedMap
-    }
-
-    fun getDataForSuspiciousBehaviourUseCase(events: List<String>): List<Map<String, String>> {
-        return adminService.getDataForSuspiciousEventDetectionUseCase(events)
     }
 
     // Function for Use Case 4: Route Integrity Check
@@ -218,29 +208,24 @@ class GraphViewModel @Inject constructor(
         }
     }
 
+    // General Function
     override suspend fun findSimilarEvents(
-        givenEventType: SchemaKeyEventTypeNames,
+        inputEventType: SchemaKeyEventTypeNames,
+        inputEventDetails: EventDetailData,
         targetEventType: SchemaKeyEventTypeNames?,
-        eventDetails: EventDetailData,
+        insightCategory: QueryService.InsightCategory
     ): Map<SchemaKeyEventTypeNames, List<EventDetails>> {
         return queryService.querySimilarEvents(
-            eventType = givenEventType,
-            eventDetails = eventDetails,
-            targetEventType = targetEventType
+            eventType = inputEventType,
+            eventDetails = inputEventDetails,
+            targetEventType = targetEventType,
+            insightCategory = insightCategory
         )
     }
 
-    override suspend fun findSimilarEventsByProperty(
-        inputEventType: SchemaKeyEventTypeNames?,
-        targetSimilarityProperty: QueryService.InsightCategory?,
-        inputPropertyValue: String,
-        targetEventType: SchemaKeyEventTypeNames?
-    ): Map<SchemaKeyEventTypeNames, List<EventDetails>> {
-        return queryService.querySimilarEventsByCategory(
-            eventType = inputEventType,
-            inputPropertyType = targetSimilarityProperty,
-            inputValue = inputPropertyValue,
-            targetEventType = targetEventType
-        )
+    // Shift Handover
+    override fun findShiftHandoverSummary(userIdentifier: String): Map<Long, String> {
+        return queryService.queryUserActions(userIdentifier)
     }
+
 }

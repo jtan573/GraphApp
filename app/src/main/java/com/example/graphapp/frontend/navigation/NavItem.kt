@@ -29,6 +29,8 @@ sealed class NavItem(val route: String, val label: String, val icon: ImageVector
     object SuspiciousActivityScreen : NavItem("suspiciousActivityScreen", "SuspiciousActivityScreen", null)
     object SuspiciousEventsDetailScreen : NavItem("suspiciousDetailsScreen", "SuspiciousDetailsScreen", null)
 
+    object ShiftHandoverScreen : NavItem("shiftHandoverScreen", "ShiftHandoverScreen", null)
+
     companion object {
         val items = listOf(Personnel, Graph, UseCase)
     }

@@ -4,8 +4,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +22,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,29 +38,22 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.graphapp.R
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.data.api.EventDetailData
+import com.example.graphapp.data.api.EventDetails
+import com.example.graphapp.frontend.components.TagChipRow
 import com.example.graphapp.frontend.useCaseScreens.formatMillisToSGT
 import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.ReceivedTaskScreen
 import com.example.graphapp.frontend.viewmodels.GraphViewModel
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import javax.xml.validation.Schema
 
 @Composable
 fun SuspiciousEventsDetailsScreen(
     viewModel: GraphViewModel
 ) {
-
-//     Data for showcase purposes
-    val previewIncidents = viewModel.getDataForSuspiciousBehaviourUseCase(listOf<String>(
-        "Subject loiters near restricted zone appearing to scan the area",
-        "Subject spotted wandering aimlessly along perimeter fencing",
-        "Person discreetly writing or sketching near checkpoint structure",
-        "Unusual handoff of item occurs at public bench with minimal interaction",
-        "Small group appears to annotate or inspect public utility fixture"
-    ))
-
-    val sortedIncidents = previewIncidents.sortedBy { it[SchemaEventTypeNames.WHEN.key] }
-
+    val suspiciousDetectionResults by viewModel.suspiciousDetectionResults.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -99,42 +96,29 @@ fun SuspiciousEventsDetailsScreen(
                 )
             }
 
-            // Table header
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = "Date/Time", fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                    Text(text = "Incident", fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(2f), textAlign = TextAlign.Center)
-                }
-                HorizontalDivider(color = Color.Gray, thickness = 1.dp)
-            }
-
             // Table rows
-            items (sortedIncidents) { incident ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = formatMillisToSGT(incident[SchemaEventTypeNames.WHEN.key]),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = incident[SchemaEventTypeNames.INCIDENT.key] ?: "-",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(2f)
-                    )
+            suspiciousDetectionResults?.similarIncidents?.forEach { incident ->
+                item {
+                    Card() {
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                        ) {
+                            Text(
+                                text = incident.eventName,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+//                            incident.simProperties?.forEach {
+//                                if (it.propertyType == SchemaEventTypeNames.INCIDENT.key) {
+//                                    TagChipRow(it.relevantTagsB, "")
+//                                } else if (it.propertyType == SchemaEventTypeNames.HOW.key) {
+//                                    TagChipRow(it.relevantTagsB, "")
+//                                }
+//                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
                 }
-                HorizontalDivider(color = Color.LightGray, thickness = 0.5.dp)
             }
         }
     }

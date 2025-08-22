@@ -31,66 +31,56 @@ class QueryGraph @Inject constructor(
     override suspend fun querySimilarEvents(
         eventType: SchemaKeyEventTypeNames,
         eventDetails: EventDetailData,
-        targetEventType: SchemaKeyEventTypeNames?
+        targetEventType: SchemaKeyEventTypeNames?,
+        insightCategory: InsightCategory?,
     ):  Map<SchemaKeyEventTypeNames, List<EventDetails>> {
 
-        val response = fetchRelevantEventsByTargetType(
-            statusEventMap = buildMap<GraphSchema.SchemaEventTypeNames, String> {
-                when (eventType) {
-                    SchemaKeyEventTypeNames.INCIDENT -> put(GraphSchema.SchemaEventTypeNames.INCIDENT, eventDetails.whatValue ?: "")
-                    SchemaKeyEventTypeNames.IMPACT -> put(GraphSchema.SchemaEventTypeNames.IMPACT, eventDetails.whatValue ?: "")
-                    SchemaKeyEventTypeNames.TASK -> put(GraphSchema.SchemaEventTypeNames.TASK, eventDetails.whatValue ?: "")
-                    SchemaKeyEventTypeNames.OUTCOME -> put(GraphSchema.SchemaEventTypeNames.OUTCOME, eventDetails.whatValue ?: "")
-                }
-                GraphSchema.SchemaEventTypeNames.WHO to (eventDetails.whoValue ?: "")
-                GraphSchema.SchemaEventTypeNames.WHEN to (eventDetails.whenValue ?: "")
-                GraphSchema.SchemaEventTypeNames.WHERE to (eventDetails.whereValue ?: "")
-                GraphSchema.SchemaEventTypeNames.WHY to (eventDetails.whyValue ?: "")
-                GraphSchema.SchemaEventTypeNames.HOW to (eventDetails.howValue ?: "")
-            },
-            eventRepository = graph.eventRepository,
-            embeddingRepository = graph.embeddingRepository,
-            sourceEventType = eventType,
-            queryKey = targetEventType,
-            activeNodesOnly = false
-        )
+        val response = when (insightCategory) {
+            InsightCategory.SUSPICIOUS -> findRelatedSuspiciousEventsUseCase(
+                eventInput = EventDetailData(
+                    whatValue = eventDetails.whatValue,
+                    whenValue = eventDetails.whenValue,
+                    whereValue = eventDetails.whereValue,
+                    howValue = eventDetails.howValue
+                ),
+                eventRepository = graph.eventRepository,
+                embeddingRepository = graph.embeddingRepository
+            )
 
-        return response.third.predictedEvents
-    }
+            InsightCategory.ALERT -> fetchRelevantEventsByTargetType(
+                statusEventMap = buildMap<GraphSchema.SchemaEventTypeNames, String> {
+                    GraphSchema.SchemaEventTypeNames.WHERE to (eventDetails.whereValue ?: "")
+                },
+                eventRepository = graph.eventRepository,
+                embeddingRepository = graph.embeddingRepository,
+                sourceEventType = eventType,
+                targetEventType = targetEventType,
+                activeNodesOnly = false
+            )
 
-    override suspend fun querySimilarEventsByCategory(
-        eventType: SchemaKeyEventTypeNames?,
-        inputPropertyType: InsightCategory?,
-        inputValue: String,
-        targetEventType: SchemaKeyEventTypeNames?
-    ): Map<SchemaKeyEventTypeNames, List<EventDetails>> {
-        val response = fetchRelevantEventsByTargetType(
-            statusEventMap = buildMap<GraphSchema.SchemaEventTypeNames, String> {
-                if (eventType != null) {
+            else -> fetchRelevantEventsByTargetType(
+                statusEventMap = buildMap<GraphSchema.SchemaEventTypeNames, String> {
                     when (eventType) {
-                        SchemaKeyEventTypeNames.INCIDENT -> put(GraphSchema.SchemaEventTypeNames.INCIDENT, inputValue)
-                        SchemaKeyEventTypeNames.IMPACT -> put(GraphSchema.SchemaEventTypeNames.IMPACT, inputValue)
-                        SchemaKeyEventTypeNames.TASK -> put(GraphSchema.SchemaEventTypeNames.TASK, inputValue)
-                        SchemaKeyEventTypeNames.OUTCOME -> put(GraphSchema.SchemaEventTypeNames.OUTCOME, inputValue)
+                        SchemaKeyEventTypeNames.INCIDENT -> put(GraphSchema.SchemaEventTypeNames.INCIDENT, eventDetails.whatValue ?: "")
+                        SchemaKeyEventTypeNames.IMPACT -> put(GraphSchema.SchemaEventTypeNames.IMPACT, eventDetails.whatValue ?: "")
+                        SchemaKeyEventTypeNames.TASK -> put(GraphSchema.SchemaEventTypeNames.TASK, eventDetails.whatValue ?: "")
+                        SchemaKeyEventTypeNames.OUTCOME -> put(GraphSchema.SchemaEventTypeNames.OUTCOME, eventDetails.whatValue ?: "")
                     }
-                } else {
-                    if (inputPropertyType != null) {
-                        when (inputPropertyType) {
-                            InsightCategory.WHO -> put(GraphSchema.SchemaEventTypeNames.WHO, inputValue)
-                            InsightCategory.WHEN -> put(GraphSchema.SchemaEventTypeNames.WHEN, inputValue)
-                            InsightCategory.WHERE -> put(GraphSchema.SchemaEventTypeNames.WHERE, inputValue)
-                            InsightCategory.WHY -> put(GraphSchema.SchemaEventTypeNames.WHY, inputValue)
-                            InsightCategory.HOW -> put(GraphSchema.SchemaEventTypeNames.HOW, inputValue)
-                        }
-                    }
-                }
-            },
-            eventRepository = graph.eventRepository,
-            embeddingRepository = graph.embeddingRepository,
-            queryKey = targetEventType,
-            activeNodesOnly = false
-        )
-        return response.third.predictedEvents
+                    put(GraphSchema.SchemaEventTypeNames.WHO, (eventDetails.whoValue ?: ""))
+                    put(GraphSchema.SchemaEventTypeNames.WHEN, (eventDetails.whenValue ?: ""))
+                    put(GraphSchema.SchemaEventTypeNames.WHERE, (eventDetails.whereValue ?: ""))
+                    put(GraphSchema.SchemaEventTypeNames.WHY, (eventDetails.whyValue ?: ""))
+                    put(GraphSchema.SchemaEventTypeNames.HOW, (eventDetails.howValue ?: ""))
+                },
+                eventRepository = graph.eventRepository,
+                embeddingRepository = graph.embeddingRepository,
+                sourceEventType = eventType,
+                targetEventType = targetEventType,
+                activeNodesOnly = false
+            )
+        }
+
+        return response
     }
 
     override suspend fun findRelevantPersonnel(inputLoc: String, inputDesc: String): Map<UserNodeEntity, Int>? {
@@ -113,23 +103,41 @@ class QueryGraph @Inject constructor(
         return results
     }
 
-    override suspend fun findThreatAlertAndResponse(
+    override suspend fun findThreatResponse(
         incidentEventInput: EventDetailData,
         taskEventInput: EventDetailData
     ): ThreatAlertResponse {
         val incidentResponse = fetchResponseToThreatIncidentUseCase(
-            incidentEventInput, taskEventInput, graph.userActionRepository, graph.embeddingRepository, graph.eventRepository
+            incidentEventInput, taskEventInput, graph.embeddingRepository, graph.eventRepository
         )
         return incidentResponse
     }
 
-    override suspend fun findSuspiciousEventsQuery(event: EventDetailData): List<EventDetails>? {
-        val incidentResponse = findRelatedSuspiciousEventsUseCase(
-            eventInput = event,
-            eventRepository = graph.eventRepository,
-            embeddingRepository = graph.embeddingRepository
+    override fun queryUserActions(userIdentifier: String): Map<Long, String> {
+        val appActionIds = graph.userActionRepository.getUserNodeByIdentifier(userIdentifier)?.actionsTaken
+        val userNode = graph.eventRepository.getEventNodeByNameAndType(
+            inputName = userIdentifier, inputType = GraphSchema.SchemaEventTypeNames.WHO.key
         )
-        return incidentResponse
-    }
+        val tasksPerformed = if (userNode != null) {
+            graph.eventRepository.getNeighborsOfEventNodeById(userNode.id)
+                .filter { it.type == SchemaKeyEventTypeNames.TASK.key }
+        } else {
+            null
+        }
 
+        val actionsMap = mutableMapOf<Long, String>()
+
+        appActionIds?.forEach { actionId ->
+            val actionNode = graph.userActionRepository.getActionNodeById(actionId)
+            if (actionNode != null) {
+                actionsMap.put(actionNode.timestamp, actionNode.actionName)
+            }
+        }
+        tasksPerformed?.forEach { task ->
+            val taskTime = graph.eventRepository.getNeighborsOfEventNodeById(task.id)
+                .single { it.type == GraphSchema.SchemaEventTypeNames.WHEN.key}.name
+            actionsMap.put(taskTime.toLong(), task.name)
+        }
+        return actionsMap
+    }
 }

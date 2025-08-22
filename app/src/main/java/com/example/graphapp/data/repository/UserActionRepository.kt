@@ -36,7 +36,10 @@ class UserActionRepository (
         return
     }
 
-    fun insertActionNodeIntoDb(userIdentifier: String, inputName: String) {
+    fun insertActionNodeIntoDb(
+        userIdentifier: String,
+        inputName: String
+    ) {
         queries.addActionNodeIntoDbQuery(userIdentifier, inputName)
     }
 
@@ -73,6 +76,11 @@ class UserActionRepository (
         return queries.findUserNodeByIdentifierQuery(identifier)
     }
 
+    // Get action node by Id
+    fun getActionNodeById(id: Long): ActionNodeEntity? {
+        return queries.findActionNodeByIdQuery(id)
+    }
+
     // Delete user
     fun removeUserFromDb(identifier: String) {
         val userNode = getUserNodeByIdentifier(identifier)
@@ -88,7 +96,7 @@ class UserActionRepository (
     // Delete action
     fun removeActionFromDb(deletedActionName: String) {
 
-        val deletedActionId = queries.findActionNodeByName(deletedActionName)?.id
+        val deletedActionId = queries.findActionNodeByNameQuery(deletedActionName)?.id
 
         if (deletedActionId == null) {
             Log.e("MissingDbEntryError", "Action not found in database ($deletedActionName).")
@@ -147,12 +155,10 @@ class UserActionRepository (
             inputSpecialisation = "Leads reconnaissance and patrol missions in hostile environments.",
             inputLocation = "1.3521,103.8198"
         )
-
-        insertActionNodeIntoDb("SGT-001", "Planned Recon Route in Sector Bravo")
-        insertActionNodeIntoDb("SGT-001", "Deployed Surveillance Drone for Area Scan")
-        insertActionNodeIntoDb("SGT-001", "Identified Hostile Activity Near Checkpoint Delta")
-        insertActionNodeIntoDb("SGT-001", "Radioed HQ with Updated Intel")
-        insertActionNodeIntoDb("SGT-001", "Led Extraction of Team Under Fire")
+        insertActionNodeIntoDb("SGT-001", "Acknowledged alert and viewed incident details")
+        insertActionNodeIntoDb("SGT-001", "Assigned task: Patrol perimeter near checkpoint")
+        insertActionNodeIntoDb("SGT-001", "Reviewed nearby troop availability")
+        insertActionNodeIntoDb("SGT-001", "Confirmed mission completion report")
 
         insertUserNodeIntoDb(
             inputIdentifier = "CPL-002",
@@ -160,11 +166,9 @@ class UserActionRepository (
             inputSpecialisation = "Responsible for planning and executing secure convoy escorts through contested routes.",
             inputLocation = "1.3554,103.8677"
         )
-
-        insertActionNodeIntoDb("CPL-002", "Planned Convoy Route Through Sector Echo")
-        insertActionNodeIntoDb("CPL-002", "Inspected Vehicles for Deployment Readiness")
-        insertActionNodeIntoDb("CPL-002", "Briefed Troopers on Ambush Protocols")
-        insertActionNodeIntoDb("CPL-002", "Led Convoy Movement at 0600 Hours")
+        insertActionNodeIntoDb("CPL-002", "Planned convoy route using map interface")
+        insertActionNodeIntoDb("CPL-002", "Checked roadblock reports in area")
+        insertActionNodeIntoDb("CPL-002", "Sent task assignment to logistics specialist")
 
         insertUserNodeIntoDb(
             inputIdentifier = "LT-003",
@@ -172,10 +176,10 @@ class UserActionRepository (
             inputSpecialisation = "Coordinates artillery support and provides real-time intelligence from observation posts.",
             inputLocation = "1.3600,103.7500"
         )
-
-        insertActionNodeIntoDb("LT-003", "Deployed to Observation Post Sierra")
-        insertActionNodeIntoDb("LT-003", "Confirmed Visuals of Enemy Movement")
-        insertActionNodeIntoDb("LT-003", "Relayed Coordinates to Artillery Battery")
+        insertActionNodeIntoDb("LT-003", "Marked suspicious drone activity on map")
+        insertActionNodeIntoDb("LT-003", "Uploaded photo evidence from observation post")
+        insertActionNodeIntoDb("LT-003", "Requested artillery support through app")
+        insertActionNodeIntoDb("LT-003", "Flagged enemy movement pattern to operations officer")
 
         insertUserNodeIntoDb(
             inputIdentifier = "SPC-004",
@@ -183,6 +187,9 @@ class UserActionRepository (
             inputSpecialisation = "Oversees resupply missions and ensures timely delivery of critical supplies to forward units.",
             inputLocation = "1.3300,103.9200"
         )
+        insertActionNodeIntoDb("SPC-004", "Updated convoy load manifest")
+        insertActionNodeIntoDb("SPC-004", "Acknowledged supply delivery task")
+        insertActionNodeIntoDb("SPC-004", "Verified drop-off completion with timestamp")
 
         insertUserNodeIntoDb(
             inputIdentifier = "SGT-005",
@@ -190,6 +197,9 @@ class UserActionRepository (
             inputSpecialisation = "Leads quick reaction forces for immediate deployment during emerging threats.",
             inputLocation = "1.4100,103.7600"
         )
+        insertActionNodeIntoDb("SGT-005", "Accepted rapid response task")
+        insertActionNodeIntoDb("SGT-005", "Checked readiness status of nearby units")
+        insertActionNodeIntoDb("SGT-005", "Reported immediate deployment to incident site")
 
         insertUserNodeIntoDb(
             inputIdentifier = "CPT-006",
@@ -197,6 +207,10 @@ class UserActionRepository (
             inputSpecialisation = "Manages area surveillance operations using integrated aerial and ground assets.",
             inputLocation = "1.3400,103.6900"
         )
+        insertActionNodeIntoDb("CPT-006", "Monitored drone surveillance feed")
+        insertActionNodeIntoDb("CPT-006", "Reviewed summary of active incidents")
+        insertActionNodeIntoDb("CPT-006", "Assigned Quick Reaction Force to hotspot")
+        insertActionNodeIntoDb("CPT-006", "Reviewed logistics status from SPC-004")
 
         insertUserNodeIntoDb(
             inputIdentifier = "SSG-007",
@@ -204,6 +218,9 @@ class UserActionRepository (
             inputSpecialisation = "Provides protection for supply convoys and high-value logistical operations.",
             inputLocation = "1.3705,103.7100"
         )
+        insertActionNodeIntoDb("SSG-007", "Acknowledged convoy escort mission")
+        insertActionNodeIntoDb("SSG-007", "Reported cleared route section")
+        insertActionNodeIntoDb("SSG-007", "Filed security breach near depot")
 
         /*-----------------------------------------
         |    FOR THREAT DETECTION USE CASE        |
