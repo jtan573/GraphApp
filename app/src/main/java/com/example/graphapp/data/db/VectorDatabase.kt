@@ -1,10 +1,12 @@
 package com.example.graphapp.data.db
 
 import android.content.Context
-import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
+import android.util.Log
 import com.example.graphapp.backend.core.EventStatus
+import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import io.objectbox.BoxStore
 import io.objectbox.BoxStoreBuilder
+import io.objectbox.android.Admin
 import io.objectbox.annotation.Convert
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.HnswIndex
@@ -12,6 +14,7 @@ import io.objectbox.annotation.Id
 import io.objectbox.annotation.VectorDistanceType
 import io.objectbox.converter.PropertyConverter
 import io.objectbox.relation.ToMany
+
 
 object VectorDatabase {
     lateinit var store: BoxStore

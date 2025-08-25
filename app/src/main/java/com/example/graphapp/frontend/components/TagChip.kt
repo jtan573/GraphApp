@@ -25,7 +25,7 @@ fun TagChip(
     Box(
         modifier = Modifier
             .padding(end = 6.dp, bottom = 6.dp)
-            .background(color = backgroundColor, shape = RoundedCornerShape(50))
+            .background(color = backgroundColor, shape = RoundedCornerShape(20))
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Text(
@@ -39,15 +39,9 @@ fun TagChip(
 @Composable
 fun TagChipRow(tags: List<String>, label: String) {
     Row(
-        modifier = Modifier.padding(horizontal = 18.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(top = 5.dp)
-        )
         FlowRow(
             modifier = Modifier.padding(start = 3.dp),
             horizontalArrangement = Arrangement.Start,

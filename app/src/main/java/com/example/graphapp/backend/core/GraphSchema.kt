@@ -93,4 +93,5 @@ object GraphSchema {
 
 
     val SchemaPosTags = listOf("NN", "NNS", "NNP", "NNPS", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ")
+
 }

@@ -1,5 +1,7 @@
 package com.example.graphapp.backend.services.kgraph.admin
 
+import android.content.Context
+import android.net.Uri
 import com.example.graphapp.data.api.RequestData
 import com.example.graphapp.data.api.UserDetailData
 import com.example.graphapp.data.db.ActionEdgeEntity
@@ -17,11 +19,8 @@ interface AdminService {
     fun removeActionFromDatabase(actionName: String): Boolean
 
     fun resetApp(): Boolean
-    fun exportEventDb(): Boolean
-    fun exportPersonnelDb(): Boolean
-    fun exportAllDb(): Boolean
-    fun importEventDb(): Boolean
-    fun importPersonnelDb(): Boolean
+    fun exportDb(destUri: Uri): Boolean
+    fun importDb(srcUri: Uri): Boolean
 
     /* ------------------------------------------
         FOR UI

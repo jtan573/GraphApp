@@ -91,7 +91,12 @@ class QueryGraph @Inject constructor(
             threatDescription = inputDesc,
             radiusInMeters = 3000f
         )?.associate { it.first to it.second }
-        return contactsFound
+
+        val sortedList = contactsFound
+            ?.toList()
+            ?.sortedBy { (_, value) -> value }
+
+        return sortedList?.toMap(LinkedHashMap())
     }
 
     override suspend fun checkRouteIntegrity(routeCoordinates: List<String>): Map<DisruptionCause, List<EventDetails>>? {

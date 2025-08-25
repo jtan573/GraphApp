@@ -58,7 +58,7 @@ fun SuspiciousActivityMainScreen(
     val suspiciousDetectionResults by viewModel.suspiciousDetectionResults.collectAsState()
 
     val newIncident = mapOf<SchemaEventTypeNames, String>(
-        SchemaEventTypeNames.INCIDENT to "Subject lurking around the area, trying to avoid cameras",
+        SchemaEventTypeNames.INCIDENT to "Subject wandering around the area, trying to avoid cameras",
         SchemaEventTypeNames.WHERE to "1.3425,103.6897",
         SchemaEventTypeNames.WHEN to "1694510400000",
     )

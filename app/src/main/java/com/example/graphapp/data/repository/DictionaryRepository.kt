@@ -1,17 +1,65 @@
 package com.example.graphapp.data.repository
 
 import android.content.Context
+import com.example.graphapp.backend.core.GraphSchema.SchemaPosTags
 import com.example.graphapp.data.db.DictionaryDatabaseQueries
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.embedding.SentenceEmbedding
+import edu.stanford.nlp.pipeline.*;
+import java.util.Properties
 
 class DictionaryRepository(
     private val context: Context,
-    private val sentenceEmbedding: SentenceEmbedding
+    private val sentenceEmbedding: SentenceEmbedding,
+    private val posTaggerRepository: PosTaggerRepository
 ) {
     private val queries = DictionaryDatabaseQueries()
     private val nounPhrases = loadNounPhrases(context)
+    private val vagueWords = loadVaguePhrases(context)
     private val suspiciousPhrases = loadSuspiciousPhrases(context)
+
+    /*---------------------------
+        GENERAL USE
+    --------------------------- */
+    fun resetDictionaryDb() {
+        queries.resetDictionaryDbQuery()
+    }
+
+    suspend fun processInputName(inputName: String): List<String> {
+        val (matchedPhrases, cleanedSentence) = extractAndRenamePhrases(inputName)
+        val taggedSentence = posTaggerRepository.tagText(cleanedSentence.lowercase())
+        val lemmas = lemmatiseText(cleanedSentence.lowercase())
+        val lemmatisedText = replaceOriginalWithLemma(taggedSentence, lemmas)
+        val filteredTags = replaceSimilarTags(lemmatisedText)
+        return filteredTags + matchedPhrases
+    }
+
+    fun lemmatiseText(text: String): List<String> {
+        val props = Properties().apply {
+            setProperty("annotators", "tokenize,ssplit,pos,lemma")
+            setProperty("pos.model", posTaggerRepository.getTaggerFilepath())
+        }
+        val pipeline = StanfordCoreNLP(props)
+
+        val doc = CoreDocument(text)
+        pipeline.annotate(doc)
+
+        return doc.tokens().map { it.lemma() }
+    }
+
+    fun replaceOriginalWithLemma(taggedText: String, lemmas: List<String>): List<String> {
+        val taggedTokens = taggedText.split(" ")
+
+        val updatedText = mutableListOf<String>()
+        taggedTokens.forEachIndexed { idx, token ->
+            val parts = token.split("_")
+            if (parts.size == 2 && parts[1] in SchemaPosTags) {
+                updatedText.add(lemmas[idx])
+            }
+        }
+        return updatedText
+    }
+
 
     /*---------------------------
         FOR POS TAG SEARCH
@@ -59,6 +107,9 @@ class DictionaryRepository(
     suspend fun replaceSimilarTags(posTags: List<String>): List<String> {
         val newTagList = mutableListOf<String>()
         posTags.forEach { tag ->
+            if (tag in vagueWords) {
+                return@forEach
+            }
             val simTagsFound = queries.findSimilarTagsQuery(
                 inputEmbedding = sentenceEmbedding.encode(tag),
                 numTagsToFind = 1,
@@ -79,6 +130,7 @@ class DictionaryRepository(
     suspend fun insertSuspiciousWordIntoDb(
         inputValue: String,
     ) {
+
         queries.addSuspiciousNodeIntoDbQuery(
             inputValue = inputValue,
             inputEmbedding = sentenceEmbedding.encode(inputValue),
@@ -112,7 +164,13 @@ class DictionaryRepository(
         }
     }
 
-    fun extractAndRemovePhrases(input: String): Pair<List<String>, String> {
+    fun loadVaguePhrases(context: Context): Set<String> {
+        return context.assets.open("dictionaries/Vague_Words_Dictionary.txt").bufferedReader().useLines { lines ->
+            lines.map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
+        }
+    }
+
+    fun extractAndRenamePhrases(input: String): Pair<List<String>, String> {
         var workingSentence = input
         val matchedPhrases = mutableListOf<String>()
 
@@ -120,16 +178,12 @@ class DictionaryRepository(
             val regex = Regex("\\b${Regex.escape(phrase)}\\b", RegexOption.IGNORE_CASE)
             if (regex.containsMatchIn(workingSentence)) {
                 matchedPhrases.add(phrase)
-                workingSentence = workingSentence.replace(regex, "") // remove the phrase
+                workingSentence = workingSentence.replace(regex, "something") // remove the phrase
             }
         }
 
         return matchedPhrases to workingSentence.trim().replace("\\s+".toRegex(), " ")
     }
 
-
-    fun resetDictionaryDb() {
-        queries.resetDictionaryDbQuery()
-    }
 
 }

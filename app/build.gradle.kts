@@ -46,6 +46,14 @@ android {
         compose = true
         viewBinding = true
     }
+
+    packaging {
+        resources {
+            // Option A: keep one copy of NOTICE.md
+            pickFirsts += "META-INF/NOTICE.md"
+        }
+    }
+
 }
 
 dependencies {
@@ -61,13 +69,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
-    annotationProcessor(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.rxjava2)
     implementation(libs.androidx.room.rxjava3)
@@ -85,7 +91,6 @@ dependencies {
     implementation(libs.sentence.embeddings)
     implementation(libs.objectbox.android)
     implementation(libs.kotlin.reflect)
-    implementation(files("src/main/libs/stanford-postagger.jar"))
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.kotlinx.serialization.json)
@@ -94,4 +99,10 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.support)
+    implementation(libs.stanford.corenlp) {
+        exclude(group = "junit", module = "junit")
+        exclude(group = "org.hamcrest", module = "hamcrest-core")
+    }
+
+
 }

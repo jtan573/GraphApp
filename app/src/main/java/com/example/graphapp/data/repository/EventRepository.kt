@@ -13,7 +13,6 @@ import kotlin.math.abs
 class EventRepository(
     private val embeddingRepository: EmbeddingRepository,
     private val dictionaryRepository: DictionaryRepository,
-    private val posTaggerRepository: PosTaggerRepository
 ) {
 
     private val queries = EventDatabaseQueries()
@@ -33,18 +32,11 @@ class EventRepository(
         } else {
 
             var allTags = listOf<String>()
-            var posTags = listOf<String>()
-            var filteredPosTags = listOf<String>()
             var isSuspicious = false
 
             if (inputType in SchemaSemanticPropertyNodes) {
                 isSuspicious = dictionaryRepository.checkIfSuspicious(inputName.lowercase()).isNotEmpty()
-
-                val (matchedPhrases, cleanedSentence) = dictionaryRepository.extractAndRemovePhrases(inputName)
-                val taggedSentence = posTaggerRepository.tagText(cleanedSentence.lowercase())
-                posTags = posTaggerRepository.extractTaggedWords(taggedSentence)
-                filteredPosTags = dictionaryRepository.replaceSimilarTags(posTags)
-                allTags = filteredPosTags + matchedPhrases
+                allTags = dictionaryRepository.processInputName(inputName.lowercase())
             }
 
             val relevantTags = if (isSuspicious) {
@@ -65,7 +57,7 @@ class EventRepository(
             // Update dictionary repository after node is initialised
             val eventNode = getEventNodeById(nodeId)
             if (eventNode != null) {
-                filteredPosTags.forEach {
+                allTags.forEach {
                     dictionaryRepository.insertPosTagIntoDb(it, eventNode)
                 }
             }
@@ -160,7 +152,7 @@ class EventRepository(
 
         val tags = mutableListOf<String>()
         if (type in SchemaSemanticPropertyNodes) {
-            tags.addAll(posTaggerRepository.extractTaggedWords(posTaggerRepository.tagText(value)))
+           tags.addAll(dictionaryRepository.processInputName(value.lowercase()))
         }
 
         return EventNodeEntity(
@@ -1324,7 +1316,7 @@ class EventRepository(
         )
 
         insertEventNodeIntoDb(
-            "Subject spotted wandering aimlessly along perimeter fencing",
+            "Subject spotted roaming aimlessly along perimeter fencing",
             SchemaEventTypeNames.INCIDENT.key
         )
         insertEventNodeIntoDb("Middle-aged Woman", SchemaEventTypeNames.WHO.key)
@@ -1334,28 +1326,28 @@ class EventRepository(
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Middle-aged Woman", SchemaEventTypeNames.WHO.key),
             getEventNodeByNameAndType(
-                "Subject spotted wandering aimlessly along perimeter fencing",
+                "Subject spotted roaming aimlessly along perimeter fencing",
                 SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("1694427120000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType(
-                "Subject spotted wandering aimlessly along perimeter fencing",
+                "Subject spotted roaming aimlessly along perimeter fencing",
                 SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("1.3453,103.6000", SchemaEventTypeNames.WHERE.key),
             getEventNodeByNameAndType(
-                "Subject spotted wandering aimlessly along perimeter fencing",
+                "Subject spotted roaming aimlessly along perimeter fencing",
                 SchemaEventTypeNames.INCIDENT.key
             )
         )
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Walking in circles", SchemaEventTypeNames.HOW.key),
             getEventNodeByNameAndType(
-                "Subject spotted wandering aimlessly along perimeter fencing",
+                "Subject spotted roaming aimlessly along perimeter fencing",
                 SchemaEventTypeNames.INCIDENT.key
             )
         )

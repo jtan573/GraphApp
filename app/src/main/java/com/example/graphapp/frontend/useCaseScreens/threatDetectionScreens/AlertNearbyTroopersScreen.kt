@@ -82,7 +82,7 @@ fun AlertNearbyTroopersScreen() {
         }
 
         Image(
-            painter = painterResource(id = R.drawable.alert_trooper_page),
+            painter = painterResource(id = R.drawable.alert_trooper),
             contentDescription = "PNG display",
             modifier = Modifier.fillMaxWidth(),
             contentScale = ContentScale.Fit

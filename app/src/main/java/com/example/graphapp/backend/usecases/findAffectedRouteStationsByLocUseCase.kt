@@ -28,7 +28,6 @@ suspend fun findAffectedRouteStationsByLocUseCase(
             eventRepository = eventRepository,
             embeddingRepository = embeddingRepository,
             targetEventType = SchemaKeyEventTypeNames.INCIDENT,
-            getTopThreeResultsOnly = true,
             customThreshold = threshold,
             activeNodesOnly = true
         )

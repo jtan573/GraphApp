@@ -32,7 +32,7 @@ suspend fun findRelevantPersonnelByLocationUseCase(
 
         if (distance <= radiusInMeters) {
             if (threatEmbedding != null) {
-                val cosSim = embeddingRepository.cosineDistance(threatEmbedding, user.embedding!!)
+                val cosSim = embeddingRepository.computeCosineSimilarity(threatEmbedding, user.embedding!!)
                 nearbyPersonnel.add(Triple(user, distance.toInt(), cosSim))
             } else {
                 nearbyPersonnel.add(Triple(user, distance.toInt(), 0f))
@@ -40,7 +40,7 @@ suspend fun findRelevantPersonnelByLocationUseCase(
         }
     }
 
-    return nearbyPersonnel.sortedBy { it.second }.sortedByDescending { it.third }
+    return nearbyPersonnel.sortedByDescending { it.third }.take(3)
 }
 
 fun restoreLocationFromString(coordinates: String): Location {

@@ -19,7 +19,7 @@ suspend fun computeSimilarAndRelatedEvents (
     embeddingRepository: EmbeddingRepository,
     sourceEventType: SchemaKeyEventTypeNames? = null,
     targetEventType: SchemaKeyEventTypeNames? = null,
-    getTopThreeResultsOnly: Boolean = true,
+    numTopResults: Int = 3,
     customThreshold: Float = 0.0f,
     activeNodesOnly: Boolean
 ) : Map<SchemaKeyEventTypeNames, List<EventDetails>> {
@@ -43,7 +43,7 @@ suspend fun computeSimilarAndRelatedEvents (
         newEventMap = eventNodesByType,
         sourceEventType = sourceEventType,
         targetEventType = targetEventType,
-        getTopThreeResultsOnly = getTopThreeResultsOnly,
+        numTopResults = numTopResults,
         threshold = customThreshold,
         activeNodesOnly = activeNodesOnly
     )

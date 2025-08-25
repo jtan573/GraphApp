@@ -46,7 +46,7 @@ class EmbeddingRepository(private val context: Context) {
     }
 
     // Function to calculate cosine similarity between nodes
-    fun cosineDistance(
+    fun computeCosineSimilarity(
         x1: FloatArray,
         x2: FloatArray
     ): Float {

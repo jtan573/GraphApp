@@ -1,3 +1,4 @@
+suspicious
 loitering
 lurking
 casing
@@ -18,7 +19,7 @@ nervous pacing
 pretending to talk on phone
 pausing near restricted zones
 observing security routines
-Subject loiters near restricted zone appearing to scan the area
+loiters
 unattended bag
 concealed object
 bulky clothing

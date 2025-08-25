@@ -54,8 +54,8 @@ fun RelevantPersonnelMainScreen(
     viewModel: GraphViewModel,
     navController: NavController
 ) {
-    var localUserQueryDescription by remember { mutableStateOf("Looking for support with ground and drone surveillance in a high-risk zone.") }
-    var localUserQueryLocation by remember { mutableStateOf("1.3580,103.6900") }
+    var localUserQueryDescription by remember { mutableStateOf("Looking for support to clear launch pad and inspect drone fleets.") }
+    var localUserQueryLocation by remember { mutableStateOf("1.3901,103.8072") }
     var lastSubmittedDescription by remember { mutableStateOf("") }
     var lastSubmittedLocation by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()

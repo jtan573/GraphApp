@@ -1,17 +1,16 @@
 package com.example.graphapp.data.repository
 
-import android.app.Application
 import android.content.Context
-import com.example.graphapp.backend.core.GraphSchema.SchemaPosTags
 import edu.stanford.nlp.tagger.maxent.MaxentTagger
 import java.io.File
 
 data class PosTaggerRepository(private val context: Context) {
 
     private lateinit var tagger: MaxentTagger
+    private lateinit var taggerFile: File
 
     fun initialisePosTagger() {
-        val taggerFile = copyTaggerToCache(context)
+        taggerFile = copyTaggerToCache(context)
         tagger = MaxentTagger(taggerFile.absolutePath)
     }
 
@@ -29,20 +28,10 @@ data class PosTaggerRepository(private val context: Context) {
     }
 
     fun tagText(inputText: String): String {
-        return tagger.tagString(inputText)
+        return tagger.tagString(inputText.lowercase())
     }
 
-    fun extractTaggedWords(taggedSentence: String): List<String> {
-        val taggedTokens = taggedSentence.split(" ")
-
-        return taggedTokens.mapNotNull { token ->
-            val parts = token.split("_")
-            if (parts.size == 2 && parts[1] in SchemaPosTags) {
-                parts[0]
-            } else {
-                null
-            }
-        }
+    fun getTaggerFilepath(): String {
+        return taggerFile.absolutePath
     }
-
 }

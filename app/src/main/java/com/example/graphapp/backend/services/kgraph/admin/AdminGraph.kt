@@ -1,5 +1,7 @@
 package com.example.graphapp.backend.services.kgraph.admin
 
+import android.content.Context
+import android.net.Uri
 import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.services.kgraph.GraphAccess
@@ -14,11 +16,15 @@ import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import jakarta.inject.Inject
 import kotlinx.serialization.json.Json
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 
 class AdminGraph @Inject constructor(
-    private val graph: GraphAccess
+    private val graph: GraphAccess,
+    private val context: Context
 ) : AdminService {
 
     override suspend fun ensureReady() = graph.awaitReady()
@@ -162,24 +168,38 @@ class AdminGraph @Inject constructor(
         return true
     }
 
-    override fun exportEventDb(): Boolean {
-        TODO("Not yet implemented")
+    override fun exportDb(destUri: Uri): Boolean {
+//           /data/data/<your_app_package_name>/files/objectbox/objectbox/data.mdb
+        return try {
+            val dbFile = File(context.filesDir, "objectbox/objectbox/data.mdb")
+            context.contentResolver.openOutputStream(destUri, "w")!!.use { out ->
+                FileInputStream(dbFile).use { src ->
+                    src.copyTo(out)
+                    out.flush()
+                }
+            }
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 
-    override fun exportPersonnelDb(): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun exportAllDb(): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun importEventDb(): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun importPersonnelDb(): Boolean {
-        TODO("Not yet implemented")
+    override fun importDb(srcUri: Uri): Boolean {
+        return try {
+            val dbFile = File(context.filesDir, "objectbox/objectbox/data.mdb")
+            dbFile.parentFile?.mkdirs()
+            context.contentResolver.openInputStream(srcUri)!!.use { input ->
+                FileOutputStream(dbFile, false).use { output ->
+                    input.copyTo(output)
+                    output.flush()
+                }
+            }
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 
     /* ------------------------------------------

@@ -66,7 +66,7 @@ suspend fun shouldCheckWind(
     val query = "Incident involving airborne chemical release"
     val queryVec = embeddingRepository.getTextEmbeddings(query)
     val inputVec = embeddingRepository.getTextEmbeddings(incidentDesc)
-    val score = embeddingRepository.cosineDistance(queryVec, inputVec)
+    val score = embeddingRepository.computeCosineSimilarity(queryVec, inputVec)
     if (score >= threshold) {
         return true
     }

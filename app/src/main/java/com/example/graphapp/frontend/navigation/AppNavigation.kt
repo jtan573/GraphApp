@@ -63,7 +63,7 @@ fun AppNavigation (
             ReceivedTaskScreen(viewModel = viewModel, navController = navController)
         }
         composable(NavItem.TaskInstructionsScreen.route) {
-            TaskInstructionsScreen()
+            TaskInstructionsScreen(navController = navController)
         }
         composable(NavItem.ThreatAnalysisScreen.route) {
             ThreatAnalysisScreen(viewModel = viewModel)

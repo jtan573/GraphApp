@@ -14,13 +14,16 @@ kotlinxSerializationJson = "1.6.0"
 lifecycleRuntimeKtx = "2.9.1"
 activityCompose = "1.10.1"
 composeBom = "2025.06.00"
+luceneAnalyzersCommon = "9.10.0"
 navigationCompose = "2.9.0"
 objectboxAndroid = "4.3.0"
+objectboxAndroidObjectbrowser = "4.3.0"
 onnxruntimeAndroid = "1.22.0"
 onnxruntimeExtensionsAndroid = "0.13.0"
 retrofit = "2.11.0"
 roomRuntime = "2.7.1"
 sentenceEmbeddings = "v6"
+stanfordCorenlp = "4.5.10"
 tensorflowLite = "2.12.0"
 tensorflowLiteSupport = "0.4.3"
 webkit = "1.14.0"
@@ -76,14 +79,17 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+lucene-analyzers-common = { module = "org.apache.lucene:lucene-analyzers-common", version.ref = "luceneAnalyzersCommon" }
 native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqlDelight" }
 objectbox-android = { module = "io.objectbox:objectbox-android", version.ref = "objectboxAndroid" }
+objectbox-android-objectbrowser = { module = "io.objectbox:objectbox-android-objectbrowser", version.ref = "objectboxAndroidObjectbrowser" }
 onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntimeAndroid" }
 onnxruntime-extensions-android = { module = "com.microsoft.onnxruntime:onnxruntime-extensions-android", version.ref = "onnxruntimeExtensionsAndroid" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqlDelight" }
 androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationRuntimeAndroid" }
 sentence-embeddings = { module = "io.gitlab.shubham0204:sentence-embeddings", version.ref = "sentenceEmbeddings" }
+stanford-corenlp = { module = "edu.stanford.nlp:stanford-corenlp", version.ref = "stanfordCorenlp" }
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
 tensorflow-lite-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tensorflowLiteSupport" }
 androidx-navigation-compose-jvmstubs = { group = "androidx.navigation", name = "navigation-compose-jvmstubs", version.ref = "navigationComposeJvmstubs" }

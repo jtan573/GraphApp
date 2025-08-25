@@ -27,9 +27,9 @@ class GraphAccess @Inject constructor(
 
     val embeddingRepository = EmbeddingRepository(context)
     private val sentenceEmbedding = embeddingRepository.getSentenceEmbeddingModel()
-    val dictionaryRepository = DictionaryRepository(context, sentenceEmbedding)
     val posTaggerRepository = PosTaggerRepository(context)
-    val eventRepository = EventRepository(embeddingRepository, dictionaryRepository, posTaggerRepository)
+    val dictionaryRepository = DictionaryRepository(context, sentenceEmbedding, posTaggerRepository)
+    val eventRepository = EventRepository(embeddingRepository, dictionaryRepository)
     val userActionRepository = UserActionRepository(sentenceEmbedding)
 
     init {
@@ -37,10 +37,10 @@ class GraphAccess @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             embeddingRepository.initializeEmbedding()
             Log.d("REPOSITORY INFO", "Embedding repository initialised.")
-            dictionaryRepository.initialiseDictionaryRepository()
-            Log.d("REPOSITORY INFO", "Dictionary repository initialised.")
             posTaggerRepository.initialisePosTagger()
             Log.d("REPOSITORY INFO", "POS Tagger repository initialised.")
+            dictionaryRepository.initialiseDictionaryRepository()
+            Log.d("REPOSITORY INFO", "Dictionary repository initialised.")
             eventRepository.initialiseEventRepository()
             Log.d("REPOSITORY INFO", "Event repository initialised.")
             userActionRepository.initialiseUserActionRepository()

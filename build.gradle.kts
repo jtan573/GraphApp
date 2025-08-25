@@ -20,4 +20,12 @@ buildscript {
         classpath("com.android.tools.build:gradle:8.0.2")
         classpath("io.objectbox:objectbox-gradle-plugin:$objectboxVersion")
     }
+
+    // Apply to every configuration in the app module
+    configurations.all {
+        resolutionStrategy.dependencySubstitution {
+            substitute(module("org.hamcrest:hamcrest-core:1.1")).using(module("junit:junit:4.13.2"))
+        }
+    }
+
 }

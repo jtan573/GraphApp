@@ -1,7 +1,6 @@
 package com.example.graphapp.backend.core
 
 import android.util.Log
-import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
@@ -12,6 +11,7 @@ import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.backend.core.GraphSchema.SchemaSemanticPropertyNodes
 import com.example.graphapp.backend.usecases.restoreLocationFromString
+import java.util.concurrent.TimeUnit
 import kotlin.collections.iterator
 import kotlin.math.abs
 import kotlin.math.ln
@@ -101,7 +101,7 @@ suspend fun computeSemanticSimilarity(
             val v2 = e2.semanticProps[prop]
             if (v1?.eventEmbeddings == null || v2?.eventEmbeddings == null) continue
 
-            val similarity = embeddingRepository.cosineDistance(v1.eventEmbeddings, v2.eventEmbeddings)
+            val similarity = embeddingRepository.computeCosineSimilarity(v1.eventEmbeddings, v2.eventEmbeddings)
             similarities.add(similarity)
 
             // Consider extracting the tags?
@@ -116,8 +116,8 @@ suspend fun computeSemanticSimilarity(
 
                     for ((tagA, embeddingA) in v1TagEmbeddings) {
                         for ((tagB, embeddingB) in v2TagEmbeddings) {
-                            val sim = embeddingRepository.cosineDistance(embeddingA, embeddingB)
-                            if (sim >= 0.4f) {
+                            val sim = embeddingRepository.computeCosineSimilarity(embeddingA, embeddingB)
+                            if (sim >= 0.35f) {
                                 tagsFromA.add(tagA)
                                 tagsFromB.add(tagB)
                             }
@@ -143,6 +143,11 @@ suspend fun computeSemanticSimilarity(
                 val distance = restoreLocationFromString(v1.eventName).distanceTo(restoreLocationFromString(v2.eventName))
                 if (distance < 3000f) {
                     similarities.add(1f - (distance / thresholdDistance!!))
+                    simEventsByType.add(SimilarEventTags(
+                        propertyType = prop,
+                        tagsA = listOf(v1.eventName), tagsB = listOf(v2.eventName),
+                        relevantTagsA = listOf(("%.2f".format(distance))+"m"), relevantTagsB = listOf(("%.2f".format(distance))+"m")
+                    ))
                 } else {
                     similarities.add(0f)
                 }
@@ -153,6 +158,12 @@ suspend fun computeSemanticSimilarity(
                 val timeDiff = abs(v1.eventName.toLong() - v2.eventName.toLong())
                 if (timeDiff <= 3 * oneDayMs) {
                     similarities.add(1f - (timeDiff / (3 * oneDayMs)).toFloat())
+                    simEventsByType.add(SimilarEventTags(
+                        propertyType = prop,
+                        tagsA = listOf(v1.eventName), tagsB = listOf(v2.eventName),
+                        relevantTagsA = listOf(TimeUnit.MILLISECONDS.toHours(timeDiff).toString()+"h"),
+                        relevantTagsB = listOf(TimeUnit.MILLISECONDS.toHours(timeDiff).toString()+"h")
+                    ))
                 } else {
                     similarities.add(0f)
                 }
@@ -201,7 +212,7 @@ suspend fun computeSemanticSimilarEventsForProps(
     newEventMap: Map<String, EventNodeEntity>,
     sourceEventType: SchemaKeyEventTypeNames? = null,
     targetEventType: SchemaKeyEventTypeNames? = null,
-    getTopThreeResultsOnly: Boolean = true,
+    numTopResults: Int = 3,
     threshold: Float = 0.0f,
     activeNodesOnly: Boolean
 ): Map<String, List<ExplainedSimilarityWithScores>> {
@@ -226,8 +237,6 @@ suspend fun computeSemanticSimilarEventsForProps(
             eventRepository.getCloseNodesByDatetime(eventNode.name).filter { it.status in nodeStatus }
         }
 
-        Log.d("CHECKPOINT 1:", "nodes: $nodes")
-
         // Retrieve key neighbours of relevant nodes
         nodes.forEach { node ->
             var keyNeighbours: List<EventNodeEntity> =
@@ -251,8 +260,11 @@ suspend fun computeSemanticSimilarEventsForProps(
                 }
             }
         }
-
-        Log.d("CHECKPOINT 2:", "neighbourNodes: $allKeyNodeIdsByType")
+    }
+    allKeyNodeIdsByType.forEach { (type, nodes) ->
+        nodes.forEach {
+            Log.d("CHECK SUSPICIOUS", "$type: ${eventRepository.getEventNodeById(it)?.name}")
+        }
     }
 
     // Get values in new event
@@ -273,8 +285,6 @@ suspend fun computeSemanticSimilarEventsForProps(
                 newInputNeighbours = propsInEvent,
                 explainSimilarity = true
             )
-
-            Log.d("CHECKPOINT 3:", "keyNodeID: $keyNodeId -> sim score: $sim")
 
             val mainNodes = eventRepository.getNeighborsOfEventNodeById(keyNodeId).toMutableList()
             mainNodes.add(eventRepository.getEventNodeById(keyNodeId)!!)
@@ -301,15 +311,9 @@ suspend fun computeSemanticSimilarEventsForProps(
         }
     }
 
-    return if (getTopThreeResultsOnly) {
-        simMatrix.mapValues { (_, similarityWithScores) ->
-            similarityWithScores.sortedByDescending { it.simScore }.take(3)
+    return simMatrix.mapValues { (_, similarityWithScores) ->
+            similarityWithScores.sortedByDescending { it.simScore }.take(numTopResults)
         }
-    } else {
-        simMatrix.mapValues { (_, pairs) ->
-            pairs.sortedByDescending { it.simScore }
-        }
-    }
 }
 
 /* -------------------------------------------------

@@ -20,8 +20,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAdminService(graphAccess: GraphAccess): AdminService {
-        return AdminGraph(graphAccess)
+    fun provideAdminService(graphAccess: GraphAccess, @ApplicationContext context: Context): AdminService {
+        return AdminGraph(graphAccess, context)
     }
 
     @Provides

@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,6 +41,7 @@ import com.example.graphapp.R
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.data.api.EventDetailData
 import com.example.graphapp.data.api.EventDetails
+import com.example.graphapp.frontend.components.IncidentTagTable
 import com.example.graphapp.frontend.components.TagChipRow
 import com.example.graphapp.frontend.useCaseScreens.formatMillisToSGT
 import com.example.graphapp.frontend.useCaseScreens.threatDetectionScreens.ReceivedTaskScreen
@@ -59,7 +61,8 @@ fun SuspiciousEventsDetailsScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -75,7 +78,8 @@ fun SuspiciousEventsDetailsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp).padding(bottom = 8.dp)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp)
         ) {
             item {
                 Text(
@@ -87,7 +91,7 @@ fun SuspiciousEventsDetailsScreen(
 
             item {
                 Image(
-                    painter = painterResource(id = R.drawable.all_suspicious_events_img),
+                    painter = painterResource(id = R.drawable.suspicious_event_details),
                     contentDescription = "All suspicious events",
                     modifier = Modifier
                         .fillMaxWidth()
@@ -102,22 +106,19 @@ fun SuspiciousEventsDetailsScreen(
                     Card() {
                         Column(
                             modifier = Modifier.fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                                .padding(16.dp),
                         ) {
                             Text(
-                                text = incident.eventName,
-                                style = MaterialTheme.typography.bodyLarge,
+                                text = "Incident: ${incident.eventName}",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
                             )
-//                            incident.simProperties?.forEach {
-//                                if (it.propertyType == SchemaEventTypeNames.INCIDENT.key) {
-//                                    TagChipRow(it.relevantTagsB, "")
-//                                } else if (it.propertyType == SchemaEventTypeNames.HOW.key) {
-//                                    TagChipRow(it.relevantTagsB, "")
-//                                }
-//                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            IncidentTagTable(incident)
                         }
                     }
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                 }
             }
         }

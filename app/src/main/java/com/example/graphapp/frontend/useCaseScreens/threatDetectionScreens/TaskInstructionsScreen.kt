@@ -31,10 +31,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.graphapp.frontend.navigation.NavItem
 
 @Composable
-fun TaskInstructionsScreen() {
+fun TaskInstructionsScreen(navController: NavController) {
     val taskInfo = mapOf<String, String>(
         "Task" to "Clear Launch Pad and Inspect Fleet",
         "Objective" to "Prevent launch delays and rule out drone batch-wide mechanical faults",
@@ -148,12 +149,27 @@ fun TaskInstructionsScreen() {
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = { navController.navigate(NavItem.RelevantPersonnelUseCase.route) },
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD97F6C),          // background color
+                    contentColor = Color.White
+                ),
+                elevation = ButtonDefaults.buttonElevation(3.dp)
+            ) {
+                Text("Look for relevant personnel for Assistance >", fontSize = 14.sp)
+            }
         }
     }
 }
 
-@Preview (showBackground = true, showSystemUi = true)
-@Composable
-fun TaskInstructionsPreview() {
-    TaskInstructionsScreen()
-}
+//@Preview (showBackground = true, showSystemUi = true)
+//@Composable
+//fun TaskInstructionsPreview() {
+//    TaskInstructionsScreen()
+//}
+
+//navController.navigate(NavItem.RelevantPersonnelUseCase.route)
