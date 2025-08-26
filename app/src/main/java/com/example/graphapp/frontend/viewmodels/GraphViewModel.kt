@@ -11,6 +11,7 @@ import com.example.graphapp.frontend.components.UiEvent
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.services.kgraph.KGraphService
+import com.example.graphapp.backend.services.kgraph.ViewModelManager
 import com.example.graphapp.backend.services.kgraph.admin.AdminService
 import com.example.graphapp.backend.services.kgraph.query.QueryService
 import com.example.graphapp.data.api.EventDetailData
@@ -30,8 +31,7 @@ import kotlin.text.isNotBlank
 
 @HiltViewModel
 class GraphViewModel @Inject constructor(
-    private val queryService: QueryService,
-    private val adminService: AdminService
+    private val manager: ViewModelManager
 ) : ViewModel(), KGraphService {
 
     // ---------- Graph Data States ----------
@@ -114,18 +114,18 @@ class GraphViewModel @Inject constructor(
     }
 
     suspend fun createFullEventGraph() {
-        queryService.ensureReady()
-        val (eventNodes, eventEdges) = adminService.retrieveEventNodesAndEdges()
+        manager.queryService.ensureReady()
+        val (eventNodes, eventEdges) = manager.adminService.retrieveEventNodesAndEdges()
         val eventJson = convertToJsonEvent(eventNodes, eventEdges)
         _eventGraphData.value = eventJson
     }
 
     suspend fun createFullPersonnelGraph() {
-        adminService.ensureReady()
-        val (userNodes, actionNodes, actionEdges) = adminService.retrievePersonnelNodesAndEdges()
+        manager.adminService.ensureReady()
+        val (userNodes, actionNodes, actionEdges) = manager.adminService.retrievePersonnelNodesAndEdges()
         val userJson = convertToJsonUser(userNodes, actionNodes, actionEdges)
         _userGraphData.value = userJson
-        _allActiveUsers.value = adminService.retrieveAllActiveUsers()
+        _allActiveUsers.value = manager.adminService.retrieveAllActiveUsers()
     }
 
 
@@ -135,7 +135,7 @@ class GraphViewModel @Inject constructor(
         inputDescription: String
     ) {
         viewModelScope.launch {
-            val response = queryService.findRelevantPersonnel(
+            val response = manager.queryService.findRelevantPersonnel(
                 inputLocation, inputDescription
             )
             _relevantContactState.value = response
@@ -152,7 +152,7 @@ class GraphViewModel @Inject constructor(
             return
         }
 
-        val response = queryService.findThreatResponse(
+        val response = manager.queryService.findThreatResponse(
             incidentEventInput = EventDetailData(
                 whoValue = incidentInputMap[SchemaEventTypeNames.WHO],
                 whatValue = incidentInputMap[SchemaEventTypeNames.INCIDENT],
@@ -182,7 +182,7 @@ class GraphViewModel @Inject constructor(
             return
         }
 
-        val response = queryService.querySimilarEvents(
+        val response = manager.queryService.querySimilarEvents(
             eventType = SchemaKeyEventTypeNames.INCIDENT,
             eventDetails = EventDetailData(
                 whoValue = inputMap[SchemaEventTypeNames.WHO],
@@ -202,7 +202,7 @@ class GraphViewModel @Inject constructor(
     // Function for Use Case 4: Route Integrity Check
     override suspend fun findAffectedRouteStationsByLocation(locations: List<String>) {
         if (locations.isNotEmpty()) {
-            val response = queryService.checkRouteIntegrity(locations)
+            val response = manager.queryService.checkRouteIntegrity(locations)
             _routeIntegrityResults.value =
                 ThreatAlertResponse(incidentsAffectingStations = response)
         }
@@ -215,7 +215,7 @@ class GraphViewModel @Inject constructor(
         targetEventType: SchemaKeyEventTypeNames?,
         insightCategory: QueryService.InsightCategory
     ): Map<SchemaKeyEventTypeNames, List<EventDetails>> {
-        return queryService.querySimilarEvents(
+        return manager.queryService.querySimilarEvents(
             eventType = inputEventType,
             eventDetails = inputEventDetails,
             targetEventType = targetEventType,
@@ -225,7 +225,7 @@ class GraphViewModel @Inject constructor(
 
     // Shift Handover
     override fun findShiftHandoverSummary(userIdentifier: String): Map<Long, String> {
-        return queryService.queryUserActions(userIdentifier)
+        return manager.queryService.queryUserActions(userIdentifier)
     }
 
 }
