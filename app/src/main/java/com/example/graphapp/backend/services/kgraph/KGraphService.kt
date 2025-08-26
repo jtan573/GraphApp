@@ -13,9 +13,11 @@ interface KGraphService {
 
     /**
      * Retrieves events that are similar in multiple aspects (overall similarity).
-     * @param givenEventType Type of event.
-     * @param eventDetails 5W1H of event.
-     * @param targetEventType Type of event user wants to retrieve.
+     *
+     * @param inputEventType Type of the input (source) event.
+     * @param inputEventDetails Details of the input event to compare against.
+     * @param targetEventType Optional target event type to filter results.
+     * @param insightCategory Similarity dimension/category to use.
      * @return List of events with high similarity to the given event.
      */
     suspend fun findSimilarEvents(
@@ -53,14 +55,9 @@ interface KGraphService {
      * Analyzes the given event and generates a threat alert response that includes situational awareness,
      * resource allocation, and related incident insights.
      *
-     * @param inputMap The details of the incoming event, including what, how, and where components.
-     * @return A [ThreatAlertResponse] containing context-specific recommendations and data to support response planning.
-     *      1. Identify nearby active users and their distance away from incident.
-     *      2. Suggest potential impacts based on the nature and context of the event.
-     *      3. Suggest potential response tasks based on prior event-task patterns.
-     *      4. Recommend personnel assignments for each task based on specialisation and proximity.
-     *      5. Retrieve similar historical incidents for reference or comparison.
-     */
+     * @param incidentInputMap Map of incident attributes and values.
+     * @param taskInputMap Map of task attributes and values.
+     * */
     suspend fun findThreatAlertAndResponse(
         incidentInputMap: Map<SchemaEventTypeNames, String>,
         taskInputMap: Map<SchemaEventTypeNames, String>,

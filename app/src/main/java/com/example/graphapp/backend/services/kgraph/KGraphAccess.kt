@@ -22,8 +22,7 @@ class GraphAccess @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val _ready = MutableStateFlow(false)
-
-    private val readyGate = CompletableDeferred<Unit>() // for suspend callers
+    private val readyGate = CompletableDeferred<Unit>()
 
     val embeddingRepository = EmbeddingRepository(context)
     private val sentenceEmbedding = embeddingRepository.getSentenceEmbeddingModel()
@@ -33,7 +32,6 @@ class GraphAccess @Inject constructor(
     val userActionRepository = UserActionRepository(sentenceEmbedding)
 
     init {
-        // one-time async init; or expose a suspend init() and call at app start
         CoroutineScope(Dispatchers.IO).launch {
             embeddingRepository.initializeEmbedding()
             Log.d("REPOSITORY INFO", "Embedding repository initialised.")

@@ -62,7 +62,8 @@ interface QueryService {
      * Analyzes the given event and generates a threat alert response that includes situational awareness,
      * resource allocation, and related incident insights.
      *
-     * @param eventInput The details of the incoming event, including what, how, and where components.
+     * @param incidentEventInput Map of incident attributes and values.
+     * @param taskEventInput Map of task attributes and values.
      * @return A [ThreatAlertResponse] containing context-specific recommendations and data to support response planning.
      *      1. Identify nearby active users and their distance away from incident.
      *      2. Suggest potential impacts based on the nature and context of the event.
@@ -77,7 +78,8 @@ interface QueryService {
 
     /**
      * Retrieves all actions of a user's session.
-     *
+     * @param userIdentifier Identifier of the user.
+     * @return A map of the timestamp to user's action.
      */
     fun queryUserActions(userIdentifier: String): Map<Long, String>
 

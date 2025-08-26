@@ -222,31 +222,4 @@ class AdminGraph @Inject constructor(
         return graph.userActionRepository.getAllUserNodesWithoutEmbedding()
     }
 
-    /* ------------------------------------------
-        FOR USE CASES
-    ------------------------------------------ */
-    override fun getDataForSuspiciousEventDetectionUseCase(events: List<String>): List<Map<String, String>> {
-        val listOfEvents = mutableListOf<Map<String, String>>()
-        for (eventName in events) {
-            val eventMap = mutableMapOf<String, String>()
-            val eventNode = graph.eventRepository.getEventNodeByNameAndType(eventName, GraphSchema.SchemaEventTypeNames.INCIDENT.key)
-            if (eventNode != null) {
-                eventMap.put(eventNode.type, eventNode.name)
-                val neighbours = graph.eventRepository.getNeighborsOfEventNodeById(eventNode.id)
-                neighbours.forEach { neighbour ->
-                    eventMap.put(neighbour.type, neighbour.name)
-                }
-            }
-            listOfEvents.add(eventMap)
-        }
-        return listOfEvents
-    }
-
-    override fun getDataForThreatAlertUseCase(identifiers: List<String>): List<UserNodeEntity> {
-        val listOfUsers = mutableListOf<UserNodeEntity>()
-        for (id in identifiers) {
-            listOfUsers.add(graph.userActionRepository.getUserNodeByIdentifier(id)!!)
-        }
-        return listOfUsers
-    }
 }
