@@ -4,11 +4,11 @@ import android.util.Log
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.data.repository.EventRepository
-import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.backend.core.GraphSchema.SchemaOtherNodes
 import com.example.graphapp.backend.core.GraphSchema.SchemaPropertyNodes
+import com.example.graphapp.backend.model.dto.EventDetails
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.iterator

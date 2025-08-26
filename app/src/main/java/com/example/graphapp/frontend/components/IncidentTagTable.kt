@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.SimilarEventTags
-import com.example.graphapp.data.api.EventDetails
+import com.example.graphapp.backend.model.dto.EventDetails
 
 @Composable
 fun IncidentTagTable(incident: EventDetails) {

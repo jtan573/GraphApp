@@ -42,10 +42,6 @@ fun GraphViewScreen(
     val graphJson by viewModel.eventGraphData.collectAsState()
     val selectedFilter = "All"
 
-    val coroutineScope = rememberCoroutineScope()
-    var isLoading by remember { mutableStateOf(false) }
-    var activeButton by remember { mutableStateOf(ActiveButton.NONE) }
-
     LaunchedEffect(Unit) {
         viewModel.createFullEventGraph()
     }

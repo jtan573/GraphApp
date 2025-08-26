@@ -3,6 +3,9 @@ package com.example.graphapp.backend.services.kgraph.query
 import android.media.metrics.Event
 import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.model.dto.EventDetailData
+import com.example.graphapp.backend.model.dto.EventDetails
+import com.example.graphapp.backend.model.dto.ThreatAlertResponse
 import com.example.graphapp.backend.services.kgraph.GraphAccess
 import com.example.graphapp.backend.services.kgraph.query.QueryService.InsightCategory
 import com.example.graphapp.backend.usecases.fetchRelevantEventsByTargetType
@@ -10,10 +13,6 @@ import com.example.graphapp.backend.usecases.fetchResponseToThreatIncidentUseCas
 import com.example.graphapp.backend.usecases.findAffectedRouteStationsByLocUseCase
 import com.example.graphapp.backend.usecases.findRelatedSuspiciousEventsUseCase
 import com.example.graphapp.backend.usecases.findRelevantPersonnelByLocationUseCase
-import com.example.graphapp.data.api.DisruptionCause
-import com.example.graphapp.data.api.EventDetailData
-import com.example.graphapp.data.api.EventDetails
-import com.example.graphapp.data.api.ThreatAlertResponse
 import com.example.graphapp.data.db.UserNodeEntity
 import jakarta.inject.Inject
 
@@ -99,7 +98,7 @@ class QueryGraph @Inject constructor(
         return sortedList?.toMap(LinkedHashMap())
     }
 
-    override suspend fun checkRouteIntegrity(routeCoordinates: List<String>): Map<DisruptionCause, List<EventDetails>>? {
+    override suspend fun checkRouteIntegrity(routeCoordinates: List<String>): Map<GraphSchema.DisruptionCause, List<EventDetails>>? {
         val results = findAffectedRouteStationsByLocUseCase(
             eventRepository = graph.eventRepository,
             embeddingRepository = graph.embeddingRepository,

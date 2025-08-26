@@ -10,13 +10,13 @@ import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.frontend.components.UiEvent
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.model.dto.EventDetailData
+import com.example.graphapp.backend.model.dto.EventDetails
+import com.example.graphapp.backend.model.dto.ThreatAlertResponse
 import com.example.graphapp.backend.services.kgraph.KGraphService
 import com.example.graphapp.backend.services.kgraph.ViewModelManager
 import com.example.graphapp.backend.services.kgraph.admin.AdminService
 import com.example.graphapp.backend.services.kgraph.query.QueryService
-import com.example.graphapp.data.api.EventDetailData
-import com.example.graphapp.data.api.EventDetails
-import com.example.graphapp.data.api.ThreatAlertResponse
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel

@@ -3,10 +3,9 @@ package com.example.graphapp.backend.services.kgraph
 import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.model.dto.EventDetailData
+import com.example.graphapp.backend.model.dto.EventDetails
 import com.example.graphapp.backend.services.kgraph.query.QueryService
-import com.example.graphapp.data.api.EventDetailData
-import com.example.graphapp.data.api.EventDetails
-import com.example.graphapp.data.api.ThreatAlertResponse
 
 interface KGraphService {
 

@@ -1,11 +1,11 @@
 package com.example.graphapp.backend.usecases
 
 import android.util.Log
-import com.example.graphapp.data.api.EventDetails
 import com.example.graphapp.backend.core.computeSimilarAndRelatedEvents
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
-import com.example.graphapp.data.api.EventDetailData
+import com.example.graphapp.backend.model.dto.EventDetailData
+import com.example.graphapp.backend.model.dto.EventDetails
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
 

@@ -4,9 +4,9 @@ import android.content.Context
 import android.net.Uri
 import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.model.dto.EventRequestData
+import com.example.graphapp.backend.model.dto.UserDetailData
 import com.example.graphapp.backend.services.kgraph.GraphAccess
-import com.example.graphapp.data.api.RequestData
-import com.example.graphapp.data.api.UserDetailData
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
 import com.example.graphapp.data.db.EventEdgeEntity
@@ -45,7 +45,7 @@ class AdminGraph @Inject constructor(
         ignoreUnknownKeys = false
     }
 
-    private fun hashRequestData(requestData: RequestData): String {
+    private fun hashRequestData(requestData: EventRequestData): String {
         val json = jsonFormatter.encodeToString(requestData)
         return sha256(json)
     }
@@ -56,7 +56,7 @@ class AdminGraph @Inject constructor(
         return md.digest(bytes).joinToString("") { "%02x".format(it) }
     }
 
-    override suspend fun addEventToDatabase(inputData: RequestData.EventRequestData): Boolean {
+    override suspend fun addEventToDatabase(inputData: EventRequestData): Boolean {
 
         val hash = hashRequestData(inputData)
         val foundInCache = requestHashCache.getIfPresent(hash)
@@ -128,7 +128,7 @@ class AdminGraph @Inject constructor(
         return false
     }
 
-    override fun removeEventFromDatabase(inputData: RequestData.EventRequestData): Boolean {
+    override fun removeEventFromDatabase(inputData: EventRequestData): Boolean {
         if (inputData.eventType != null && inputData.details?.whatValue != null) {
             val nodeId = graph.eventRepository.getEventNodeByNameAndType(
                 inputName = inputData.details.whatValue,

@@ -2,8 +2,8 @@ package com.example.graphapp.backend.services.kgraph.admin
 
 import android.content.Context
 import android.net.Uri
-import com.example.graphapp.data.api.RequestData
-import com.example.graphapp.data.api.UserDetailData
+import com.example.graphapp.backend.model.dto.EventRequestData
+import com.example.graphapp.backend.model.dto.UserDetailData
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
 import com.example.graphapp.data.db.EventEdgeEntity
@@ -12,9 +12,9 @@ import com.example.graphapp.data.db.UserNodeEntity
 
 interface AdminService {
 
-    suspend fun addEventToDatabase(inputData: RequestData.EventRequestData): Boolean
+    suspend fun addEventToDatabase(inputData: EventRequestData): Boolean
     suspend fun addActionToDatabase(inputActionName: String, inputUserData: UserDetailData): Boolean
-    fun removeEventFromDatabase(inputData: RequestData.EventRequestData,): Boolean
+    fun removeEventFromDatabase(inputData: EventRequestData,): Boolean
     fun removeUserFromDatabase(userIdentifier: String): Boolean
     fun removeActionFromDatabase(actionName: String): Boolean
 

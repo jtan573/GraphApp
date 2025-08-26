@@ -1,12 +1,13 @@
 package com.example.graphapp.backend.usecases
 
-import com.example.graphapp.data.api.EventDetails
+import com.example.graphapp.backend.core.GraphSchema.DisruptionCause
 import com.example.graphapp.backend.core.computeSimilarAndRelatedEvents
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
-import com.example.graphapp.data.api.DisruptionCause
+import com.example.graphapp.backend.model.dto.EventDetails
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
+import kotlin.collections.isNotEmpty
 
 suspend fun findAffectedRouteStationsByLocUseCase(
     eventRepository: EventRepository,
