@@ -1,6 +1,10 @@
-package com.example.graphapp.data.db
+package com.example.graphapp.data.db.queries
 
-import com.example.graphapp.backend.core.GraphSchema
+import com.example.graphapp.data.db.EventEdgeEntity
+import com.example.graphapp.data.db.EventEdgeEntity_
+import com.example.graphapp.data.db.EventNodeEntity
+import com.example.graphapp.data.db.EventNodeEntity_
+import com.example.graphapp.data.db.VectorDatabase
 import io.objectbox.kotlin.boxFor
 
 class EventDatabaseQueries() {

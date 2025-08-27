@@ -55,7 +55,7 @@ fun UseCaseScreen(
                     saveState = true
                 }
             } },
-        "Suspicious Behaviour Detection" to {
+        "Suspicious Pattern Detection" to {
             navController.navigate(NavItem.SuspiciousActivityScreen.route) {
                 launchSingleTop = true
                 restoreState = true
@@ -82,15 +82,15 @@ fun UseCaseScreen(
                 .padding(horizontal = 16.dp),
         )
         Spacer(modifier = Modifier.height(12.dp))
-        useCasesList.forEach {
+        useCasesList.forEach { (title, onTap) ->
             Card(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-                    .clickable { it.value },
+                    .clickable(onClick =  { onTap() }),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Box(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = it.key,
+                        text = title,
                         fontSize = 16.sp
                     )
                 }

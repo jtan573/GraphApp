@@ -30,11 +30,9 @@ object VectorDatabase {
 
         store.boxFor(EventNodeEntity::class.java).removeAll()
         store.boxFor(EventEdgeEntity::class.java).removeAll()
-
         store.boxFor(UserNodeEntity::class.java).removeAll()
         store.boxFor(ActionNodeEntity::class.java).removeAll()
         store.boxFor(ActionEdgeEntity::class.java).removeAll()
-
         store.boxFor(DictionaryNodeEntity::class.java).removeAll()
     }
 }
@@ -55,7 +53,9 @@ data class EventNodeEntity(
     var status: EventStatus = EventStatus.ACTIVE,
     var cachedNodeIds: MutableMap<String, MutableList<Long>> = mutableMapOf(),
     var tags: List<String> = mutableListOf<String>()
-)
+) {
+    lateinit var neighbours: ToMany<EventNodeEntity>
+}
 
 @Entity
 data class EventEdgeEntity(
@@ -95,7 +95,9 @@ data class UserNodeEntity(
     var embedding: FloatArray? = null,
     @Convert(converter = LongListConverter::class, dbType = String::class)
     var actionsTaken: MutableList<Long> = mutableListOf()
-)
+) {
+    lateinit var actions: ToMany<ActionNodeEntity>
+}
 
 @Entity
 data class ActionNodeEntity(

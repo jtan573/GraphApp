@@ -32,7 +32,7 @@ fun AlertNearbyTroopersScreen() {
     val alertDetails = mapOf<String, String>(
         SchemaEventTypeNames.INCIDENT.key to "Mid-Flight Drone Propeller Failure",
         SchemaEventTypeNames.HOW.key to "Propeller blade sheared mid-flight due to material fatigue, causing crash into storage tent",
-        SchemaEventTypeNames.WHEN.key to "1723897200000",
+        SchemaEventTypeNames.WHEN.key to "2024-08-17 20:20:00",
         SchemaEventTypeNames.WHERE.key to "1.3901,103.8072"
     )
 

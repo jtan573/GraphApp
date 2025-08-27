@@ -1,5 +1,12 @@
-package com.example.graphapp.data.db
+package com.example.graphapp.data.db.queries
 
+import com.example.graphapp.data.db.ActionEdgeEntity
+import com.example.graphapp.data.db.ActionEdgeEntity_
+import com.example.graphapp.data.db.ActionNodeEntity
+import com.example.graphapp.data.db.ActionNodeEntity_
+import com.example.graphapp.data.db.UserNodeEntity
+import com.example.graphapp.data.db.UserNodeEntity_
+import com.example.graphapp.data.db.VectorDatabase
 import io.objectbox.kotlin.boxFor
 
 class UserActionDatabaseQueries() {

@@ -2,7 +2,7 @@ package com.example.graphapp.data.repository
 
 import android.content.Context
 import com.example.graphapp.backend.core.GraphSchema.SchemaPosTags
-import com.example.graphapp.data.db.DictionaryDatabaseQueries
+import com.example.graphapp.data.db.queries.DictionaryDatabaseQueries
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.embedding.SentenceEmbedding
 import edu.stanford.nlp.pipeline.*;

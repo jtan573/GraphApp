@@ -3,7 +3,7 @@ package com.example.graphapp.data.repository
 import android.util.Log
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
-import com.example.graphapp.data.db.UserActionDatabaseQueries
+import com.example.graphapp.data.db.queries.UserActionDatabaseQueries
 import com.example.graphapp.data.db.UserNodeEntity
 import com.example.graphapp.data.embedding.SentenceEmbedding
 
@@ -56,10 +56,6 @@ class UserActionRepository (
         return queries.findAllActionEdgesQuery()
     }
 
-    // Get edge between action-action and between user-action
-    fun getActionEdgeBetweenIds(fromId: Long, fromType: String, toId: Long, toType: String) : ActionEdgeEntity? {
-        return queries.findActionEdgeQuery(fromId, fromType, toId, toType)
-    }
 
     // Get all USER nodes without their embedding
     fun getAllUserNodesWithoutEmbedding() : List<UserNodeEntity> {

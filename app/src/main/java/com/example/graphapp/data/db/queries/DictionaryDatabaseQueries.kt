@@ -1,5 +1,9 @@
-package com.example.graphapp.data.db
+package com.example.graphapp.data.db.queries
 
+import com.example.graphapp.data.db.DictionaryNodeEntity
+import com.example.graphapp.data.db.DictionaryNodeEntity_
+import com.example.graphapp.data.db.EventNodeEntity
+import com.example.graphapp.data.db.VectorDatabase
 import io.objectbox.kotlin.boxFor
 
 class DictionaryDatabaseQueries() {
@@ -71,13 +75,13 @@ class DictionaryDatabaseQueries() {
         }
         if (simWordsFound.isEmpty()) {
             dictBox.put(
-                    DictionaryNodeEntity(
-                        type = type,
-                        value = inputValue,
-                        embedding = inputEmbedding
-                    )
+                DictionaryNodeEntity(
+                    type = type,
+                    value = inputValue,
+                    embedding = inputEmbedding
                 )
-            }
+            )
+        }
         return
     }
 

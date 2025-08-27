@@ -1,6 +1,7 @@
 package com.example.graphapp.backend.services.kgraph.query
 
 import android.media.metrics.Event
+import android.util.Log
 import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.model.dto.EventDetailData
@@ -91,11 +92,7 @@ class QueryGraph @Inject constructor(
             radiusInMeters = 3000f
         )?.associate { it.first to it.second }
 
-        val sortedList = contactsFound
-            ?.toList()
-            ?.sortedBy { (_, value) -> value }
-
-        return sortedList?.toMap(LinkedHashMap())
+        return contactsFound
     }
 
     override suspend fun checkRouteIntegrity(routeCoordinates: List<String>): Map<GraphSchema.DisruptionCause, List<EventDetails>>? {

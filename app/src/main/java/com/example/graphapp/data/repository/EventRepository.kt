@@ -3,7 +3,7 @@ package com.example.graphapp.data.repository
 import android.util.Log
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
-import com.example.graphapp.data.db.EventDatabaseQueries
+import com.example.graphapp.data.db.queries.EventDatabaseQueries
 import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.backend.core.GraphSchema.SchemaSemanticPropertyNodes
