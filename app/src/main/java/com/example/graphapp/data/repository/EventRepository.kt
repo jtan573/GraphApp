@@ -75,7 +75,8 @@ class EventRepository(
             return
         } else {
             val edgeType = GraphSchema.SchemaEdgeLabels["${fromNode.type}-${toNode.type}"]
-            queries.addEdgeIntoDbQuery(fromNode.id, toNode.id, edgeType!!)
+            queries.addEdgeIntoDbQuery(fromNode, toNode, edgeType!!)
+
         }
     }
 
@@ -125,23 +126,11 @@ class EventRepository(
 
     // Find edges
     fun getNeighborsOfEventNodeById(id: Long): List<EventNodeEntity> {
-        val neighbourEdges = queries.findAllEdgesAroundNodeIdQuery(id)
-
-        val neighbourNodes = mutableSetOf<EventNodeEntity>()
-
-        for (edge in neighbourEdges) {
-            val node = if (edge.firstNodeId == id) {
-                queries.findNodeByIdQuery(edge.secondNodeId)!!
-            } else {
-                queries.findNodeByIdQuery(edge.firstNodeId)!!
-            }
-            neighbourNodes.add(node)
+        val eventNode = queries.findNodeByIdQuery(id)
+        if (eventNode != null) {
+            return eventNode.neighbours
         }
-        return neighbourNodes.toList()
-    }
-
-    fun getEdgeBetweenEventNodes(first: Long, second: Long): EventEdgeEntity {
-        return queries.findEdgeBetweenNodeIdsQuery(first, second)!!
+        return emptyList()
     }
 
     suspend fun getTemporaryEventNode(

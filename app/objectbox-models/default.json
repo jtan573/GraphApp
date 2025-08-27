@@ -110,7 +110,13 @@
           "type": 5
         }
       ],
-      "relations": []
+      "relations": [
+        {
+          "id": "2:4594400819600626048",
+          "name": "neighbours",
+          "targetId": "5:5472720358370264630"
+        }
+      ]
     },
     {
       "id": "7:8417389103419390607",
@@ -156,7 +162,13 @@
           "type": 9
         }
       ],
-      "relations": []
+      "relations": [
+        {
+          "id": "3:8871732309043060880",
+          "name": "actions",
+          "targetId": "3:2823843504861495848"
+        }
+      ]
     },
     {
       "id": "8:7041210966750999923",
@@ -232,7 +244,7 @@
   ],
   "lastEntityId": "9:441345626016719622",
   "lastIndexId": "4:7323196369151097052",
-  "lastRelationId": "1:3115233928843439845",
+  "lastRelationId": "3:8871732309043060880",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,

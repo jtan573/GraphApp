@@ -120,22 +120,6 @@ class DictionaryDatabaseQueries() {
         return simWords
     }
 
-    fun getSuspiciousEvents() : List<EventNodeEntity> {
-        val suspiciousWordsOnly = dictBox.query(
-            DictionaryNodeEntity_.type.equal("SUSPICIOUS")
-        ).build().find()
-
-        val suspiciousEvents = mutableListOf<EventNodeEntity>()
-        suspiciousWordsOnly.forEach { word ->
-            word.events.forEach { event ->
-                if (!suspiciousEvents.contains(event)) {
-                    suspiciousEvents.add(event)
-                }
-            }
-        }
-        return suspiciousEvents
-    }
-
     fun resetDictionaryDbQuery() {
         dictBox.removeAll()
     }

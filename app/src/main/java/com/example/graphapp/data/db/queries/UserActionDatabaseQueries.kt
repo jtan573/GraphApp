@@ -48,16 +48,17 @@ class UserActionDatabaseQueries() {
         val newActionNode = findActionNodeByNameQuery(actionName)
 
         if (newActionNode != null) {
-            updateUserNodeHistoryQuery(userIdentifier, newActionNode.id)
+            updateUserNodeHistoryQuery(userIdentifier, newActionNode)
             addActionEdgeIntoDbQuery(lastId, lastType, newActionNode.id, "Action")
         }
 
         return
     }
 
-    fun updateUserNodeHistoryQuery(userIdentifier: String, actionNodeId: Long) {
+    fun updateUserNodeHistoryQuery(userIdentifier: String, actionNode: ActionNodeEntity) {
         val userNode = findUserNodeByIdentifierQuery(userIdentifier)!!
-        userNode.actionsTaken.add(actionNodeId)
+        userNode.actionsTaken.add(actionNode.id)
+        userNode.actions.add(actionNode)
         usersBox.put(userNode)
     }
 

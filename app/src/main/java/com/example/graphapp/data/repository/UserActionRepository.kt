@@ -10,7 +10,6 @@ import com.example.graphapp.data.embedding.SentenceEmbedding
 class UserActionRepository (
     private val sentenceEmbedding: SentenceEmbedding
 ) {
-
     private val queries = UserActionDatabaseQueries()
 
     // Function to add node
@@ -55,7 +54,6 @@ class UserActionRepository (
     fun getAllActionEdges() : List<ActionEdgeEntity> {
         return queries.findAllActionEdgesQuery()
     }
-
 
     // Get all USER nodes without their embedding
     fun getAllUserNodesWithoutEmbedding() : List<UserNodeEntity> {

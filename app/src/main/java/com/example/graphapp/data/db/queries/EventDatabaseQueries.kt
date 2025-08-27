@@ -33,12 +33,16 @@ class EventDatabaseQueries() {
         return id
     }
 
-    fun addEdgeIntoDbQuery(fromId: Long, toId: Long, edgeType: String){
+    fun addEdgeIntoDbQuery(fromNode: EventNodeEntity, toNode: EventNodeEntity, edgeType: String){
         edgesBox.put(
             EventEdgeEntity(
-                firstNodeId = fromId, secondNodeId = toId, edgeType = edgeType
+                firstNodeId = fromNode.id, secondNodeId = toNode.id, edgeType = edgeType
             )
         )
+        fromNode.neighbours.add(toNode)
+        nodesBox.put(fromNode)
+        toNode.neighbours.add(fromNode)
+        nodesBox.put(toNode)
         return
     }
 
@@ -68,7 +72,6 @@ class EventDatabaseQueries() {
     fun incrementFreqOfNodeQuery(node: EventNodeEntity): Long {
         node.frequency = node.frequency?.plus(1)
         val id = nodesBox.put(node)
-        println("Node value incremented: $node")
         return id
     }
 
@@ -114,13 +117,6 @@ class EventDatabaseQueries() {
         return edgesBox.query(
             EventEdgeEntity_.firstNodeId.equal(id).or(EventEdgeEntity_.secondNodeId.equal(id))
         ).build().find()
-    }
-
-    fun findEdgeBetweenNodeIdsQuery(first: Long, second: Long): EventEdgeEntity? {
-        return edgesBox.query(
-            (EventEdgeEntity_.firstNodeId.equal(first).and(EventEdgeEntity_.secondNodeId.equal(second)))
-                .or(EventEdgeEntity_.firstNodeId.equal(second).and(EventEdgeEntity_.secondNodeId.equal(first)))
-        ).build().findFirst()
     }
 
     fun resetEventDbQuery() {
