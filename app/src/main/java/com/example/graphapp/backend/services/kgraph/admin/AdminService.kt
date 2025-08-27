@@ -1,6 +1,8 @@
 package com.example.graphapp.backend.services.kgraph.admin
 
 import android.net.Uri
+import com.example.graphapp.backend.core.GraphSchema
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.backend.model.dto.EventRequestData
 import com.example.graphapp.backend.model.dto.UserDetailData
 import com.example.graphapp.data.db.ActionEdgeEntity
@@ -24,7 +26,12 @@ interface AdminService {
      * @param inputUserData Details of user who performed the action.
      * @return true if the operation succeeded, false otherwise.
      */
-    suspend fun addActionToDatabase(inputActionName: String, inputUserData: UserDetailData): Boolean
+    suspend fun addActionToDatabase(
+        inputModule: SchemaKeyEventTypeNames,
+        inputAction: String,
+        inputContent: String,
+        inputUserData: UserDetailData
+    ): Boolean
 
     /**
      * Removes an event from the database.

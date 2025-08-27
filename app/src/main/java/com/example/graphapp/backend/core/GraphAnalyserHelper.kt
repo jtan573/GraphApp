@@ -17,24 +17,6 @@ import kotlin.math.abs
 import kotlin.math.ln
 
 /* -------------------------------------------------
-  Helper to compute Weighted Similarity between nodes
-------------------------------------------------- */
-fun computeWeightedSim(
-    targetId: Long,
-    candidateId: Long,
-    repository: EventRepository,
-    similarityMatrix: Map<Pair<Long, Long>, Float>
-): Float {
-
-    val occurrenceCounts = repository.getAllEventNodeFrequencies()
-    val rawSim = similarityMatrix.getOrDefault(targetId to candidateId, 0f)
-    val freqFactor = ln(1f + (occurrenceCounts[candidateId] ?: 1)).toFloat()
-    val adjustedSim = rawSim * freqFactor
-
-    return adjustedSim
-}
-
-/* -------------------------------------------------
   Helpers to initialise Semantic Similarity Matrix
 ------------------------------------------------- */
 fun getPropertyEmbeddings(
@@ -111,22 +93,23 @@ suspend fun computeSemanticSimilarity(
                 val v2TagEmbeddings = v2.eventTags?.map { it to embeddingRepository.getTextEmbeddings(it) }
 
                 if (v1TagEmbeddings != null && v2TagEmbeddings != null) {
-                    val tagsFromA = mutableSetOf<String>()
-                    val tagsFromB = mutableSetOf<String>()
+                    val tagsFromA = mutableSetOf<Pair<String, Float>>()
+                    val tagsFromB = mutableSetOf<Pair<String, Float>>()
 
                     for ((tagA, embeddingA) in v1TagEmbeddings) {
                         for ((tagB, embeddingB) in v2TagEmbeddings) {
                             val sim = embeddingRepository.computeCosineSimilarity(embeddingA, embeddingB)
                             if (sim >= 0.35f) {
-                                tagsFromA.add(tagA)
-                                tagsFromB.add(tagB)
+                                tagsFromA.add(tagA to sim)
+                                tagsFromB.add(tagB to sim)
                             }
                         }
                     }
                     simEventsByType.add(SimilarEventTags(
                         propertyType = prop,
                         tagsA = v1.eventTags, tagsB = v2.eventTags,
-                        relevantTagsA = tagsFromA.toList(), relevantTagsB = tagsFromB.toList()
+                        relevantTagsA = tagsFromA.toList(), relevantTagsB = tagsFromB.toList(),
+                        simScore = similarity
                     ))
                 }
             }
@@ -142,11 +125,15 @@ suspend fun computeSemanticSimilarity(
             if (prop == SchemaEventTypeNames.WHERE.key) {
                 val distance = restoreLocationFromString(v1.eventName).distanceTo(restoreLocationFromString(v2.eventName))
                 if (distance < 3000f) {
-                    similarities.add(1f - (distance / thresholdDistance!!))
+                    val distanceSim = 1f - (distance / thresholdDistance!!)
+                    similarities.add(distanceSim)
                     simEventsByType.add(SimilarEventTags(
                         propertyType = prop,
-                        tagsA = listOf(v1.eventName), tagsB = listOf(v2.eventName),
-                        relevantTagsA = listOf(("%.2f".format(distance))+"m"), relevantTagsB = listOf(("%.2f".format(distance))+"m")
+                        tagsA = listOf(v1.eventName),
+                        tagsB = listOf(v2.eventName),
+                        relevantTagsA = listOf(("%.2f".format(distance))+"m" to distanceSim),
+                        relevantTagsB = listOf(("%.2f".format(distance))+"m" to distanceSim),
+                        simScore = distanceSim
                     ))
                 } else {
                     similarities.add(0f)
@@ -157,12 +144,14 @@ suspend fun computeSemanticSimilarity(
                 val oneDayMs = 86_400_000L
                 val timeDiff = abs(v1.eventName.toLong() - v2.eventName.toLong())
                 if (timeDiff <= 3 * oneDayMs) {
-                    similarities.add(1f - (timeDiff / (3 * oneDayMs)).toFloat())
+                    val timeSim = 1f - (timeDiff / (3 * oneDayMs)).toFloat()
+                    similarities.add(timeSim)
                     simEventsByType.add(SimilarEventTags(
                         propertyType = prop,
                         tagsA = listOf(v1.eventName), tagsB = listOf(v2.eventName),
-                        relevantTagsA = listOf(TimeUnit.MILLISECONDS.toHours(timeDiff).toString()+"h"),
-                        relevantTagsB = listOf(TimeUnit.MILLISECONDS.toHours(timeDiff).toString()+"h")
+                        relevantTagsA = listOf(TimeUnit.MILLISECONDS.toHours(timeDiff).toString()+"h" to timeSim),
+                        relevantTagsB = listOf(TimeUnit.MILLISECONDS.toHours(timeDiff).toString()+"h" to timeSim),
+                        simScore = timeSim
                     ))
                 } else {
                     similarities.add(0f)
@@ -174,36 +163,6 @@ suspend fun computeSemanticSimilarity(
     if (similarities.isEmpty()) return 0f to emptyList()
 
     return similarities.average().toFloat() to simEventsByType
-}
-
-suspend fun initialiseSemanticSimilarityMatrix(
-    eventRepository: EventRepository,
-    embeddingRepository: EmbeddingRepository,
-
-    threshold: Float = 0.5f
-): Map<Pair<Long, Long>, Float> {
-
-    val allNodes = eventRepository.getAllEventNodes()
-    val nodeIds = allNodes
-        .filter { it.type in SchemaKeyNodes }
-        .map { it.id }
-
-    val simMatrix = mutableMapOf<Pair<Long, Long>, Float>()
-    if (nodeIds.isNotEmpty()) {
-        for (i in nodeIds) {
-            for (j in nodeIds) {
-                val result = if (i == j) {
-                    1f to emptyList()
-                } else {
-                    computeSemanticSimilarity(i, j, eventRepository, embeddingRepository, threshold)
-                }
-                simMatrix[i to j] = result.first
-            }
-        }
-    }
-
-    Log.d("INITIALISE MATRIX", "INITIALISED MATRIX")
-    return simMatrix
 }
 
 suspend fun computeSemanticSimilarEventsForProps(

@@ -102,7 +102,9 @@ data class UserNodeEntity(
 @Entity
 data class ActionNodeEntity(
     @Id var id: Long = 0,
-    var actionName: String,
+    var module: String,
+    var action: String,
+    var content: String,
     var timestamp: Long,
 )
 

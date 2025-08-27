@@ -17,8 +17,9 @@ data class SimilarEventTags (
     val propertyType: String,
     val tagsA: List<String>,
     val tagsB: List<String>,
-    val relevantTagsA: List<String>,
-    val relevantTagsB: List<String>
+    val relevantTagsA: List<Pair<String, Float>>,
+    val relevantTagsB: List<Pair<String, Float>>,
+    val simScore: Float
 )
 
 // For sim matrix

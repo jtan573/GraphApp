@@ -102,13 +102,14 @@ class AdminGraph @Inject constructor(
         return true
     }
 
-    // TODO()
     override suspend fun addActionToDatabase(
-        inputActionName: String,
+        inputModule: SchemaKeyEventTypeNames,
+        inputAction: String,
+        inputContent: String,
         inputUserData: UserDetailData
     ): Boolean {
 
-        if (inputActionName.isBlank()) {
+        if (inputAction.isBlank()) {
             return false
         }
 
@@ -121,7 +122,10 @@ class AdminGraph @Inject constructor(
             )
 
             graph.userActionRepository.insertActionNodeIntoDb(
-                userIdentifier = inputUserData.identifier, inputName = inputActionName
+                inputModule = inputModule,
+                inputAction = inputAction,
+                inputContent = inputContent,
+                inputUserIdentifier = inputUserData.identifier
             )
             return true
         }

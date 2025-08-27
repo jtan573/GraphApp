@@ -91,7 +91,7 @@ fun UseCaseScreen(
                 Box(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = title,
-                        fontSize = 16.sp
+                        fontSize = 20.sp
                     )
                 }
             }

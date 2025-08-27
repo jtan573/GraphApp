@@ -55,10 +55,23 @@ fun ShiftHandoverMainScreen() {
 
     val base = 1_694_761_200_000L // e.g., 2023-09-15 10:20:00Z
     val userActions = listOf(
-        ActionNodeEntity(actionName = "Monitored drone surveillance feed", timestamp = base +   0 * 60_000),
-        ActionNodeEntity(actionName = "Reviewed summary of active incidents", timestamp = base + 10 * 60_000),
-        ActionNodeEntity(actionName = "Assigned Quick Reaction Force to hotspot", timestamp = base + 25 * 60_000),
-        ActionNodeEntity(actionName = "Reviewed logistics status from SPC-004", timestamp = base + 55 * 60_000),
+        ActionNodeEntity(
+            module = "", action = "",
+            content = "Monitored drone surveillance feed",
+            timestamp = base +   0 * 60_000
+        ),
+        ActionNodeEntity(
+            module = "", action = "",
+            content = "Reviewed summary of active incidents", timestamp = base + 10 * 60_000
+        ),
+        ActionNodeEntity(
+            module = "", action = "",
+            content = "Assigned with task as quick reaction force to hotspot", timestamp = base + 25 * 60_000
+        ),
+        ActionNodeEntity(
+            module = "", action = "",
+            content = "Reviewed logistics status from SPC-004", timestamp = base + 55 * 60_000
+        ),
     )
     val user = UserNodeEntity(
         identifier = "CPT-006",
@@ -69,7 +82,7 @@ fun ShiftHandoverMainScreen() {
     val sorted = remember(userActions) { userActions.sortedBy { it.timestamp } }
 
     val shiftSummary =
-        "CPT-006 monitored drone surveillance for situational awareness, reviewed active incidents, deployed a Quick Reaction Force to a hotspot, and confirmed logistics readiness with SPC-004."
+        "CPT-006 monitored drone surveillance for situational awareness, reviewed active incidents, deployed as Quick Reaction Force to a hotspot, and confirmed logistics readiness with SPC-004."
 
 
     LazyColumn(
@@ -201,7 +214,7 @@ fun TimelineNode(
                     color = Color.Gray
                 )
                 Spacer(Modifier.height(5.dp))
-                Text(text = action.actionName, style = MaterialTheme.typography.bodyMedium)
+                Text(text = action.content, style = MaterialTheme.typography.bodyMedium)
                 Spacer(Modifier.height(12.dp))
             }
         }

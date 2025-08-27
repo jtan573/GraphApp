@@ -6,7 +6,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,9 +28,8 @@ fun TagChip(
 ) {
     Box(
         modifier = Modifier
-            .padding(end = 6.dp, bottom = 6.dp)
             .background(color = backgroundColor, shape = RoundedCornerShape(20))
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .padding(12.dp).wrapContentHeight()
     ) {
         Text(
             text = text,
@@ -37,7 +40,10 @@ fun TagChip(
 }
 
 @Composable
-fun TagChipRow(tags: List<String>, label: String) {
+fun TagChipRow(
+    tags: List<Pair<String, Float>>,
+    label: String
+) {
     Row(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top
@@ -47,8 +53,29 @@ fun TagChipRow(tags: List<String>, label: String) {
             horizontalArrangement = Arrangement.Start,
             verticalArrangement = Arrangement.Center
         ) {
-            tags.forEach { tag ->
-                TagChip(tag.lowercase())
+            tags.forEach { (tag, sim) ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TagChip(tag.lowercase())
+                    Spacer(modifier = Modifier.width(3.dp))
+                    if (label == "Distance") {
+                        if (sim > 0.75f) {
+                            Text("Very Near", style = MaterialTheme.typography.labelMedium,
+                                color = Color.Blue)
+                        } else if (sim > 0.5f) {
+                            Text("Quite Near", style = MaterialTheme.typography.labelMedium,
+                                color = Color.Blue)
+                        } else {
+                            Text("Near", style = MaterialTheme.typography.labelMedium,
+                                color = Color.Blue)
+                        }
+                    } else if (label == "Time Difference") {
+                        Text("Recent",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.Blue)
+                    }
+                }
             }
         }
     }

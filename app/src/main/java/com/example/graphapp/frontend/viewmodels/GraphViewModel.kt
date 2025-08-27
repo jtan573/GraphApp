@@ -96,16 +96,16 @@ class GraphViewModel @Inject constructor(
         val userNodeList =
             userNodes.map { mapOf("id" to it.identifier, "type" to "User") }.toMutableList()
         val actionNodeList =
-            actionNodes.map { mapOf("id" to it.actionName, "type" to "Action") }.toMutableList()
+            actionNodes.map { mapOf("id" to it.action, "type" to "Action") }.toMutableList()
         val nodeList = userNodeList + actionNodeList
 
         val edgeList = edges.map { edge ->
             val source = if (edge.fromNodeType == "User") {
                 userNodes.find { it.id == edge.fromNodeId }?.identifier
             } else {
-                actionNodes.find { it.id == edge.fromNodeId }?.actionName
+                actionNodes.find { it.id == edge.fromNodeId }?.action
             }
-            val target = actionNodes.find { it.id == edge.toNodeId }?.actionName
+            val target = actionNodes.find { it.id == edge.toNodeId }?.action
             mapOf("source" to source, "target" to target, "label" to "")
         }
 
@@ -213,7 +213,7 @@ class GraphViewModel @Inject constructor(
         inputEventType: SchemaKeyEventTypeNames,
         inputEventDetails: EventDetailData,
         targetEventType: SchemaKeyEventTypeNames?,
-        insightCategory: QueryService.InsightCategory
+        insightCategory: QueryService.InsightCategory //more
     ): Map<SchemaKeyEventTypeNames, List<EventDetails>> {
         return manager.queryService.querySimilarEvents(
             eventType = inputEventType,

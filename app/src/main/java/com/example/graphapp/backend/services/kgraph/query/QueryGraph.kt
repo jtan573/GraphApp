@@ -131,7 +131,7 @@ class QueryGraph @Inject constructor(
         appActionIds?.forEach { actionId ->
             val actionNode = graph.userActionRepository.getActionNodeById(actionId)
             if (actionNode != null) {
-                actionsMap.put(actionNode.timestamp, actionNode.actionName)
+                actionsMap.put(actionNode.timestamp, actionNode.action)
             }
         }
         tasksPerformed?.forEach { task ->

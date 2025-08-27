@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,8 +68,10 @@ fun SuspiciousEventsDetailsScreen(
         ) {
             item {
                 Text(
-                    text = "Also inspect the following incidents:",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = "Potential Related Incidents:",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
@@ -84,27 +87,38 @@ fun SuspiciousEventsDetailsScreen(
                 )
             }
 
-            // Table rows
-            suspiciousDetectionResults?.similarIncidents?.forEach { incident ->
-                item {
-                    Card() {
-                        Column(
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(16.dp),
-                        ) {
-                            Text(
-                                text = "Incident: ${incident.eventName}",
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontWeight = FontWeight.Bold
-                                ),
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            IncidentTagTable(incident)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
+            item {
+                Text(
+                    text = "Details",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
             }
+
+            // Table rows
+            suspiciousDetectionResults?.similarIncidents?.sortedByDescending { it.simScore }
+                ?.forEach { incident ->
+                    item {
+                        Card() {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(16.dp),
+                            ) {
+                                Text(
+                                    text = "Incident: ${incident.eventName}",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                IncidentTagTable(incident)
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+                }
         }
     }
 }

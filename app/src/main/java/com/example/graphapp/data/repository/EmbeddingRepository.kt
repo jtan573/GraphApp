@@ -41,7 +41,7 @@ class EmbeddingRepository(private val context: Context) {
         return sentenceEmbedding
     }
 
-            suspend fun getTextEmbeddings(inputString: String): FloatArray {
+    suspend fun getTextEmbeddings(inputString: String): FloatArray {
         return sentenceEmbedding.encode(inputString)
     }
 

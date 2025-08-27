@@ -1,5 +1,6 @@
 package com.example.graphapp.data.db.queries
 
+import com.example.graphapp.backend.core.GraphSchema
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionEdgeEntity_
 import com.example.graphapp.data.db.ActionNodeEntity
@@ -37,16 +38,22 @@ class UserActionDatabaseQueries() {
     }
 
     fun addActionNodeIntoDbQuery(
+        inputModule: GraphSchema.SchemaKeyEventTypeNames,
+        inputAction: String,
+        inputContent: String,
         userIdentifier: String,
-        actionName: String
     ) {
         val (lastType, lastId) = findLastNodeInUserHistoryQuery(userIdentifier)
 
         actionsBox.put(
-            ActionNodeEntity(actionName = actionName, timestamp = System.currentTimeMillis())
+            ActionNodeEntity(
+                module = GraphSchema.SchemaKeyEventTypeNames.toKey(inputModule),
+                action = inputAction,
+                content = inputContent,
+                timestamp = System.currentTimeMillis()
+            )
         )
-        val newActionNode = findActionNodeByNameQuery(actionName)
-
+        val newActionNode = findActionNodeByNameQuery(inputAction)
         if (newActionNode != null) {
             updateUserNodeHistoryQuery(userIdentifier, newActionNode)
             addActionEdgeIntoDbQuery(lastId, lastType, newActionNode.id, "Action")
@@ -131,7 +138,7 @@ class UserActionDatabaseQueries() {
 
     fun findActionNodeByNameQuery(actionName: String) : ActionNodeEntity? {
         val nodeFound = actionsBox
-            .query(ActionNodeEntity_.actionName.equal(actionName))
+            .query(ActionNodeEntity_.action.equal(actionName))
             .build()
             .findFirst()
 
@@ -168,7 +175,9 @@ class UserActionDatabaseQueries() {
             .map { node ->
                 ActionNodeEntity(
                     id = node.id,
-                    actionName = node.actionName,
+                    module = node.module,
+                    action = node.action,
+                    content = node.content,
                     timestamp = node.timestamp
                 )
             }

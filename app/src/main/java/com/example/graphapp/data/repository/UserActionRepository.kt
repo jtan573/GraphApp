@@ -1,6 +1,8 @@
 package com.example.graphapp.data.repository
 
 import android.util.Log
+import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
+import com.example.graphapp.backend.model.dto.UserDetailData
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
 import com.example.graphapp.data.db.queries.UserActionDatabaseQueries
@@ -36,10 +38,16 @@ class UserActionRepository (
     }
 
     fun insertActionNodeIntoDb(
-        userIdentifier: String,
-        inputName: String
+        inputModule: SchemaKeyEventTypeNames,
+        inputAction: String,
+        inputContent: String,
+        inputUserIdentifier: String
     ) {
-        queries.addActionNodeIntoDbQuery(userIdentifier, inputName)
+        queries.addActionNodeIntoDbQuery(
+            inputModule = inputModule,
+            inputAction = inputAction,
+            inputContent = inputContent,
+            userIdentifier = inputUserIdentifier)
     }
 
     // Get all nodes
@@ -149,10 +157,30 @@ class UserActionRepository (
             inputSpecialisation = "Leads reconnaissance and patrol missions in hostile environments.",
             inputLocation = "1.3521,103.8198"
         )
-        insertActionNodeIntoDb("SGT-001", "Acknowledged alert and viewed incident details")
-        insertActionNodeIntoDb("SGT-001", "Assigned task: Patrol perimeter near checkpoint")
-        insertActionNodeIntoDb("SGT-001", "Reviewed nearby troop availability")
-        insertActionNodeIntoDb("SGT-001", "Confirmed mission completion report")
+        insertActionNodeIntoDb(
+            inputModule = SchemaKeyEventTypeNames.INCIDENT,
+            inputAction = "acknowledged",
+            inputContent = "Viewed incident details",
+            inputUserIdentifier = "SGT-001"
+        )
+        insertActionNodeIntoDb(
+            inputModule = SchemaKeyEventTypeNames.TASK,
+            inputAction = "assigned",
+            inputContent = "Patrol perimeter near checkpoint",
+            inputUserIdentifier = "SGT-001"
+        )
+        insertActionNodeIntoDb(
+            inputModule = SchemaKeyEventTypeNames.TASK,
+            inputAction = "reviewed",
+            inputContent = "Nearby troop availability",
+            inputUserIdentifier = "SGT-001"
+        )
+        insertActionNodeIntoDb(
+            inputModule = SchemaKeyEventTypeNames.TASK,
+            inputAction = "completed",
+            inputContent = "Mission completion report confirmed",
+            inputUserIdentifier = "SGT-001"
+        )
 
         insertUserNodeIntoDb(
             inputIdentifier = "CPL-002",
@@ -160,9 +188,10 @@ class UserActionRepository (
             inputSpecialisation = "Responsible for planning and executing secure convoy escorts through contested routes.",
             inputLocation = "1.3554,103.8677"
         )
-        insertActionNodeIntoDb("CPL-002", "Planned convoy route using map interface")
-        insertActionNodeIntoDb("CPL-002", "Checked roadblock reports in area")
-        insertActionNodeIntoDb("CPL-002", "Sent task assignment to logistics specialist")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "planned", inputContent = "Convoy route using map interface", inputUserIdentifier = "CPL-002")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "checked", inputContent = "Roadblock reports in area", inputUserIdentifier = "CPL-002")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "assigned", inputContent = "Task to logistics specialist", inputUserIdentifier = "CPL-002")
+
 
         insertUserNodeIntoDb(
             inputIdentifier = "LT-003",
@@ -170,10 +199,10 @@ class UserActionRepository (
             inputSpecialisation = "Coordinates artillery support and provides real-time intelligence from observation posts.",
             inputLocation = "1.3600,103.7500"
         )
-        insertActionNodeIntoDb("LT-003", "Marked suspicious drone activity on map")
-        insertActionNodeIntoDb("LT-003", "Uploaded photo evidence from observation post")
-        insertActionNodeIntoDb("LT-003", "Requested artillery support through app")
-        insertActionNodeIntoDb("LT-003", "Flagged enemy movement pattern to operations officer")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.INCIDENT, inputAction = "reported", inputContent = "Suspicious drone activity marked on map", inputUserIdentifier = "LT-003")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.INCIDENT, inputAction = "uploaded", inputContent = "Photo evidence from observation post", inputUserIdentifier = "LT-003")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "requested", inputContent = "Artillery support through app", inputUserIdentifier = "LT-003")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "flagged", inputContent = "Enemy movement pattern to operations officer", inputUserIdentifier = "LT-003")
 
         insertUserNodeIntoDb(
             inputIdentifier = "SPC-004",
@@ -181,9 +210,9 @@ class UserActionRepository (
             inputSpecialisation = "Oversees resupply missions and ensures timely delivery of critical supplies to forward units.",
             inputLocation = "1.3300,103.9200"
         )
-        insertActionNodeIntoDb("SPC-004", "Updated convoy load manifest")
-        insertActionNodeIntoDb("SPC-004", "Acknowledged supply delivery task")
-        insertActionNodeIntoDb("SPC-004", "Verified drop-off completion with timestamp")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "updated", inputContent = "Convoy load manifest", inputUserIdentifier = "SPC-004")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "acknowledged", inputContent = "Supply delivery task", inputUserIdentifier = "SPC-004")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "verified", inputContent = "Drop-off completion with timestamp", inputUserIdentifier = "SPC-004")
 
         insertUserNodeIntoDb(
             inputIdentifier = "SGT-005",
@@ -191,9 +220,9 @@ class UserActionRepository (
             inputSpecialisation = "Leads quick reaction forces for immediate deployment during emerging threats.",
             inputLocation = "1.4100,103.7600"
         )
-        insertActionNodeIntoDb("SGT-005", "Accepted rapid response task")
-        insertActionNodeIntoDb("SGT-005", "Checked readiness status of nearby units")
-        insertActionNodeIntoDb("SGT-005", "Reported immediate deployment to incident site")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "accepted", inputContent = "Rapid response task", inputUserIdentifier = "SGT-005")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "checked", inputContent = "Readiness status of nearby units", inputUserIdentifier = "SGT-005")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.INCIDENT, inputAction = "reported", inputContent = "Immediate deployment to incident site", inputUserIdentifier = "SGT-005")
 
         insertUserNodeIntoDb(
             inputIdentifier = "CPT-006",
@@ -201,10 +230,11 @@ class UserActionRepository (
             inputSpecialisation = "Manages area surveillance operations using integrated aerial and ground assets.",
             inputLocation = "1.3400,103.6900"
         )
-        insertActionNodeIntoDb("CPT-006", "Monitored drone surveillance feed")
-        insertActionNodeIntoDb("CPT-006", "Reviewed summary of active incidents")
-        insertActionNodeIntoDb("CPT-006", "Assigned Quick Reaction Force to hotspot")
-        insertActionNodeIntoDb("CPT-006", "Reviewed logistics status from SPC-004")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "monitored", inputContent = "Drone surveillance feed", inputUserIdentifier = "CPT-006")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "reviewed", inputContent = "Summary of active incidents", inputUserIdentifier = "CPT-006")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "received", inputContent = "Quick Reaction Force to hotspot", inputUserIdentifier = "CPT-006")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "reviewed", inputContent = "Logistics status from SPC-004", inputUserIdentifier = "CPT-006")
+
 
         insertUserNodeIntoDb(
             inputIdentifier = "SSG-007",
@@ -212,9 +242,9 @@ class UserActionRepository (
             inputSpecialisation = "Provides protection for supply convoys and high-value logistical operations.",
             inputLocation = "1.3705,103.7100"
         )
-        insertActionNodeIntoDb("SSG-007", "Acknowledged convoy escort mission")
-        insertActionNodeIntoDb("SSG-007", "Reported cleared route section")
-        insertActionNodeIntoDb("SSG-007", "Filed security breach near depot")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "acknowledged", inputContent = "Convoy escort mission", inputUserIdentifier = "SSG-007")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.TASK, inputAction = "reported", inputContent = "Cleared route section", inputUserIdentifier = "SSG-007")
+        insertActionNodeIntoDb(inputModule = SchemaKeyEventTypeNames.INCIDENT, inputAction = "reported", inputContent = "Security breach near depot", inputUserIdentifier = "SSG-007")
 
         /*-----------------------------------------
         |    FOR THREAT DETECTION USE CASE        |
