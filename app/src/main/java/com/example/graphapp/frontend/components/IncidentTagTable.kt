@@ -62,8 +62,10 @@ fun IncidentTagTable(incident: EventDetails) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Text("Property", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-            Text("Similarity", modifier = Modifier.weight(4f), style = MaterialTheme.typography.labelLarge)
+            Text("Property", modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.labelLarge)
+            Text("Similarity", modifier = Modifier.weight(4f),
+                style = MaterialTheme.typography.labelLarge)
         }
         HorizontalDivider()
 

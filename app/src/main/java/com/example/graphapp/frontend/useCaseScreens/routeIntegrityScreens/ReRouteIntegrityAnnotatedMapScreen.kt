@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +29,7 @@ import com.example.graphapp.frontend.navigation.NavItem
 fun ReRouteIntegrityAnnotatedMapScreen(
     navController: NavController
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),) {
         Text(
             text = "Annotated Route Map (Re-Route)",
             fontSize = 24.sp,
@@ -54,8 +56,8 @@ fun ReRouteIntegrityAnnotatedMapScreen(
                 onClick = { navController.navigate(NavItem.RouteIntegrityImage.route) },
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF45A0A8),          // background color
-                    contentColor = Color.White                   // text/icon color
+                    containerColor = Color(0xFF45A0A8),
+                    contentColor = Color.White
                 )
             ) {
                 Text("Back")

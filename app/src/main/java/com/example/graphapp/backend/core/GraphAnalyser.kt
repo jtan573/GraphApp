@@ -13,6 +13,19 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.iterator
 
+/**
+ * Main function to compute similarity between events.
+ *
+ * @param eventRepository Repository of all events in the db.
+ * @param embeddingRepository Repository of embedding model.
+ * @param newEventMap Map of PropertyName to node representing the property.
+ * @param sourceEventType Event type of input event.
+ * @param targetEventType Event type of target event.
+ * @param numTopResults Number of top results.
+ * @param customThreshold Minimum score the engine considers similar.
+ * @param activeNodesOnly Boolean to control whether to consider all or only active nodes.
+ * @return Map of key event type to list of similar events of that type found.
+ */
 suspend fun computeSimilarAndRelatedEvents (
     newEventMap: Map<SchemaEventTypeNames, String>,
     eventRepository: EventRepository,
@@ -24,28 +37,31 @@ suspend fun computeSimilarAndRelatedEvents (
     activeNodesOnly: Boolean
 ) : Map<SchemaKeyEventTypeNames, List<EventDetails>> {
 
-    var eventNodesByType = mutableMapOf<String, EventNodeEntity>()
+    var eventNodesByType = convertStringInputToNodes(
+        newEventMap = newEventMap,
+        eventRepository = eventRepository,
+        embeddingRepository = embeddingRepository
+    )
 
-    // Get nodes from DB / Create temporary nodes for the search
-    newEventMap.forEach { (type, value) ->
-        val nodeExist = eventRepository.getEventNodeByNameAndType(value, type.key)
-        if (nodeExist != null) {
-            eventNodesByType[type.key] = nodeExist
-        } else {
-            eventNodesByType[type.key] = eventRepository.getTemporaryEventNode(value, type.key, embeddingRepository)
-        }
-    }
+    val nodeStatusList = checkTargetNodeStatus(activeNodesOnly)
+    val propsInEvent = eventNodesByType.values.toList()
+
+    val allKeyNodeIdsByType = prepareDatasetForSimilarityComputation(
+        newEventMap = eventNodesByType,
+        eventRepository = eventRepository,
+        nodeStatus = nodeStatusList,
+        sourceEventType = sourceEventType
+    )
 
     // For each key node type, compute top 3
-    val topRecommendationsByType = computeSemanticSimilarEventsForProps(
+    val topRecommendationsByType = generateSimilarityResults(
         eventRepository = eventRepository,
         embeddingRepository = embeddingRepository,
-        newEventMap = eventNodesByType,
-        sourceEventType = sourceEventType,
+        allKeyNodeIdsByType = allKeyNodeIdsByType,
         targetEventType = targetEventType,
         numTopResults = numTopResults,
         threshold = customThreshold,
-        activeNodesOnly = activeNodesOnly
+        propsInEvent = propsInEvent
     )
     Log.d("topRecommendationsByType","$topRecommendationsByType")
 

@@ -118,7 +118,7 @@ fun TaskInstructionsScreen(navController: NavController) {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Task Instructions",
+                        text = "Proposed Task Instructions",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,

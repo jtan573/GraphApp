@@ -1,3 +1,4 @@
+import org.gradle.internal.declarativedsl.parsing.main
 import org.gradle.kotlin.dsl.implementation
 
 plugins {

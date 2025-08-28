@@ -1,8 +1,7 @@
 package com.example.graphapp.backend.core
 
-import android.util.Log
+import android.media.metrics.Event
 import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
-import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.repository.EmbeddingRepository
 import com.example.graphapp.data.repository.EventRepository
@@ -12,13 +11,93 @@ import com.example.graphapp.backend.core.GraphSchema.SchemaKeyNodes
 import com.example.graphapp.backend.core.GraphSchema.SchemaSemanticPropertyNodes
 import com.example.graphapp.backend.usecases.restoreLocationFromString
 import java.util.concurrent.TimeUnit
+import kotlin.collections.component1
+import kotlin.collections.component2
 import kotlin.collections.iterator
 import kotlin.math.abs
 import kotlin.math.ln
 
-/* -------------------------------------------------
-  Helpers to initialise Semantic Similarity Matrix
-------------------------------------------------- */
+/**
+ * Prepares the data required for computation and returns similarity results.
+ *
+ * @param eventRepository Repository of all events in the db.
+ * @param embeddingRepository Repository of embedding model.
+ * @param newEventMap Map of PropertyName to node representing the property.
+ * @param sourceEventType Event type of input event.
+ * @param targetEventType Event type of target event.
+ * @param numTopResults Number of top results.
+ * @param threshold Minimum score the engine considers similar.
+ * @param activeNodesOnly Boolean to control whether to consider all or only active nodes.
+ * @return Map of event type to the details of the similar event found.
+ */
+suspend fun generateSimilarityResults(
+    eventRepository: EventRepository,
+    embeddingRepository: EmbeddingRepository,
+    allKeyNodeIdsByType: Map<String, MutableList<Long>>,
+    targetEventType: SchemaKeyEventTypeNames? = null,
+    numTopResults: Int = 3,
+    threshold: Float = 0.0f,
+    propsInEvent: List<EventNodeEntity>
+): Map<String, List<ExplainedSimilarityWithScores>> {
+
+    // Create temporary similarity matrix
+    val simMatrix = mutableMapOf<String, MutableList<ExplainedSimilarityWithScores>>()
+
+    // Compute semantic similarity between key node pairs
+    for ((_, keyNodeIds) in allKeyNodeIdsByType) {
+        for (keyNodeId in keyNodeIds) {
+            val sim = computeOverallSimilarity(
+                nodeId1 = -0L,
+                nodeId2 = keyNodeId,
+                eventRepository = eventRepository,
+                embeddingRepository = embeddingRepository,
+                newInputNeighbours = propsInEvent,
+                explainSimilarity = true
+            )
+
+            // Get all nodes of the entity, 5W1H
+            val mainNodes = eventRepository.getNeighborsOfEventNodeById(keyNodeId).toMutableList()
+            mainNodes.add(eventRepository.getEventNodeById(keyNodeId)!!)
+
+            // If target event type is given, then extract only nodes of that type.
+            // Else, take all nodes.
+            val simNodesIds = if (targetEventType != null) {
+                mainNodes.filter{ it.type.lowercase() == targetEventType.toString().lowercase() }.map { it.type to it.id }
+            } else {
+                mainNodes.filter{ node -> SchemaKeyEventTypeNames.fromKey(node.type) != null }
+                    .map { it.type to it.id }
+            }
+
+            // Weigh similarity using frequency
+            simNodesIds.forEach { (type, nodeId) ->
+                val freqFactor = ln(1f + (eventRepository.getEventNodeFrequencyOfNodeId(nodeId) ?: 1)).toFloat()
+                val adjustedSim = sim.first * freqFactor
+
+                if (adjustedSim > threshold) {
+                    simMatrix.getOrPut(type) { mutableListOf() }.add(
+                        ExplainedSimilarityWithScores(
+                            simScore = adjustedSim,
+                            targetNodeId = nodeId,
+                            explainedSimilarity = sim.second
+                        ))
+                }
+            }
+        }
+    }
+
+    return simMatrix.mapValues { (_, similarityWithScores) ->
+        similarityWithScores.sortedByDescending { it.simScore }.take(numTopResults)
+    }
+}
+
+/**
+ * Retrieves embeddings of the 5W1H of a specified node from the database.
+ * 
+ * @param nodeId Id of the target node.
+ * @param repository Repository of all events in the database.
+ * @param newInputNeighbours A list of nodes representing 5W1H when the node is not present in the database. 
+ * @return Set of embeddings, split into Semantic and Computed.
+ */
 fun getPropertyEmbeddings(
     nodeId: Long,
     repository: EventRepository,
@@ -59,12 +138,23 @@ fun getPropertyEmbeddings(
     )
 }
 
-suspend fun computeSemanticSimilarity(
+/**
+ * Computes overall similarity between two nodes.
+ * 
+ * @param nodeId1 Id of the first node to compare.
+ * @param nodeId2 Id of the second node to compare.
+ * @param eventRepository Repository of all events in the db.
+ * @param embeddingRepository Repository of embedding model.
+ * @param newInputNeighbours List of nodes (5W1H) when nodes are not present in the db.
+ * @param thresholdDistance Maximum distance the computation considers to be similar.
+ * @param explainSimilarity Get similar tags between properties.
+ * @return Pair of similarity score to a list of objects describing the similar properties.
+ */
+suspend fun computeOverallSimilarity(
     nodeId1: Long,
     nodeId2: Long,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
-    threshold: Float = 0.5f,
     newInputNeighbours: List<EventNodeEntity>? = null,
     thresholdDistance: Float? = 5000f,
     explainSimilarity: Boolean? = false
@@ -165,25 +255,66 @@ suspend fun computeSemanticSimilarity(
     return similarities.average().toFloat() to simEventsByType
 }
 
-suspend fun computeSemanticSimilarEventsForProps(
+/**
+ * Converts event input in the form of text to node form.
+ *
+ * @param newEventMap
+ * @param eventRepository
+ * @param embeddingRepository
+ * @return Map of node type name to node created.
+ */
+suspend fun convertStringInputToNodes(
+    newEventMap: Map<SchemaEventTypeNames, String>,
     eventRepository: EventRepository,
     embeddingRepository: EmbeddingRepository,
-    newEventMap: Map<String, EventNodeEntity>,
-    sourceEventType: SchemaKeyEventTypeNames? = null,
-    targetEventType: SchemaKeyEventTypeNames? = null,
-    numTopResults: Int = 3,
-    threshold: Float = 0.0f,
-    activeNodesOnly: Boolean
-): Map<String, List<ExplainedSimilarityWithScores>> {
+): Map<String, EventNodeEntity> {
+    var eventNodesByType = mutableMapOf<String, EventNodeEntity>()
+    newEventMap.forEach { (type, value) ->
+        val nodeExist = eventRepository.getEventNodeByNameAndType(value, type.key)
+        if (nodeExist != null) {
+            eventNodesByType[type.key] = nodeExist
+        } else {
+            eventNodesByType[type.key] = eventRepository.getTemporaryEventNode(value, type.key, embeddingRepository)
+        }
+    }
+    return eventNodesByType
+}
 
-    // Get node status
-    val nodeStatus = if (activeNodesOnly) {
+/**
+ * Checks and returns node status(es) to be considered.
+ *
+ * @param activeNodesOnly Whether we want active nodes only or all nodes.
+ * @return List of node status required.
+ */
+fun checkTargetNodeStatus(
+    activeNodesOnly: Boolean
+): List<EventStatus> {
+    return if (activeNodesOnly) {
         listOf(EventStatus.ACTIVE)
     } else {
         listOf(EventStatus.INACTIVE, EventStatus.ACTIVE)
     }
+}
 
-    // Only obtain nodes with relevant tags
+/**
+ * Retrieve subset of database for similarity computation. Does the following:
+ *      1. Considers required node status (ACTIVE, INACTIVE)
+ *      2. Match and retrieves nodes with same tags.
+ *      3. Retrieve key event nodes from property nodes.
+ *
+ * @param newEventMap Map of PropertyName to node representing the property.
+ * @param eventRepository Repository of all events in the db.
+ * @param nodeStatus List of target node status.
+ * @param sourceEventType Event type of input event.
+ * @return Map of key event type to list of nodes of same type that are relevant.
+ */
+suspend fun prepareDatasetForSimilarityComputation(
+    newEventMap: Map<String, EventNodeEntity>,
+    eventRepository: EventRepository,
+    nodeStatus: List<EventStatus>,
+    sourceEventType: SchemaKeyEventTypeNames?,
+): Map<String, MutableList<Long>> {
+
     var allKeyNodeIdsByType = mutableMapOf<String, MutableList<Long>>()
     newEventMap.forEach { (type, eventNode) ->
         var nodes: List<EventNodeEntity> = if (type in SchemaSemanticPropertyNodes) {
@@ -220,60 +351,9 @@ suspend fun computeSemanticSimilarEventsForProps(
             }
         }
     }
-    allKeyNodeIdsByType.forEach { (type, nodes) ->
-        nodes.forEach {
-            Log.d("CHECK SUSPICIOUS", "$type: ${eventRepository.getEventNodeById(it)?.name}")
-        }
-    }
-
-    // Get values in new event
-    val propsInEvent = newEventMap.values.toList()
-
-    // Create temporary similarity matrix
-    val simMatrix = mutableMapOf<String, MutableList<ExplainedSimilarityWithScores>>()
-
-    // Compute semantic similarity between key node pairs
-    for ((_, keyNodeIds) in allKeyNodeIdsByType) {
-        for (keyNodeId in keyNodeIds) {
-            val sim = computeSemanticSimilarity(
-                nodeId1 = -0L,
-                nodeId2 = keyNodeId,
-                eventRepository = eventRepository,
-                embeddingRepository = embeddingRepository,
-                threshold = threshold,
-                newInputNeighbours = propsInEvent,
-                explainSimilarity = true
-            )
-
-            val mainNodes = eventRepository.getNeighborsOfEventNodeById(keyNodeId).toMutableList()
-            mainNodes.add(eventRepository.getEventNodeById(keyNodeId)!!)
-            val simNodesIds = if (targetEventType != null) {
-                mainNodes.filter{ it.type.lowercase() == targetEventType.toString().lowercase() }.map { it.type to it.id}
-            } else {
-                mainNodes.filter{ node -> SchemaKeyEventTypeNames.fromKey(node.type) != null }
-                    .map { it.type to it.id}
-            }
-
-            simNodesIds.forEach { (type, nodeId) ->
-                val freqFactor = ln(1f + (eventRepository.getEventNodeFrequencyOfNodeId(nodeId) ?: 1)).toFloat()
-                val adjustedSim = sim.first * freqFactor
-
-                if (adjustedSim > threshold) {
-                    simMatrix.getOrPut(type) { mutableListOf() }.add(
-                        ExplainedSimilarityWithScores(
-                            simScore = adjustedSim,
-                            targetNodeId = nodeId,
-                            explainedSimilarity = sim.second
-                        ))
-                }
-            }
-        }
-    }
-
-    return simMatrix.mapValues { (_, similarityWithScores) ->
-            similarityWithScores.sortedByDescending { it.simScore }.take(numTopResults)
-        }
+    return allKeyNodeIdsByType
 }
+
 
 
 
