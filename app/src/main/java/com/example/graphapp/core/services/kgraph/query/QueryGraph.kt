@@ -47,7 +47,7 @@ class QueryGraph @Inject constructor(
 
             InsightCategory.ALERT -> computeSimilarAndRelatedEvents(
                 newEventMap = buildMap<GraphSchema.SchemaEventTypeNames, String> {
-                    GraphSchema.SchemaEventTypeNames.WHERE to (eventDetails.whereValue ?: "")
+                    put(GraphSchema.SchemaEventTypeNames.WHERE, (eventDetails.whereValue ?: ""))
                 },
                 eventRepository = graph.eventRepository,
                 embeddingRepository = graph.embeddingRepository,
@@ -56,26 +56,53 @@ class QueryGraph @Inject constructor(
                 activeNodesOnly = false
             )
 
-            else -> computeSimilarAndRelatedEvents(
-                newEventMap = buildMap<GraphSchema.SchemaEventTypeNames, String> {
-                    when (eventType) {
-                        SchemaKeyEventTypeNames.INCIDENT -> put(GraphSchema.SchemaEventTypeNames.INCIDENT, eventDetails.whatValue ?: "")
-                        SchemaKeyEventTypeNames.IMPACT -> put(GraphSchema.SchemaEventTypeNames.IMPACT, eventDetails.whatValue ?: "")
-                        SchemaKeyEventTypeNames.TASK -> put(GraphSchema.SchemaEventTypeNames.TASK, eventDetails.whatValue ?: "")
-                        SchemaKeyEventTypeNames.OUTCOME -> put(GraphSchema.SchemaEventTypeNames.OUTCOME, eventDetails.whatValue ?: "")
+            else -> {
+                val keyEventPair = when (eventType) {
+                    SchemaKeyEventTypeNames.INCIDENT -> (GraphSchema.SchemaEventTypeNames.INCIDENT to (eventDetails.whatValue?: ""))
+                    SchemaKeyEventTypeNames.IMPACT -> (GraphSchema.SchemaEventTypeNames.IMPACT to (eventDetails.whatValue?: ""))
+                    SchemaKeyEventTypeNames.TASK -> (GraphSchema.SchemaEventTypeNames.TASK to (eventDetails.whatValue?: ""))
+                    SchemaKeyEventTypeNames.OUTCOME -> (GraphSchema.SchemaEventTypeNames.OUTCOME to (eventDetails.whatValue?: ""))
+                }
+                val eventMap = when (insightCategory) {
+                    InsightCategory.ALL -> buildMap<GraphSchema.SchemaEventTypeNames, String> {
+                        put(keyEventPair.first, keyEventPair.second)
+                        put(GraphSchema.SchemaEventTypeNames.WHO, (eventDetails.whoValue ?: ""))
+                        put(GraphSchema.SchemaEventTypeNames.WHEN, (eventDetails.whenValue ?: ""))
+                        put(GraphSchema.SchemaEventTypeNames.WHERE, (eventDetails.whereValue ?: ""))
+                        put(GraphSchema.SchemaEventTypeNames.WHY, (eventDetails.whyValue ?: ""))
+                        put(GraphSchema.SchemaEventTypeNames.HOW, (eventDetails.howValue ?: ""))
                     }
-                    put(GraphSchema.SchemaEventTypeNames.WHO, (eventDetails.whoValue ?: ""))
-                    put(GraphSchema.SchemaEventTypeNames.WHEN, (eventDetails.whenValue ?: ""))
-                    put(GraphSchema.SchemaEventTypeNames.WHERE, (eventDetails.whereValue ?: ""))
-                    put(GraphSchema.SchemaEventTypeNames.WHY, (eventDetails.whyValue ?: ""))
-                    put(GraphSchema.SchemaEventTypeNames.HOW, (eventDetails.howValue ?: ""))
-                },
-                eventRepository = graph.eventRepository,
-                embeddingRepository = graph.embeddingRepository,
-                sourceEventType = eventType,
-                targetEventType = targetEventType,
-                activeNodesOnly = false
-            )
+                    InsightCategory.WHO -> buildMap<GraphSchema.SchemaEventTypeNames, String> {
+                        put(keyEventPair.first, keyEventPair.second)
+                        put(GraphSchema.SchemaEventTypeNames.WHO, (eventDetails.whoValue ?: ""))
+                    }
+                    InsightCategory.WHEN -> buildMap<GraphSchema.SchemaEventTypeNames, String> {
+                        put(keyEventPair.first, keyEventPair.second)
+                        put(GraphSchema.SchemaEventTypeNames.WHEN, (eventDetails.whenValue ?: ""))
+                    }
+                    InsightCategory.WHERE -> buildMap<GraphSchema.SchemaEventTypeNames, String> {
+                        put(keyEventPair.first, keyEventPair.second)
+                        put(GraphSchema.SchemaEventTypeNames.WHERE, (eventDetails.whereValue ?: ""))
+                    }
+                    InsightCategory.WHY -> buildMap<GraphSchema.SchemaEventTypeNames, String> {
+                        put(keyEventPair.first, keyEventPair.second)
+                        put(GraphSchema.SchemaEventTypeNames.WHY, (eventDetails.whyValue ?: ""))
+                    }
+                    InsightCategory.HOW -> buildMap<GraphSchema.SchemaEventTypeNames, String> {
+                        put(keyEventPair.first, keyEventPair.second)
+                        put(GraphSchema.SchemaEventTypeNames.HOW, (eventDetails.howValue ?: ""))
+                    }
+                    else -> error("Incorrect input.")
+                }
+                computeSimilarAndRelatedEvents(
+                    newEventMap = eventMap,
+                    eventRepository = graph.eventRepository,
+                    embeddingRepository = graph.embeddingRepository,
+                    sourceEventType = eventType,
+                    targetEventType = targetEventType,
+                    activeNodesOnly = false
+                )
+            }
         }
 
         return response

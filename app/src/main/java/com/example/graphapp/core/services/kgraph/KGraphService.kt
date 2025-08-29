@@ -18,6 +18,12 @@ interface KGraphService {
      * @param targetEventType Optional target event type to filter results.
      * @param insightCategory Similarity dimension/category to use.
      * @return List of events with high similarity to the given event.
+     *
+     * Example: Get tasks that are related to input incident.
+     *      inputEventType: INCIDENT
+     *      inputEventDetails: 5W1H
+     *      targetEventType: TASK
+     *      insightCategory: ALL
      */
     suspend fun findSimilarEvents(
         inputEventType: SchemaKeyEventTypeNames,

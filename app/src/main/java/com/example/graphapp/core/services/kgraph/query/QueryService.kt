@@ -10,7 +10,7 @@ import com.example.graphapp.data.db.UserNodeEntity
 interface QueryService {
 
     enum class InsightCategory {
-        WHO, WHEN, WHERE, WHY, HOW, SUSPICIOUS, ALERT
+        WHO, WHEN, WHERE, WHY, HOW, SUSPICIOUS, ALERT, ALL
     }
 
     suspend fun ensureReady()
