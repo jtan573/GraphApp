@@ -5,5 +5,5 @@ object SimilarityConfig {
     const val MAX_DISTANCE = 3000f
     const val MAX_TIME_DIFFERENCE = 86_400_000L * 3
     const val NUM_TOP_RESULTS_REQUIRED = 3
-    const val SIMILARITY_PRECISION = "%..2f"
+    const val SIMILARITY_PRECISION = "%.2f"
 }

@@ -58,9 +58,6 @@ suspend fun findRelatedSuspiciousEventsUseCase (
             }
         }
     }
-    similarIncidentsFound.forEach {
-        Log.d("check", "SUSPICIOUS INCIDENT: ${it.eventName}")
-    }
 
     return mapOf(SchemaKeyEventTypeNames.INCIDENT to similarIncidentsFound)
 }
