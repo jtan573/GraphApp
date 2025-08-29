@@ -33,7 +33,7 @@ suspend fun generateSimilarityResults(
     embeddingRepository: EmbeddingRepository,
     allKeyNodeIdsByType: Map<String, MutableList<Long>>,
     targetEventType: SchemaKeyEventTypeNames? = null,
-    numTopResults: Int = 3,
+    numTopResults: Int = SimilarityConfig.NUM_TOP_RESULTS_REQUIRED,
     propsInEvent: List<EventNodeEntity>
 ): Map<String, List<ExplainedSimilarityWithScores>> {
 
@@ -279,8 +279,8 @@ fun computeSimilarityForWhereProperty(
             propertyType = SchemaEventTypeNames.WHERE.key,
             tagsA = listOf(eventNameA),
             tagsB = listOf(eventNameB),
-            relevantTagsA = listOf(("%.2f".format(distance))+"m" to distanceSim),
-            relevantTagsB = listOf(("%.2f".format(distance))+"m" to distanceSim),
+            relevantTagsA = listOf(((SimilarityConfig.SIMILARITY_PRECISION).format(distance))+"m" to distanceSim),
+            relevantTagsB = listOf(((SimilarityConfig.SIMILARITY_PRECISION).format(distance))+"m" to distanceSim),
             simScore = distanceSim
         )
     } else {
