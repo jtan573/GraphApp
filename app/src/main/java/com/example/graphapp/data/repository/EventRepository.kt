@@ -4,10 +4,10 @@ import android.util.Log
 import com.example.graphapp.data.db.EventEdgeEntity
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.db.queries.EventDatabaseQueries
-import com.example.graphapp.backend.core.GraphSchema
-import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
-import com.example.graphapp.backend.core.GraphSchema.SchemaSemanticPropertyNodes
-import com.example.graphapp.backend.usecases.restoreLocationFromString
+import com.example.graphapp.core.schema.GraphSchema
+import com.example.graphapp.core.schema.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.core.schema.GraphSchema.SchemaSemanticPropertyNodes
+import com.example.graphapp.core.usecases.restoreLocationFromString
 import kotlin.math.abs
 
 class EventRepository(
@@ -275,7 +275,7 @@ class EventRepository(
 // --- DateTimes (unique) ---
         insertEventNodeIntoDb("1694757600000", SchemaEventTypeNames.WHEN.key) //1
         insertEventNodeIntoDb("1694766600000", SchemaEventTypeNames.WHEN.key) //2
-//        insertNodeIntoDb("2023-09-15T09:15Z", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.WHEN.key) //3
+//        insertNodeIntoDb("2023-09-15T09:15Z", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.WHEN.key) //3
         insertEventNodeIntoDb("1694861100000", SchemaEventTypeNames.WHEN.key) //4
         insertEventNodeIntoDb("1694876400000", SchemaEventTypeNames.WHEN.key) //5
         insertEventNodeIntoDb("1694937000000", SchemaEventTypeNames.WHEN.key) //6
@@ -360,8 +360,8 @@ class EventRepository(
             getEventNodeByNameAndType("1694761200000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType("Area Surveillance Operation", SchemaEventTypeNames.TASK.key)
         )
-//        insertEdgeIntoDB(getNodeByNameAndType("1.3521,103.8198", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Area Surveillance Operation", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.TASK.key))
-//        insertEdgeIntoDB(getNodeByNameAndType("Foot patrol", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.HOW.key), getNodeByNameAndType("Area Surveillance Operation", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.TASK.key))
+//        insertEdgeIntoDB(getNodeByNameAndType("1.3521,103.8198", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Area Surveillance Operation", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.TASK.key))
+//        insertEdgeIntoDB(getNodeByNameAndType("Foot patrol", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.HOW.key), getNodeByNameAndType("Area Surveillance Operation", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.TASK.key))
 
 
         insertEventEdgeIntoDb(
@@ -510,7 +510,7 @@ class EventRepository(
             getEventNodeByNameAndType("1694775000000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType("Surprise Attack", SchemaEventTypeNames.INCIDENT.key)
         )
-//        insertEdgeIntoDB(getNodeByNameAndType("1.1344,104.0495", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Surprise Attack", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
+//        insertEdgeIntoDB(getNodeByNameAndType("1.1344,104.0495", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Surprise Attack", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("IED detonation", SchemaEventTypeNames.HOW.key),
             getEventNodeByNameAndType("Surprise Attack", SchemaEventTypeNames.INCIDENT.key)
@@ -533,12 +533,12 @@ class EventRepository(
             getEventNodeByNameAndType("1.1155,104.0421", SchemaEventTypeNames.WHERE.key),
             getEventNodeByNameAndType("Roadside Bombing", SchemaEventTypeNames.INCIDENT.key)
         )
-//        insertEdgeIntoDB(getNodeByNameAndType("IED explosion", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.HOW.key), getNodeByNameAndType("Roadside Bombing", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
+//        insertEdgeIntoDB(getNodeByNameAndType("IED explosion", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.HOW.key), getNodeByNameAndType("Roadside Bombing", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
 
         insertEventNodeIntoDb("Interfere with enemy supply lines", SchemaEventTypeNames.WHY.key)
         insertEventNodeIntoDb("Explosion of IED", SchemaEventTypeNames.HOW.key)
         insertEventNodeIntoDb("1694878920000", SchemaEventTypeNames.WHEN.key)
-//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemy Group", SchemaEventTypeNames.WHO.key), getEventNodeByNameAndType("Improvised Explosive Strike", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
+//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Enemy Group", SchemaEventTypeNames.WHO.key), getEventNodeByNameAndType("Improvised Explosive Strike", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType(
                 "Interfere with enemy supply lines",
@@ -643,7 +643,7 @@ class EventRepository(
         )
 
         insertEventNodeIntoDb("Guard general public", SchemaEventTypeNames.WHY.key)
-//        insertEventNodeIntoDb("1695443400000", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.WHEN.key)
+//        insertEventNodeIntoDb("1695443400000", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.WHEN.key)
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Echo Unit", SchemaEventTypeNames.WHO.key),
             getEventNodeByNameAndType("Evacuation Finalized", SchemaEventTypeNames.OUTCOME.key)
@@ -702,7 +702,7 @@ class EventRepository(
             getEventNodeByNameAndType("1695882000000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType("Target Area Secured", SchemaEventTypeNames.OUTCOME.key)
         )
-//        insertEdgeIntoDB(getNodeByNameAndType("1.3000,103.9000", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Target Area Secured", SchemaEventTypeNames.OUTCOME.key))
+//        insertEdgeIntoDB(getNodeByNameAndType("1.3000,103.9000", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Target Area Secured", SchemaEventTypeNames.OUTCOME.key))
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Nighttime offensive", SchemaEventTypeNames.HOW.key),
             getEventNodeByNameAndType("Target Area Secured", SchemaEventTypeNames.OUTCOME.key)
@@ -808,7 +808,7 @@ class EventRepository(
             getEventNodeByNameAndType("1695894600000", SchemaEventTypeNames.WHEN.key),
             getEventNodeByNameAndType("Mission Timeline Extended", SchemaEventTypeNames.IMPACT.key)
         )
-//        insertEdgeIntoDB(getNodeByNameAndType("1.4250,103.8500", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Mission Timeline Extended", SchemaEventTypeNames.IMPACT.key))
+//        insertEdgeIntoDB(getNodeByNameAndType("1.4250,103.8500", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.WHERE.key), getNodeByNameAndType("Mission Timeline Extended", SchemaEventTypeNames.IMPACT.key))
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Drone monitoring", SchemaEventTypeNames.HOW.key),
             getEventNodeByNameAndType("Mission Timeline Extended", SchemaEventTypeNames.IMPACT.key)
@@ -1576,7 +1576,7 @@ class EventRepository(
         insertEventNodeIntoDb("1695507300000", SchemaEventTypeNames.WHEN.key)
         insertEventNodeIntoDb("1.3521,103.7927", SchemaEventTypeNames.WHERE.key)
         insertEventNodeIntoDb("Release of toxic materials from factory", SchemaEventTypeNames.HOW.key)
-//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown Source", SchemaEventTypeNames.WHO.key), getEventNodeByNameAndType("Chemical release into air", com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
+//        insertEventEdgeIntoDb(getEventNodeByNameAndType("Unknown Source", SchemaEventTypeNames.WHO.key), getEventNodeByNameAndType("Chemical release into air", com.example.graphapp.backend.schema.GraphSchema.SchemaEventTypeNames.INCIDENT.key))
         insertEventEdgeIntoDb(
             getEventNodeByNameAndType("Malicious intent", SchemaEventTypeNames.WHY.key),
             getEventNodeByNameAndType("Chemical release into air", SchemaEventTypeNames.INCIDENT.key)

@@ -1,8 +1,7 @@
 package com.example.graphapp.data.repository
 
 import android.util.Log
-import com.example.graphapp.backend.core.GraphSchema.SchemaKeyEventTypeNames
-import com.example.graphapp.backend.model.dto.UserDetailData
+import com.example.graphapp.core.schema.GraphSchema.SchemaKeyEventTypeNames
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionNodeEntity
 import com.example.graphapp.data.db.queries.UserActionDatabaseQueries

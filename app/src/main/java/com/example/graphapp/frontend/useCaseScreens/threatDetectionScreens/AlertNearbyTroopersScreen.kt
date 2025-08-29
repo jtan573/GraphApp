@@ -25,7 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.graphapp.R
-import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.core.schema.GraphSchema.SchemaEventTypeNames
 
 @Composable
 fun AlertNearbyTroopersScreen() {

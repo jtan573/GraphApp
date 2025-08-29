@@ -47,12 +47,10 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.core.schema.GraphSchema.SchemaEventTypeNames
 import com.example.graphapp.frontend.navigation.NavItem
 import com.example.graphapp.frontend.viewmodels.GraphViewModel
 import kotlin.collections.component1

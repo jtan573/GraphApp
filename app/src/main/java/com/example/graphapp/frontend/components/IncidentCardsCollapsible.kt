@@ -28,8 +28,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.graphapp.backend.core.GraphSchema
-import com.example.graphapp.backend.model.dto.EventDetails
+import com.example.graphapp.core.schema.GraphSchema
+import com.example.graphapp.core.model.dto.EventDetails
 
 @Composable
 fun IncidentCardCollapsible(incidents: List<EventDetails>, impacts: Map<Long, List<String>>?) {

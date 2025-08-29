@@ -1,12 +1,16 @@
 package com.example.graphapp.data.repository
 
 import android.content.Context
-import com.example.graphapp.backend.core.GraphSchema.SchemaPosTags
+import com.example.graphapp.core.schema.GraphSchema.SchemaPosTags
 import com.example.graphapp.data.db.queries.DictionaryDatabaseQueries
 import com.example.graphapp.data.db.EventNodeEntity
 import com.example.graphapp.data.embedding.SentenceEmbedding
 import edu.stanford.nlp.pipeline.*;
 import java.util.Properties
+
+/**
+ *
+ */
 
 class DictionaryRepository(
     private val context: Context,

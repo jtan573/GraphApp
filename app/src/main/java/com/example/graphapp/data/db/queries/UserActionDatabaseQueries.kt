@@ -1,6 +1,6 @@
 package com.example.graphapp.data.db.queries
 
-import com.example.graphapp.backend.core.GraphSchema
+import com.example.graphapp.core.schema.GraphSchema
 import com.example.graphapp.data.db.ActionEdgeEntity
 import com.example.graphapp.data.db.ActionEdgeEntity_
 import com.example.graphapp.data.db.ActionNodeEntity

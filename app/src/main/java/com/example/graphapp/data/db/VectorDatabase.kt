@@ -1,12 +1,10 @@
 package com.example.graphapp.data.db
 
 import android.content.Context
-import android.util.Log
-import com.example.graphapp.backend.core.EventStatus
-import com.example.graphapp.backend.core.GraphSchema.SchemaEventTypeNames
+import com.example.graphapp.core.analyser.EventStatus
+import com.example.graphapp.core.schema.GraphSchema.SchemaEventTypeNames
 import io.objectbox.BoxStore
 import io.objectbox.BoxStoreBuilder
-import io.objectbox.android.Admin
 import io.objectbox.annotation.Convert
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.HnswIndex
